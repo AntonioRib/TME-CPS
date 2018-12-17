@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <thread>
 
 class SysAdmin {
    private:
@@ -11,6 +12,7 @@ class SysAdmin {
    public:
     SysAdmin();
     void saySomething(std::string message);
+    std::thread saySomethingThread(std::string message);
 };
 
 #endif

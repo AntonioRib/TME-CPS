@@ -9,7 +9,14 @@ SysAdmin::SysAdmin() {
 }
 
 void SysAdmin::saySomething(std::string message) {
-    std::cout << "Auditor >> " + message + "\n";
+    while (true) {
+        std::cout << "Auditor >> " + message + "\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    }
+}
+
+std::thread SysAdmin::saySomethingThread(std::string message) {
+    return std::thread([this, message] { saySomething(message); });
 }
 
 int main(int argc, char* argv[]) {
@@ -32,15 +39,17 @@ int main(int argc, char* argv[]) {
 
     SysAdmin* sysAdmin;
     sysAdmin = new SysAdmin();
-
+    std::thread t1;
     std::string line;
+    std::getline(std::cin, line);
+    t1 = sysAdmin->saySomethingThread(line);
     while (true) {
-        std::getline(std::cin, line);
         if (line == "exit") {
             std::cout << "Bye bye\n";
             break;
         }
-        sysAdmin->saySomething(line);
+        std::getline(std::cin, line);
     }
+    t1.join();
     return 0;
 }
