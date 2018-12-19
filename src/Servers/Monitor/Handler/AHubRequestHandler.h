@@ -2,6 +2,9 @@
 #define _ahubrequesthandler_h_
 
 #include <iostream>
+// #include "../Monitor.h"
+
+class Monitor;
 
 class AHubRequestHandler {
    private:
@@ -9,6 +12,7 @@ class AHubRequestHandler {
 
    public:
     AHubRequestHandler();
+    AHubRequestHandler(Monitor* monitor);
 };
 
 #endif

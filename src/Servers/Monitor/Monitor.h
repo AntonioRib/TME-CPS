@@ -3,13 +3,17 @@
 
 #include <iostream>
 #include <thread>
+#include "Handler/AHubRequestHandler.h"
+#include "Handler/AuditorRequestHandler.h"
+#include "Handler/DeveloperRequestHandler.h"
+#include "Handler/MinionRequestHandler.h"
 
 class Monitor {
    private:
     ;
 
    protected:
-    std::thread startAHubHandler();
+    ;
 
    public:
     Monitor();

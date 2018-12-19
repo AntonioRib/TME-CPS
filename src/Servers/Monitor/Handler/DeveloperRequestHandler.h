@@ -2,6 +2,9 @@
 #define _developerrequesthandler_h_
 
 #include <iostream>
+// #include "../Monitor.h"
+
+class Monitor;
 
 class DeveloperRequestHandler {
    private:
@@ -9,6 +12,7 @@ class DeveloperRequestHandler {
 
    public:
     DeveloperRequestHandler();
+    DeveloperRequestHandler(Monitor* monitor);
 };
 
 #endif

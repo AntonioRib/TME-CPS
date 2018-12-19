@@ -4,13 +4,13 @@ SysAdminRequestHandler::SysAdminRequestHandler() {
     std::cout << "SysAdminRequestHandler created\n";
 }
 
-int main(int argc, char* argv[]) {
-    std::cout << "Will try to create SysAdminRequestHandler\n";
+// int main(int argc, char* argv[]) {
+//     std::cout << "Will try to create SysAdminRequestHandler\n";
 
-    SysAdminRequestHandler* sysAdminRequestHandler;
-    sysAdminRequestHandler = new SysAdminRequestHandler();
+//     SysAdminRequestHandler* sysAdminRequestHandler;
+//     sysAdminRequestHandler = new SysAdminRequestHandler();
 
-    std::cout << "Bubye\n";
+//     std::cout << "Bubye\n";
 
-    return 0;
-}
+//     return 0;
+// }

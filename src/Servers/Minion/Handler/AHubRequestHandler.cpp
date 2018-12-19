@@ -4,13 +4,13 @@ AHubRequestHandler::AHubRequestHandler() {
     std::cout << "AHubRequestHandler created\n";
 }
 
-int main(int argc, char* argv[]) {
-    std::cout << "Will try to create AHubRequestHandler\n";
+// int main(int argc, char* argv[]) {
+//     std::cout << "Will try to create AHubRequestHandler\n";
 
-    AHubRequestHandler* ahubRequestHandler;
-    ahubRequestHandler = new AHubRequestHandler();
+//     AHubRequestHandler* ahubRequestHandler;
+//     ahubRequestHandler = new AHubRequestHandler();
 
-    std::cout << "Bubye\n";
+//     std::cout << "Bubye\n";
 
-    return 0;
-}
+//     return 0;
+// }
