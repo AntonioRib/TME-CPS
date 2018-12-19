@@ -17,9 +17,9 @@ all : $(SUBDIRS)
 $(SUBDIRS) :
 	$(MAKE) -C $@ clean all
 
-clean : $(RMSUBDIRS)
-$(RMSUBDIRS) :
-	$(MAKE) -C $@ clean
+# clean : $(RMSUBDIRS)
+# $(RMSUBDIRS) :
+# 	$(MAKE) -C $@ clean
 
 # OBJ = $(SRCDIR:.cpp=.o)
 # # OBJDIR = $(SRCDIR:.cpp=.o)

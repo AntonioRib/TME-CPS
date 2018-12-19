@@ -10,7 +10,7 @@ OBJ = $(SRCDIR:.cpp=.o)
 # OBJDIR = $(SRCDIR:.cpp=.o)
 
 
-BINDIR=.
+BINDIR=../../../bin
 BIN=$(BINDIR)/Developer
 
 
