@@ -3,10 +3,6 @@
 
 #include <iostream>
 #include <thread>
-#include "Handler/AHubRequestHandler.h"
-#include "Handler/AuditorRequestHandler.h"
-#include "Handler/DeveloperRequestHandler.h"
-#include "Handler/MinionRequestHandler.h"
 
 class Monitor {
    private:
@@ -17,6 +13,8 @@ class Monitor {
 
    public:
     Monitor();
+    Monitor(std::string name);
+    std::string name;
 };
 
 #endif

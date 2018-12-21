@@ -2,9 +2,7 @@
 #define _minionrequesthandler_h_
 
 #include <iostream>
-// #include "../Monitor.h"
-
-class Monitor;
+#include "../Monitor.h"
 
 class MinionRequestHandler {
    private:

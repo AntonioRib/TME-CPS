@@ -2,17 +2,17 @@
 #define _ahubrequesthandler_h_
 
 #include <iostream>
-// #include "../Monitor.h"
-
-class Monitor;
+#include "../Monitor.h"
 
 class AHubRequestHandler {
+    Monitor monitor;
+    
    private:
     ;
 
    public:
     AHubRequestHandler();
-    AHubRequestHandler(Monitor* monitor);
+    AHubRequestHandler(Monitor m);
 };
 
 #endif
