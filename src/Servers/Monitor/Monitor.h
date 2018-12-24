@@ -5,16 +5,17 @@
 #include <thread>
 
 class Monitor {
-   private:
-    ;
+    private:
+        ;
 
-   protected:
-    ;
+    protected:
+        ;
 
-   public:
-    Monitor();
-    Monitor(std::string name);
-    std::string name;
+    public:
+        Monitor();
+        Monitor(std::string name);
+        Monitor(const Monitor&);
+        std::string name;
 };
 
 #endif

@@ -4,8 +4,12 @@ AHubRequestHandler::AHubRequestHandler() {
     std::cout << "AHubRequestHandler created\n";
 }
 
-AHubRequestHandler::AHubRequestHandler(Monitor m): monitor(m) {
+AHubRequestHandler::AHubRequestHandler(Monitor monitor) : monitor{monitor} {
     std::cout << "AHubRequestHandler created with the name " << monitor.name << "\n";
+}
+
+void AHubRequestHandler::startAHubRequestHandler(AHubRequestHandler aHubRequestHandler) {
+    std::cout << "AHubRequestHandler running with Monitor with the name " << aHubRequestHandler.monitor.name << "\n";
 }
 
 // int main(int argc, char* argv[]) {

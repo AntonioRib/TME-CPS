@@ -12,7 +12,8 @@ class AHubRequestHandler {
 
    public:
     AHubRequestHandler();
-    AHubRequestHandler(Monitor m);
+    AHubRequestHandler(Monitor monitor);
+    static void startAHubRequestHandler(AHubRequestHandler aHubRequestHandler);
 };
 
 #endif
