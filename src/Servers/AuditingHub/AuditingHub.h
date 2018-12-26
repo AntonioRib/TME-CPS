@@ -2,6 +2,7 @@
 #define _auditinghub_h_
 
 #include <iostream>
+#include <thread>
 
 class AuditingHub
 {
@@ -10,6 +11,9 @@ class AuditingHub
 
   public:
     AuditingHub();
+    AuditingHub(std::string name);
+    AuditingHub(const AuditingHub&);
+    std::string name;
 };
 
 #endif

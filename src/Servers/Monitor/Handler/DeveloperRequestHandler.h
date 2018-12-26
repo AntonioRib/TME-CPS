@@ -5,12 +5,15 @@
 #include "../Monitor.h"
 
 class DeveloperRequestHandler {
+    Monitor monitor;
+    
    private:
     ;
 
    public:
     DeveloperRequestHandler();
-    DeveloperRequestHandler(Monitor* monitor);
+    DeveloperRequestHandler(Monitor monitor);
+    static void startDeveloperRequestHandler(DeveloperRequestHandler developerRequestHandler);
 };
 
 #endif

@@ -4,8 +4,12 @@ DeveloperRequestHandler::DeveloperRequestHandler() {
     std::cout << "DeveloperRequestHandler created\n";
 }
 
-DeveloperRequestHandler::DeveloperRequestHandler(Monitor* monitor) {
-    std::cout << "DeveloperRequestHandler created\n";
+DeveloperRequestHandler::DeveloperRequestHandler(Monitor monitor) : monitor{monitor} {
+    std::cout << "DeveloperRequestHandler created with the name " << monitor.name << "\n";
+}
+
+void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandler developerRequestHandler) {
+    std::cout << "DeveloperRequestHandler running with Monitor with the name " << developerRequestHandler.monitor.name << "\n";
 }
 
 // int main(int argc, char* argv[]) {

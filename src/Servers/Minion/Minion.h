@@ -2,6 +2,7 @@
 #define _minion_h_
 
 #include <iostream>
+#include <thread>
 
 class Minion
 {
@@ -10,6 +11,9 @@ class Minion
 
   public:
     Minion();
+    Minion(std::string name);
+    Minion(const Minion&);
+    std::string name;
 };
 
 #endif

@@ -4,8 +4,12 @@ MinionRequestHandler::MinionRequestHandler() {
     std::cout << "MinionRequestHandler created\n";
 }
 
-MinionRequestHandler::MinionRequestHandler(Monitor* monitor) {
-    std::cout << "MinionRequestHandler created\n";
+MinionRequestHandler::MinionRequestHandler(Monitor monitor) : monitor{monitor} {
+    std::cout << "MinionRequestHandler created with the name " << monitor.name << "\n";
+}
+
+void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minionRequestHandler) {
+    std::cout << "MinionRequestHandler running with Monitor with the name " << minionRequestHandler.monitor.name << "\n";
 }
 
 // int main(int argc, char* argv[]) {

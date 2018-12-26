@@ -5,12 +5,15 @@
 #include "../Monitor.h"
 
 class AuditorRequestHandler {
+    Monitor monitor;
+
    private:
     ;
 
    public:
     AuditorRequestHandler();
-    AuditorRequestHandler(Monitor* monitor);
+    AuditorRequestHandler(Monitor monitor);
+    static void startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler);
 };
 
 #endif
