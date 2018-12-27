@@ -5,11 +5,11 @@ AuditorRequestHandler::AuditorRequestHandler() {
 }
 
 AuditorRequestHandler::AuditorRequestHandler(Monitor monitor) : monitor{monitor} {
-    std::cout << "AuditorRequestHandler created with the name " << monitor.name << "\n";
+    std::cout << "AuditorRequestHandler created with the name " << monitor.username << "\n";
 }
 
 void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler) {
-    std::cout << "AuditorRequestHandler running with Monitor with the name " << auditorRequestHandler.monitor.name << "\n";
+    std::cout << "AuditorRequestHandler running with Monitor with the name " << auditorRequestHandler.monitor.username << "\n";
 }
 
 // int main(int argc, char* argv[]) {

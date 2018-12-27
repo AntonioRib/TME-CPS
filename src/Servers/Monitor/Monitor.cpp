@@ -3,13 +3,23 @@
 #include "Handler/AuditorRequestHandler.h"
 #include "Handler/DeveloperRequestHandler.h"
 #include "Handler/MinionRequestHandler.h"
+#include "../../Utilities/Messages.cpp"
+using namespace std;
 
-Monitor::Monitor(const Monitor& m) : name{m.name} {
+const int USERNAME_FLAG_INDEX = 1;
+const int KEY_FLAG_INDEX = 3;
+const int HOSTNAME_FLAG_INDEX = 5;
+
+Monitor::Monitor(const Monitor& m) : username{m.username}, sshKey{m.sshKey}, hostname{m.hostname}, 
+    trustedMinions{m.trustedMinions}, untrustedMinions{m.untrustedMinions}, applications{m.applications} {
     // std::cout << "Monitor created with the name " << Monitor::name << " - copy constructor \n";
 }
 
-Monitor::Monitor(std::string n) : name{n} {
-    // std::cout << "Monitor created with the name " << Monitor::name << " - string constructor \n";
+Monitor::Monitor(string username, string sshKey, string hostName) : username{username}, sshKey{sshKey}, hostname{hostName} {
+    std::cout << "Monitor created with the name " << Monitor::username << " - string constructor \n";
+    // map<string, Minion> trustedMinions {};
+    // map<string, Minion> untrustedMinions {};
+    // map<string, string> applications {};
 }
 
 Monitor::Monitor() {
@@ -17,10 +27,21 @@ Monitor::Monitor() {
 }
 
 int main(int argc, char* argv[]) {
+
+
+    if(argc != 7){
+        cout << "Usage: Monitor -u username -j sshKey -h host";
+        return 0;
+    }
+
+    string username(argv[USERNAME_FLAG_INDEX + 1]);
+    string sshKey(argv[KEY_FLAG_INDEX + 1]);
+    string hostname(argv[HOSTNAME_FLAG_INDEX + 1]);
+
     std::cout << "Will try to create Monitor\n";
 
     std::string s = "Monitor I";
-    Monitor monitor = Monitor(s);
+    Monitor monitor = Monitor(username, sshKey, hostname);
 
     AHubRequestHandler ahubRequestHandler = AHubRequestHandler(monitor);
     std::thread ahubRequestHandlerThread(AHubRequestHandler::startAHubRequestHandler, ahubRequestHandler);

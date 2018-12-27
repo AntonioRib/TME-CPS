@@ -5,11 +5,11 @@ DeveloperRequestHandler::DeveloperRequestHandler() {
 }
 
 DeveloperRequestHandler::DeveloperRequestHandler(Monitor monitor) : monitor{monitor} {
-    std::cout << "DeveloperRequestHandler created with the name " << monitor.name << "\n";
+    std::cout << "DeveloperRequestHandler created with the name " << monitor.username << "\n";
 }
 
 void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandler developerRequestHandler) {
-    std::cout << "DeveloperRequestHandler running with Monitor with the name " << developerRequestHandler.monitor.name << "\n";
+    std::cout << "DeveloperRequestHandler running with Monitor with the name " << developerRequestHandler.monitor.username << "\n";
 }
 
 // int main(int argc, char* argv[]) {
