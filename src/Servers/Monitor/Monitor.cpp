@@ -3,7 +3,6 @@
 #include "Handler/AuditorRequestHandler.h"
 #include "Handler/DeveloperRequestHandler.h"
 #include "Handler/MinionRequestHandler.h"
-#include "../../Utilities/Messages.cpp"
 using namespace std;
 
 const int USERNAME_FLAG_INDEX = 1;
@@ -12,7 +11,7 @@ const int HOSTNAME_FLAG_INDEX = 5;
 
 Monitor::Monitor(const Monitor& m) : username{m.username}, sshKey{m.sshKey}, hostname{m.hostname}, 
     trustedMinions{m.trustedMinions}, untrustedMinions{m.untrustedMinions}, applications{m.applications} {
-    // std::cout << "Monitor created with the name " << Monitor::name << " - copy constructor \n";
+    // std::cout << "Monitor created with the name " << Monitor::hostname << " - copy constructor \n";
 }
 
 Monitor::Monitor(string username, string sshKey, string hostName) : username{username}, sshKey{sshKey}, hostname{hostName} {
@@ -30,7 +29,7 @@ int main(int argc, char* argv[]) {
 
 
     if(argc != 7){
-        cout << "Usage: Monitor -u username -j sshKey -h host";
+        cout << "Usage: Monitor -u username -j sshKey -h host\n";
         return 0;
     }
 
