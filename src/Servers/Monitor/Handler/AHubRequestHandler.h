@@ -5,14 +5,14 @@
 #include "../Monitor.h"
 
 class AHubRequestHandler {
-    Monitor monitor;
+    Monitor* monitor;
     
    private:
     ;
 
    public:
     AHubRequestHandler();
-    AHubRequestHandler(Monitor monitor);
+    AHubRequestHandler(Monitor* monitor);
     static void startAHubRequestHandler(AHubRequestHandler aHubRequestHandler);
 };
 

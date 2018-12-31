@@ -5,14 +5,14 @@
 #include "../Monitor.h"
 
 class MinionRequestHandler {
-    Monitor monitor;
+    Monitor* monitor;
     
    private:
     ;
 
    public:
     MinionRequestHandler();
-    MinionRequestHandler(Monitor monitor);
+    MinionRequestHandler(Monitor* monitor);
     static void startMinionRequestHandler(MinionRequestHandler minionRequestHandler);
 };
 
