@@ -1,7 +1,8 @@
 #include "AuditorRequestHandler.h"
 #include "../../../Utilities/Messages.h"
-#include "../../../Utilities/httpLib/httplib.h"
+#include "../../../Utilities/AttestationConstants.h"
 #include "../../../Utilities/Ports.h"
+#include "../../../Utilities/httpLib/httplib.h"
 // #include <arpa/inet.h>
 // #include <openssl/bio.h>
 // #include <openssl/err.h>
@@ -25,23 +26,39 @@ void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler aud
     std::cout << "Trying to create AuditorRequestHandler with Monitor with the name " << auditorRequestHandler.monitor->hostname << "\n";
 
     httplib::Server svr;
-    bool debug = false;
+    bool debug = true;
 
-    svr.Get(("/" + Messages::OK).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
-        res.set_content(Messages::OK, "text/plain");
-        std::cout << "Recieved an OK. Going to set configuration. \n";
-        auditorRequestHandler.monitor->setApprovedConfiguration(true);
-        std::cout << "Configuration was set. \n";
+    svr.Get(("/" + Messages::ATTEST).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
+        if(debug)
+            std::cout << "Recieved an ATTEST. Going to send configuration. \n";
+        std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
+        res.set_content(configuration, "text/plain");
+    });
+
+    svr.Get(("/" + Messages::OK_APPROVED).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
+        if (debug)
+            std::cout << "Recieved an OK. Going to update configuration. \n";
+        unsigned char* uc = (unsigned char*)req.body.c_str();
+        auditorRequestHandler.monitor->setApprovedConfiguration(uc);
+        if (debug)
+            std::cout << "Configuration was set. \n";
+    });
+
+    svr.Get(("/" + Messages::NOT_APPROVED).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
+        if (debug)
+            std::cout << "Recieved an NOT_APPROVED. Going to close. \n";
+        svr.stop();
     });
 
     svr.Get(("/" + Messages::NOT_OK).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
         res.set_content(Messages::NOT_OK, "text/plain");
         svr.stop();
     });
-
-    std::cout << "AuditorRequestHandler running with Monitor with the name " << auditorRequestHandler.monitor->hostname << "\n";
+    if (debug)
+        std::cout << "AuditorRequestHandler running with Monitor with the name " << auditorRequestHandler.monitor->hostname << "\n";
     svr.listen(auditorRequestHandler.monitor->hostname.c_str(), Ports::MONITOR_AUDITOR_PORT);
-    std::cout << "AuditorRequestHandler finished " << "\n";
+    if (debug)
+        std::cout << "AuditorRequestHandler finished \n";
 }
 
 // int main(int argc, char* argv[]) {

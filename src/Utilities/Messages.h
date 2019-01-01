@@ -30,6 +30,8 @@ namespace Messages{
 
     static const string ATTEST = "ATTEST";
     static const string QUOTE = "QUOTE";
+    static const string OK_APPROVED = "OK_APPROVED";
+    static const string NOT_APPROVED = "NOT_APPROVED";
 
     static const string QUIT = "QUIT";
 }

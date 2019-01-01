@@ -14,15 +14,15 @@ class Monitor {
     
 
    private:
-    bool approvedConfiguration;
+    unsigned char* approvedConfiguration;
     ;
 
    protected:
     ;
 
    public:
-    void setApprovedConfiguration(bool approvedConfiguration);
-    bool getApprovedConfiguration();
+    void setApprovedConfiguration(unsigned char* approvedConfiguration);
+    unsigned char* getApprovedConfiguration();
     Monitor();
     Monitor(string username, string sshKey, string hostName);
     Monitor(const Monitor&);
