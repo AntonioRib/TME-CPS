@@ -3,15 +3,18 @@
 
 #include <iostream>
 #include "../Minion.h"
+using namespace std;
 
 class AHubRequestHandler {
-    Minion minion;
    private:
-    ;
+    Minion* minion;
+    string minionStore;
+
+    bool purgeMinion();
 
    public:
     AHubRequestHandler();
-    AHubRequestHandler(Minion minion);
+    AHubRequestHandler(Minion* minion);
     static void startAHubRequestHandler(AHubRequestHandler aHubRequestHandler);
 };
 

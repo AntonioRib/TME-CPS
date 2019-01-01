@@ -6,7 +6,6 @@ LINK=g++ $(LDFLAGS) -o
 
 SRCDIR= $(wildcard *.cpp) \
 	$(wildcard Handler/*.cpp) \
-	$(wildcard Application/*.cpp) \
 
 OBJ = $(SRCDIR:.cpp=.o)
 # OBJDIR = $(SRCDIR:.cpp=.o)

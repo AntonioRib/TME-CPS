@@ -4,12 +4,16 @@ AHubRequestHandler::AHubRequestHandler() {
     std::cout << "AHubRequestHandler created\n";
 }
 
-AHubRequestHandler::AHubRequestHandler(Minion minion) : minion{minion} {
-    std::cout << "AHubRequestHandler created with the name " << minion.name << "\n";
+AHubRequestHandler::AHubRequestHandler(Minion* minion) : minion{minion} {
+    std::cout << "AHubRequestHandler created with the name " << minion->getIpAddress() << "\n";
 }
 
 void AHubRequestHandler::startAHubRequestHandler(AHubRequestHandler aHubRequestHandler) {
-    std::cout << "AHubRequestHandler running with Minion with the name " << aHubRequestHandler.minion.name << "\n";
+    std::cout << "AHubRequestHandler running with Minion with the name " << aHubRequestHandler.minion->getIpAddress() << "\n";
+}
+
+bool AHubRequestHandler::purgeMinion() {
+    //TODO
 }
 
 // int main(int argc, char* argv[]) {

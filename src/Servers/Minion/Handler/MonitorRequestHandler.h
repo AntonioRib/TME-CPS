@@ -3,15 +3,23 @@
 
 #include <iostream>
 #include "../Minion.h"
+using namespace std;
 
 class MonitorRequestHandler {
-    Minion minion;
-   private:
-    ;
 
-   public:
+   private:
+    Minion* minion;
+    string hostname;
+    string minionStore;
+
+    bool deployApp(string appId);
+    bool deleteApp(string appId);
+
+    void processAttestation(string nonce); //TODO
+
+    public: 
     MonitorRequestHandler();
-    MonitorRequestHandler(Minion minion);
+    MonitorRequestHandler(Minion* minion);
     static void startMonitorRequestHandler(MonitorRequestHandler minionRequestHandler);
 };
 
