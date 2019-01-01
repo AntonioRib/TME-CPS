@@ -33,7 +33,7 @@ Monitor::Monitor() {
 void Monitor::setApprovedConfiguration(unsigned char* approvedConfiguration) {
     std::cout << "Updated confg from: " << +Monitor::approvedConfiguration;
     Monitor::approvedConfiguration = approvedConfiguration;
-    std::cout << " to: " << +Monitor::approvedConfiguration;
+    std::cout << " to: " << +Monitor::approvedConfiguration << "\n";
 }
 
 unsigned char* Monitor::getApprovedConfiguration() {

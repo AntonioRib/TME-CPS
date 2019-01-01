@@ -28,14 +28,14 @@ void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler aud
     httplib::Server svr;
     bool debug = true;
 
-    svr.Get(("/" + Messages::ATTEST).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
+    svr.Post(("/" + Messages::ATTEST).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
         if(debug)
             std::cout << "Recieved an ATTEST. Going to send configuration. \n";
         std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
         res.set_content(configuration, "text/plain");
     });
 
-    svr.Get(("/" + Messages::OK_APPROVED).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
+    svr.Post(("/" + Messages::OK_APPROVED).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
         if (debug)
             std::cout << "Recieved an OK. Going to update configuration. \n";
         unsigned char* uc = (unsigned char*)req.body.c_str();

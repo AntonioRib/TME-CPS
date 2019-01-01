@@ -11,7 +11,7 @@ OBJ = $(SRCDIR:.cpp=.o)
 
 
 BINDIR=../../../bin
-BIN=$(BINDIR)/SysAdmin
+BIN=$(BINDIR)/Auditor
 
 
 all: $(BIN) 
