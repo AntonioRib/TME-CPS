@@ -12,6 +12,7 @@ const int HOSTNAME_FLAG_INDEX = 5;
 
 const unsigned char* NULL_VALUE = (unsigned char*)"\0";
 
+//Constructors
 Monitor::Monitor(const Monitor& m) : username{m.username}, sshKey{m.sshKey}, hostname{m.hostname}, 
     trustedMinions{m.trustedMinions}, untrustedMinions{m.untrustedMinions}, applications{m.applications} {
     Monitor::approvedConfiguration = (unsigned char*)NULL_VALUE;  //std::nullptr_t();
@@ -30,18 +31,88 @@ Monitor::Monitor() {
     std::cout << "Monitor created\n";
 }
 
-void Monitor::setApprovedConfiguration(unsigned char* approvedConfiguration) {
-    std::cout << "Updated confg from: " << +Monitor::approvedConfiguration;
-    Monitor::approvedConfiguration = approvedConfiguration;
-    std::cout << " to: " << +Monitor::approvedConfiguration << "\n";
+//Getters
+string Monitor::getSSHKey(){
+    return Monitor::sshKey;
+}
+
+string Monitor::getUsername(){
+    return Monitor::username;
+}
+
+string Monitor::getHostname(){
+    return Monitor::hostname;
+}
+
+vector<Minion*> Monitor::getHosts(string appID) {
+    //TODO
+}
+
+vector<Minion*> Monitor::getUntrustedMinions(){
+    //TODO
+}
+
+vector<Minion*> Monitor::getTrustedMinions() {
+    //TODO
 }
 
 unsigned char* Monitor::getApprovedConfiguration() {
     return Monitor::approvedConfiguration;
 }
 
-int main(int argc, char* argv[]) {
+string Monitor::getApprovedConfigurationForMinions() {
+    //TODO
+}
 
+//Setters
+void Monitor::setApprovedConfiguration(unsigned char* approvedConfiguration) {
+    std::cout << "Updated confg from: " << +Monitor::approvedConfiguration;
+    Monitor::approvedConfiguration = approvedConfiguration;
+    std::cout << " to: " << +Monitor::approvedConfiguration << "\n";
+}
+
+void Monitor::setApprovedConfigurationForMinions(string approvedConfiguration){
+    //TODO
+}
+
+//Special Getters
+Minion* Monitor::getUntrustedMinion(string ipAddress) {
+    //TODO
+}
+
+Minion* Monitor::pickTrustedMinion(){
+    //TODO
+}
+vector<Minion*> Monitor::pickNTrustedMinions(int numberOfMinions){
+    //TODO
+}
+
+//Functions
+void Monitor::addApplication(string appID, vector<Minion*> hosts){
+    //TODO
+}
+
+void Monitor::deleteApplication(string appID) {
+    //TODO
+}
+
+void Monitor::addNewMinion(string newMinionAddress) {
+    //TODO
+}
+
+void Monitor::removeMinion(string minionAddress) {
+    //TODO
+}
+
+void Monitor::setMinionUntrusted(string minionAddress){
+    //TODO
+}
+
+void Monitor::setMinionTrusted(string minionAddress) {
+    //TODO
+}
+
+int main(int argc, char* argv[]) {
 
     if(argc != 7){
         cout << "Usage: Monitor -u username -j sshKey -h host\n";

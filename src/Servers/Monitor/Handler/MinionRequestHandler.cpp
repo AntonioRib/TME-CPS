@@ -5,11 +5,15 @@ MinionRequestHandler::MinionRequestHandler() {
 }
 
 MinionRequestHandler::MinionRequestHandler(Monitor* monitor) : monitor{monitor} {
-    std::cout << "MinionRequestHandler created with the name " << monitor->hostname << "\n";
+    std::cout << "MinionRequestHandler created with the name " << monitor->getHostname() << "\n";
+}
+
+void MinionRequestHandler::attestMinion(){
+    //TODO
 }
 
 void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minionRequestHandler) {
-    std::cout << "MinionRequestHandler running with Monitor with the name " << minionRequestHandler.monitor->hostname << "\n";
+    std::cout << "MinionRequestHandler running with Monitor with the name " << minionRequestHandler.monitor->getHostname() << "\n";
 }
 
 // int main(int argc, char* argv[]) {

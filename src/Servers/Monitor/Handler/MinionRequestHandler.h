@@ -6,11 +6,12 @@
 
 class MinionRequestHandler {
     Monitor* monitor;
-    
-   private:
-    ;
+    std::string monitorStore;
 
-   public:
+   private:
+    void attestMinion(); //TODO
+
+    public: 
     MinionRequestHandler();
     MinionRequestHandler(Monitor* monitor);
     static void startMinionRequestHandler(MinionRequestHandler minionRequestHandler);

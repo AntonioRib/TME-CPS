@@ -5,11 +5,27 @@ DeveloperRequestHandler::DeveloperRequestHandler() {
 }
 
 DeveloperRequestHandler::DeveloperRequestHandler(Monitor* monitor) : monitor{monitor} {
-    std::cout << "DeveloperRequestHandler created with the name " << monitor->hostname << "\n";
+    std::cout << "DeveloperRequestHandler created with the name " << monitor->getHostname() << "\n";
+}
+
+bool DeveloperRequestHandler::sendApp(Minion* minion, std::string appDir){
+    //TODO
+}
+
+bool DeveloperRequestHandler::deployApp(std::string appID, int instances){
+    //TODO
+}
+
+bool DeveloperRequestHandler::deleteApp(std::string appID){
+    //TODO
+}
+
+void DeveloperRequestHandler::processAttestation(){
+    //TODO
 }
 
 void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandler developerRequestHandler) {
-    std::cout << "DeveloperRequestHandler running with Monitor with the name " << developerRequestHandler.monitor->hostname << "\n";
+    std::cout << "DeveloperRequestHandler running with Monitor with the name " << developerRequestHandler.monitor->getHostname() << "\n";
 }
 
 // int main(int argc, char* argv[]) {

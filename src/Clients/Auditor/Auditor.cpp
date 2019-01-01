@@ -28,6 +28,9 @@ void Auditor::attestMonitor(const char* hostname){
 
     if (true)
         cli.Post(("/" + Messages::OK_APPROVED).c_str(), AttestationConstants::QUOTE, "text/plain");
+    else {
+        cli.Post(("/" + Messages::NOT_APPROVED).c_str(), "", "text/plain");
+    }
 }
 
 void printHelp(){

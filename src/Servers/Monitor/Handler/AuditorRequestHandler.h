@@ -7,6 +7,7 @@
 
 class AuditorRequestHandler {
     Monitor* monitor;
+    std::string monitorStore;
 
    private:
     void processAttestation(httplib::Server svr, std::string nonce, Monitor monitor);

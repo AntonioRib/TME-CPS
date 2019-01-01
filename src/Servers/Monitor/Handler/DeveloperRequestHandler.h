@@ -3,12 +3,21 @@
 
 #include <iostream>
 #include "../Monitor.h"
+#include "../../Minion/Minion.h"
 
 class DeveloperRequestHandler {
-    Monitor* monitor;
-    
+        
    private:
-    ;
+    Monitor* monitor;
+    std::string monitorStore;
+    std::string username;
+    std::string sshKey;
+
+    bool sendApp(Minion* minion, std::string appDir);
+    bool deployApp(std::string appID, int instances);
+    bool deleteApp(std::string appID);
+
+    void processAttestation(); //TODO
 
    public:
     DeveloperRequestHandler();

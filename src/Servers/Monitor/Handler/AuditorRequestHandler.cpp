@@ -14,8 +14,8 @@ AuditorRequestHandler::AuditorRequestHandler() {
     std::cout << "AuditorRequestHandler created\n";
 }
 
-AuditorRequestHandler::AuditorRequestHandler(Monitor* monitor) : monitor{monitor} {
-    std::cout << "AuditorRequestHandler created with the name " << monitor->hostname << "\n";
+AuditorRequestHandler::AuditorRequestHandler(Monitor* monitor) : monitor{monitor}, monitorStore{monitor->getHostname()+".jks"}{
+    std::cout << "AuditorRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
 
 void processAttestation(httplib::Server svr, std::string nonce, Monitor monitor){
@@ -23,7 +23,7 @@ void processAttestation(httplib::Server svr, std::string nonce, Monitor monitor)
 }
 
 void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler) {
-    std::cout << "Trying to create AuditorRequestHandler with Monitor with the name " << auditorRequestHandler.monitor->hostname << "\n";
+    std::cout << "Trying to create AuditorRequestHandler with Monitor with the name " << auditorRequestHandler.monitor->getHostname() << "\n";
 
     httplib::Server svr;
     bool debug = true;
@@ -55,8 +55,8 @@ void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler aud
         svr.stop();
     });
     if (debug)
-        std::cout << "AuditorRequestHandler running with Monitor with the name " << auditorRequestHandler.monitor->hostname << "\n";
-    svr.listen(auditorRequestHandler.monitor->hostname.c_str(), Ports::MONITOR_AUDITOR_PORT);
+        std::cout << "AuditorRequestHandler running with Monitor with the name " << auditorRequestHandler.monitor->getHostname() << "\n";
+    svr.listen(auditorRequestHandler.monitor->getHostname().c_str(), Ports::MONITOR_AUDITOR_PORT);
     if (debug)
         std::cout << "AuditorRequestHandler finished \n";
 }
