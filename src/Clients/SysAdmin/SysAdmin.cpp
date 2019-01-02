@@ -8,15 +8,20 @@ SysAdmin::SysAdmin() {
     std::cout << "Auditor created\n";
 }
 
-void SysAdmin::saySomething(std::string message) {
-    while (true) {
-        std::cout << "Auditor >> " + message + "\n";
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    }
+void SysAdmin::attestLogger(){
+    //TODO
+} 
+
+bool SysAdmin::starLocalProxy(){
+    //TODO
 }
 
-std::thread SysAdmin::saySomethingThread(std::string message) {
-    return std::thread([this, message] { saySomething(message); });
+bool SysAdmin::manageNode(){
+    //TODO
+}
+
+void SysAdmin::saySomething(std::string message) {
+        std::cout << "Auditor >> " + message + "\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -39,10 +44,8 @@ int main(int argc, char* argv[]) {
 
     SysAdmin* sysAdmin;
     sysAdmin = new SysAdmin();
-    std::thread t1;
     std::string line;
     std::getline(std::cin, line);
-    t1 = sysAdmin->saySomethingThread(line);
     while (true) {
         if (line == "exit") {
             std::cout << "Bye bye\n";
@@ -50,6 +53,5 @@ int main(int argc, char* argv[]) {
         }
         std::getline(std::cin, line);
     }
-    t1.join();
     return 0;
 }

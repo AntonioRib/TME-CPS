@@ -8,6 +8,26 @@ Developer::Developer() {
     std::cout << "Developer created\n";
 }
 
+void Developer::attestMonitor(){
+    //TODO
+}
+
+bool Developer::sendSyncMessageAndGetResponse(string message){
+    //TODO
+}
+
+bool Developer::deleteApp(){
+    //TODO
+}
+
+bool Developer::sendApp(){
+    //TODO
+}
+
+bool Developer::deployApp(){
+    //TODO
+}
+
 void Developer::saySomething(std::string message) {
     std::cout << "Developer >> " + message + "\n";
 }

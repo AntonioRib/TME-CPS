@@ -3,12 +3,23 @@
 
 #include <iostream>
 #include <string>
+using namespace std;
 
 class Developer {
    private:
-    ;
+    string monitorHost;
+    string username;
+    string key;
+    string appDir;
+    int instances;
 
-   public:
+    void attestMonitor(); //TODO
+    bool sendSyncMessageAndGetResponse(string message);
+    bool deleteApp();
+    bool sendApp();
+    bool deployApp();
+
+    public: 
     Developer();
     void saySomething(std::string message);
 };

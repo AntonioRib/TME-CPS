@@ -13,10 +13,6 @@ Auditor::Auditor() {
     std::cout << "Auditor created\n";
 }
 
-void Auditor::saySomething(std::string message) {
-    std::cout << "Auditor >> " + message + "\n";
-}
-
 void Auditor::attestMonitor(const char* hostname){
     httplib::Client cli(hostname, Ports::MONITOR_AUDITOR_PORT);
 
@@ -32,6 +28,19 @@ void Auditor::attestMonitor(const char* hostname){
         cli.Post(("/" + Messages::NOT_APPROVED).c_str(), "", "text/plain");
     }
 }
+
+void Auditor::attestLogger(const char* hostname){
+    //TODO
+}
+unsigned char* Auditor::generateSignature(unsigned char* data){
+    //TODO
+}
+
+void Auditor::saySomething(std::string message) {
+    std::cout << "Auditor >> " + message + "\n";
+}
+
+
 
 void printHelp(){
     std::cout << "Usage: Help - help\n";
