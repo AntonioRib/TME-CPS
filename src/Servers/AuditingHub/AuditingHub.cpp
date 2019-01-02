@@ -7,19 +7,60 @@ AuditingHub::AuditingHub()
     std::cout << "AuditingHub created\n";
 }
 
-AuditingHub::AuditingHub(const AuditingHub &m) : name{m.name} {
+AuditingHub::AuditingHub(const AuditingHub &m) : hostname{m.hostname} {
     // std::cout << "AuditingHub created with the name " << AuditingHub::name << " - copy constructor \n";
 }
 
-AuditingHub::AuditingHub(std::string n) : name{n} {
+AuditingHub::AuditingHub(std::string hostname) : hostname{hostname} {
     // std::cout << "AuditingHub created with the name " << AuditingHub::name << " - string constructor \n";
 }
+
+//Getters
+string AuditingHub::getUsername(){
+    return AuditingHub::username;
+}
+
+string AuditingHub::getHubKey() {
+    return AuditingHub::hubKey;
+}
+
+string AuditingHub::getMonitorHost(){
+    return AuditingHub::monitorHost;
+}
+
+string AuditingHub::getHostname(){
+    return AuditingHub::hostname;
+}
+
+unsigned char* AuditingHub::getApprovedConfiguration() {
+    return AuditingHub::approvedConfiguration;
+}
+
+string AuditingHub::getApprovedSHA1(){
+    return AuditingHub::approvedSHA1;
+}
+
+//Setters
+void AuditingHub::setApprovedConfiguration(unsigned char* approvedConfiguration){
+    //TODO
+}
+
+
+//Functions
+bool AuditingHub::checkPermissionAndUnqueue(string remoteHost){
+    //TODO
+}
+
+void AuditingHub::removeSession(string remoteHost) {
+    //TODO
+}
+
 
 int main(int argc, char *argv[]) {
     std::cout << "Will try to create AuditingHub\n";
 
     std::string s = "AuditingHub I";
-    AuditingHub auditingHub = AuditingHub(s);
+    AuditingHub* auditingHub = new AuditingHub(s);
 
     AuditorRequestHandler auditorRequestHandler = AuditorRequestHandler(auditingHub);
     std::thread auditorRequestHandlerThread(AuditorRequestHandler::startAuditorRequestHandler, auditorRequestHandler);

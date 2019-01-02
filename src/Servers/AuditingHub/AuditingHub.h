@@ -3,17 +3,40 @@
 
 #include <iostream>
 #include <thread>
+#include <map>
+using namespace std;
 
 class AuditingHub
 {
   private:
-    ;
+    string username;
+    string hubKey;
+    string monitorHost;
+    string hostname;
 
-  public:
+    unsigned char* approvedConfiguration;
+    string approvedSHA1;
+
+   public:
     AuditingHub();
-    AuditingHub(std::string name);
+    AuditingHub(std::string hostname);
     AuditingHub(const AuditingHub&);
-    std::string name;
+
+    //Getters
+    string getUsername();
+    string getHubKey();
+    string getMonitorHost();
+    string getHostname();
+
+    unsigned char* getApprovedConfiguration();
+    string getApprovedSHA1();
+
+    //Setters
+    void setApprovedConfiguration(unsigned char* approvedConfiguration);
+
+    //Functions
+    bool checkPermissionAndUnqueue(string remoteHost);
+    void removeSession(string remoteHost);
 };
 
 #endif

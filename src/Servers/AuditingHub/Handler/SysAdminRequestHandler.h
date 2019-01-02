@@ -5,13 +5,14 @@
 #include "../AuditingHub.h"
 
 class SysAdminRequestHandler {
-    AuditingHub auditingHub;
+    //TODO this class needs to be checked better
+    AuditingHub* auditingHub;
    private:
     ;
 
    public:
     SysAdminRequestHandler();
-    SysAdminRequestHandler(AuditingHub auditingHub);
+    SysAdminRequestHandler(AuditingHub* auditingHub);
     static void startSysAdminRequestHandler(SysAdminRequestHandler sysAdminRequestHandler);
 };
 

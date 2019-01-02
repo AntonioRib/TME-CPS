@@ -4,12 +4,12 @@ AuditorRequestHandler::AuditorRequestHandler() {
     std::cout << "AuditorRequestHandler created\n";
 }
 
-AuditorRequestHandler::AuditorRequestHandler(AuditingHub auditingHub) : auditingHub{auditingHub} {
-    std::cout << "AuditorRequestHandler created with the name " << auditingHub.name << "\n";
+AuditorRequestHandler::AuditorRequestHandler(AuditingHub* auditingHub) : auditingHub{auditingHub} {
+    std::cout << "AuditorRequestHandler created with the name " << auditingHub->getHostname() << "\n";
 }
 
 void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler) {
-    std::cout << "AuditorRequestHandler running with Auditing Hub with the name " << auditorRequestHandler.auditingHub.name << "\n";
+    std::cout << "AuditorRequestHandler running with Auditing Hub with the name " << auditorRequestHandler.auditingHub->getHostname() << "\n";
 }
 
 // int main(int argc, char* argv[]) {

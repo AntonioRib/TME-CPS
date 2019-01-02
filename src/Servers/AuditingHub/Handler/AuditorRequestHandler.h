@@ -5,13 +5,14 @@
 #include "../AuditingHub.h"
 
 class AuditorRequestHandler {
-    AuditingHub auditingHub;
+    //TODO this class needs to be checked better
+    AuditingHub* auditingHub;
    private:
     ;
 
    public:
     AuditorRequestHandler();
-    AuditorRequestHandler(AuditingHub auditingHub);
+    AuditorRequestHandler(AuditingHub* auditingHub);
     static void startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler);
 };
 
