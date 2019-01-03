@@ -18,8 +18,19 @@ AuditorRequestHandler::AuditorRequestHandler(Monitor* monitor) : monitor{monitor
     std::cout << "AuditorRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
 
-void processAttestation(httplib::Server svr, std::string nonce, Monitor monitor){
-        // svr.
+void AuditorRequestHandler::processAttestation(httplib::Server& svr, std::string nonce, Monitor& monitor)
+{
+    svr.Post(("/" + Messages::OK_APPROVED).c_str(), [&](const httplib::Request &req, httplib::Response &res) {
+            std::cout << "Recieved an OK. Going to update configuration. \n";
+        unsigned char *uc = (unsigned char *)req.body.c_str();
+        monitor.setApprovedConfiguration(uc);
+            std::cout << "Configuration was set. \n";
+    });
+
+    svr.Get(("/" + Messages::NOT_APPROVED).c_str(), [&](const httplib::Request &req, httplib::Response &res) {
+            std::cout << "Recieved an NOT_APPROVED. Going to close. \n";
+        svr.stop();
+    });
 }
 
 void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler) {
@@ -28,26 +39,13 @@ void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler aud
     httplib::Server svr;
     bool debug = true;
 
+    //Starts with the Attest command
     svr.Post(("/" + Messages::ATTEST).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
         if(debug)
             std::cout << "Recieved an ATTEST. Going to send configuration. \n";
         std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
+        auditorRequestHandler.processAttestation(svr, AttestationConstants::QUOTE, *(auditorRequestHandler.monitor));
         res.set_content(configuration, "text/plain");
-    });
-
-    svr.Post(("/" + Messages::OK_APPROVED).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
-        if (debug)
-            std::cout << "Recieved an OK. Going to update configuration. \n";
-        unsigned char* uc = (unsigned char*)req.body.c_str();
-        auditorRequestHandler.monitor->setApprovedConfiguration(uc);
-        if (debug)
-            std::cout << "Configuration was set. \n";
-    });
-
-    svr.Get(("/" + Messages::NOT_APPROVED).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
-        if (debug)
-            std::cout << "Recieved an NOT_APPROVED. Going to close. \n";
-        svr.stop();
     });
 
     svr.Get(("/" + Messages::NOT_OK).c_str(), [&](const httplib::Request& req, httplib::Response& res) {

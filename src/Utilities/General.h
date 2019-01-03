@@ -1,5 +1,6 @@
 #ifndef _general_h_
 #define _general_h_
+#include <time.h>
 #include <iostream>
 #include <iterator>
 #include <sstream>
@@ -15,6 +16,18 @@ using namespace std;
                                                 std::istream_iterator<std::string>());
 
             return result;
+    }
+
+    template <typename M, typename V>
+    void mapToVec(const M& m, V& v) {
+        for (typename M::const_iterator it = m.begin(); it != m.end(); ++it) {
+            v.push_back(it->second);
+        }
+    }
+
+    int random_0_to_n(int min, int max) {
+        srand(time(NULL));
+        return min + (rand() % (int)(max - min + 1));
     }
 }
 

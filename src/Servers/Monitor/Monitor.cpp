@@ -4,6 +4,9 @@
 #include "Handler/AuditorRequestHandler.h"
 #include "Handler/DeveloperRequestHandler.h"
 #include "Handler/MinionRequestHandler.h"
+#include "../../Utilities/General.h"
+#include <iterator>
+#include "../Minion/Minion.h"
 using namespace std;
 
 const int USERNAME_FLAG_INDEX = 1;
@@ -44,16 +47,20 @@ string Monitor::getHostname(){
     return Monitor::hostname;
 }
 
-vector<Minion*> Monitor::getHosts(string appID) {
-    //TODO
+vector<Minion*> Monitor::getHosts(string appID){
+    return appsHosts[appID];
 }
 
-vector<Minion*> Monitor::getUntrustedMinions(){
-    //TODO
+vector<Minion*> Monitor::getUntrustedMinions() {
+    vector<Minion*> result;
+    General::mapToVec <map<string,Minion*>, vector<Minion*>> (Monitor::untrustedMinions, result);
+    return result;
 }
 
 vector<Minion*> Monitor::getTrustedMinions() {
-    //TODO
+    vector<Minion*> result;
+    General::mapToVec<map<string, Minion*>, vector<Minion*>>(Monitor::trustedMinions, result);
+    return result;
 }
 
 unsigned char* Monitor::getApprovedConfiguration() {
@@ -61,7 +68,7 @@ unsigned char* Monitor::getApprovedConfiguration() {
 }
 
 string Monitor::getApprovedConfigurationForMinions() {
-    //TODO
+    return Monitor::minionsApprovedSHA1;
 }
 
 //Setters
@@ -72,44 +79,116 @@ void Monitor::setApprovedConfiguration(unsigned char* approvedConfiguration) {
 }
 
 void Monitor::setApprovedConfigurationForMinions(string approvedConfiguration){
-    //TODO
+    Monitor::minionsApprovedSHA1 = approvedConfiguration;
 }
 
 //Special Getters
 Minion* Monitor::getUntrustedMinion(string ipAddress) {
-    //TODO
+    return Monitor::untrustedMinions[ipAddress];
 }
 
 Minion* Monitor::pickTrustedMinion(){
-    //TODO
+    if(Monitor::trustedMinions.size() == 0){
+        return NULL;
+    }
+
+    std::map<string, Minion*>::iterator it = Monitor::trustedMinions.begin();
+    std::advance(it, General::random_0_to_n(0, Monitor::trustedMinions.size()));
+    return it->second;
 }
 vector<Minion*> Monitor::pickNTrustedMinions(int numberOfMinions){
-    //TODO
+    if (Monitor::trustedMinions.size() < numberOfMinions) {
+        throw 10; //TODO check if it makes sense to send an exception or return something;
+    }
+
+    vector<Minion*> result;
+    std::map<string, Minion*>::iterator it = Monitor::trustedMinions.begin();
+    for (int i = 0; i < numberOfMinions; i++){
+        result.insert(result.end(), it->second);
+
+        ++it;
+    }
+
+   return result;
 }
 
 //Functions
 void Monitor::addApplication(string appID, vector<Minion*> hosts){
-    //TODO
+    map<string, Application*>::iterator contains = Monitor::applications.find(appID);
+    //If contains != Monitor::applications.end it means element found
+    if (contains != Monitor::applications.end()){
+        throw 10;  //TODO check if it makes sense to send an exception or return something;
+    }
+
+    Application* app = new Application(appID);
+    Monitor::applications.insert(pair<string, Application*>(appID, app)); 
+
+    vector<Minion*> minionsList;
+    std::for_each(hosts.begin(), hosts.end(),
+        [app, &minionsList](Minion* minion)
+        {
+            minion->addApp(app);
+            minionsList.insert(minionsList.end(), minion);
+            cout << "Added host: " + minion->getIpAddress() + " with app id: " + app->getAppID();
+        }
+    );
+    Monitor::appsHosts.insert(pair<string, vector<Minion*>>(appID, minionsList));
 }
 
 void Monitor::deleteApplication(string appID) {
-    //TODO
+    map<string, Application*>::iterator contains = Monitor::applications.find(appID);
+    //If contains == Monitor::applications.end it means element not found
+    if (contains == Monitor::applications.end()) {
+        throw 10;  //TODO check if it makes sense to send an exception or return something;
+    }
+
+    vector<Minion*> toDelete = Monitor::appsHosts[appID];
+    std::for_each(toDelete.begin(), toDelete.end(),
+                  [appID](Minion* minion) {
+                      minion->removeApp(appID);
+                  });
+    Monitor::applications.erase(appID);
 }
 
 void Monitor::addNewMinion(string newMinionAddress) {
-    //TODO
+    Minion* newMinion = new Minion(newMinionAddress);
+    Monitor::trustedMinions.insert(pair<string, Minion*>(newMinion->getIpAddress(), newMinion));
+    cout << "Added: " << newMinion->getIpAddress() << " #Minions: " << Monitor::trustedMinions.size();
 }
 
 void Monitor::removeMinion(string minionAddress) {
-    //TODO
+    map<string, Minion*>::iterator trustedContains = Monitor::trustedMinions.find(minionAddress);
+    map<string, Minion*>::iterator untrustedContains = Monitor::untrustedMinions.find(minionAddress);
+    //If contains == Monitor::applications.end it means element not found
+    if (trustedContains == Monitor::trustedMinions.end() && untrustedContains == Monitor::untrustedMinions.end()) {
+        throw 10;  //TODO check if it makes sense to send an exception or return something;
+    }
+
+    Monitor::trustedMinions.erase(minionAddress);
+    Monitor::untrustedMinions.erase(minionAddress);
 }
 
 void Monitor::setMinionUntrusted(string minionAddress){
+    map<string, Minion*>::iterator trustedContains = Monitor::trustedMinions.find(minionAddress);
+    map<string, Minion*>::iterator untrustedContains = Monitor::untrustedMinions.find(minionAddress);
+    //If contains == Monitor::applications.end it means element not found
+    if (trustedContains == Monitor::trustedMinions.end() && untrustedContains == Monitor::untrustedMinions.end()) {
+        throw 10;  //TODO check if it makes sense to send an exception or return something;
+    }
+
     //TODO
 }
 
 void Monitor::setMinionTrusted(string minionAddress) {
-    //TODO
+    map<string, Minion*>::iterator untrustedContains = Monitor::untrustedMinions.find(minionAddress);
+    //If contains == Monitor::applications.end it means element not found
+    if (untrustedContains == Monitor::untrustedMinions.end()) {
+        throw 10;  //TODO check if it makes sense to send an exception or return something;
+    }
+
+    Minion* minion = untrustedContains->second;
+    Monitor::untrustedMinions.erase(minionAddress);
+    Monitor::trustedMinions.insert(pair<string, Minion*>(minionAddress, minion));
 }
 
 int main(int argc, char* argv[]) {
