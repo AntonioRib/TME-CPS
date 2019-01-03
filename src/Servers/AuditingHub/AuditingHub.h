@@ -33,6 +33,7 @@ class AuditingHub
 
     //Setters
     void setApprovedConfiguration(unsigned char* approvedConfiguration);
+    void setApprovedSH1Configuration(string approvedSHA1Configuration);
 
     //Functions
     bool checkPermissionAndUnqueue(string remoteHost);

@@ -23,7 +23,7 @@ class Minion
       map<string, Application*> getApplications();
 
       void addApp(Application* app);
-      void removeApp(string appId);
+      void removeApp(string appID);
 };
 
 #endif

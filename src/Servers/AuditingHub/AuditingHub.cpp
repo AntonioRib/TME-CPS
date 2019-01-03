@@ -42,9 +42,12 @@ string AuditingHub::getApprovedSHA1(){
 
 //Setters
 void AuditingHub::setApprovedConfiguration(unsigned char* approvedConfiguration){
-    //TODO
+    AuditingHub::approvedConfiguration = approvedConfiguration;
 }
 
+void AuditingHub::setApprovedSH1Configuration(string approvedSHA1Configuration){
+    AuditingHub::approvedSHA1 = approvedSHA1Configuration;
+}
 
 //Functions
 bool AuditingHub::checkPermissionAndUnqueue(string remoteHost){
