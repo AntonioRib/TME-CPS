@@ -4,10 +4,12 @@ using namespace std;
 
 #include "../Minion/Minion.h"
 #include "../Application/Application.h"
+#include "../../Utilities/General.h"
 #include <iostream>
 #include <thread>
 #include <map>
 #include <vector>
+
 
 class Monitor {
 

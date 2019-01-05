@@ -4,26 +4,30 @@
 #include <iostream>
 #include <thread>
 #include <map>
+#include <utility>
 using namespace std;
 
 class AuditingHub
 {
   private:
-    string username;
+    string hubUserName;
     string hubKey;
     string monitorHost;
     string hostname;
 
-    unsigned char* approvedConfiguration;
+    unsigned char *approvedConfiguration;
     string approvedSHA1;
+
+    map<long, thread*> temporaryThreads;
+    map<string, thread*> remoteHostThreadMap;
 
    public:
     AuditingHub();
-    AuditingHub(std::string hostname);
+    AuditingHub(string hubUserName, string hubKey, string monitorHost, string hotsName);
     AuditingHub(const AuditingHub&);
 
     //Getters
-    string getUsername();
+    string getHubUserName();
     string getHubKey();
     string getMonitorHost();
     string getHostname();
@@ -31,8 +35,13 @@ class AuditingHub
     unsigned char* getApprovedConfiguration();
     string getApprovedSHA1();
 
+    //TODO this may need to pass the map by reference &
+    map<long, thread*> getTemporaryThreads(); 
+    map<string, thread*> getRemoteHostThreadMap(); 
+
     //Setters
-    void setApprovedConfiguration(unsigned char* approvedConfiguration);
+    void
+    setApprovedConfiguration(unsigned char *approvedConfiguration);
     void setApprovedSH1Configuration(string approvedSHA1Configuration);
 
     //Functions

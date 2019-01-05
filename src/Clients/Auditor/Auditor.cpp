@@ -4,29 +4,88 @@
 #include "../../Utilities/Messages.h"
 #include "../../Utilities/Ports.h"
 #include "../../Utilities/httpLib/httplib.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 //  Usage:
 //  Client -h: help
 //  Client
+
+void error(const char *msg)
+{
+    perror(msg);
+    exit(1);
+}
 
 Auditor::Auditor() {
     std::cout << "Auditor created\n";
 }
 
 void Auditor::attestMonitor(const char* hostname){
-    httplib::Client cli(hostname, Ports::MONITOR_AUDITOR_PORT);
+    // httplib::Client cli(hostname, Ports::MONITOR_AUDITOR_PORT);
 
-    auto res = cli.Post(("/" + Messages::ATTEST).c_str(), "", "text/plain");
+    // auto res = cli.Post(("/" + Messages::ATTEST).c_str(), "", "text/plain");
 
-    std::vector<std::string> lineSeparated = General::splitString(res.get()->body);
+    // std::vector<std::string> lineSeparated = General::splitString(res.get()->body);
 
-    std::cout << "Res: " << res.get()->body;
+    // std::cout << "Res: " << res.get()->body;
 
-    if (true)
-        cli.Post(("/" + Messages::OK_APPROVED).c_str(), AttestationConstants::QUOTE, "text/plain");
-    else {
-        cli.Post(("/" + Messages::NOT_APPROVED).c_str(), "", "text/plain");
+    // if (true)
+    //     cli.Post(("/" + Messages::OK_APPROVED).c_str(), AttestationConstants::QUOTE, "text/plain");
+    // else {
+    //     cli.Post(("/" + Messages::NOT_APPROVED).c_str(), "", "text/plain");
+    // }
+
+    int sockfd, n;
+    struct sockaddr_in serv_addr;
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
+        error("ERROR opening socket");
+
+    struct hostent *server;
+    server = gethostbyname(hostname);
+    if (server == NULL)
+    {
+        fprintf(stderr, "ERROR, no such host\n");
+        exit(0);
     }
+    bzero((char *)&serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+    serv_addr.sin_port = htons(Ports::MONITOR_AUDITOR_PORT);
+    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+        error("ERROR connecting");
+
+    // printf("Please enter the message: ");
+    char buffer[256];
+    bzero(buffer, 256);
+    buffer << Messages::ATTEST;
+
+    // fgets(buffer, 255, stdin);
+    n = write(sockfd, buffer, strlen(buffer));
+    if (n < 0)
+        error("ERROR writing to socket");
+
+    char quote[1024];
+    bzero(quote, 1024);
+    n = read(sockfd, buffer, 1023);
+    if (n < 0)
+        error("ERROR reading from socket");
+    printf("QUOTE %s\n", quote);
+
+    buffer << Messages::OK_APPROVED;
+    bzero(buffer, 256);
+    n = write(sockfd, buffer, strlen(buffer));
+    if (n < 0)
+        error("ERROR writing to socket");
+    close(sockfd);
+    //return 0;
 }
 
 void Auditor::attestLogger(const char* hostname){
@@ -61,6 +120,7 @@ int main(int argc, char* argv[]) {
     printHelp();
 
     std::string line;
+    
     while (true) {
         std::getline(std::cin, line);
         std::vector<std::string> lineSeparated = General::splitString(line);

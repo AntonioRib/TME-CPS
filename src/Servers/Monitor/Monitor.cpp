@@ -4,9 +4,10 @@
 #include "Handler/AuditorRequestHandler.h"
 #include "Handler/DeveloperRequestHandler.h"
 #include "Handler/MinionRequestHandler.h"
-#include "../../Utilities/General.h"
 #include <iterator>
 #include "../Minion/Minion.h"
+#include <algorithm>
+
 using namespace std;
 
 const int USERNAME_FLAG_INDEX = 1;
@@ -207,17 +208,8 @@ int main(int argc, char* argv[]) {
     std::string s = "Monitor I";
     Monitor* monitor = new Monitor(username, sshKey, hostname);
 
-    AHubRequestHandler ahubRequestHandler = AHubRequestHandler(monitor);
-    std::thread ahubRequestHandlerThread(AHubRequestHandler::startAHubRequestHandler, ahubRequestHandler);
-
     AuditorRequestHandler auditorRequestHandler = AuditorRequestHandler(monitor);
     std::thread auditorRequestHandlerThread(AuditorRequestHandler::startAuditorRequestHandler, auditorRequestHandler);
-
-    DeveloperRequestHandler developerRequestHandler = DeveloperRequestHandler(monitor);
-    std::thread developerRequestHandlerThread(DeveloperRequestHandler::startDeveloperRequestHandler, developerRequestHandler);
-
-    MinionRequestHandler minionRequestHandler = MinionRequestHandler(monitor);
-    std::thread minionRequestHandlerThread(MinionRequestHandler::startMinionRequestHandler, minionRequestHandler);
 
     while (monitor->getApprovedConfiguration() == (unsigned char*)NULL_VALUE) {
         std::cout << "Im in the loop \n";
@@ -225,6 +217,16 @@ int main(int argc, char* argv[]) {
         std::cout << "Waiting for approved config. Current Config -> " << +monitor->getApprovedConfiguration() << "\n";
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+
+    AHubRequestHandler ahubRequestHandler = AHubRequestHandler(monitor);
+    std::thread ahubRequestHandlerThread(AHubRequestHandler::startAHubRequestHandler, ahubRequestHandler);
+
+    DeveloperRequestHandler developerRequestHandler = DeveloperRequestHandler(monitor);
+    std::thread developerRequestHandlerThread(DeveloperRequestHandler::startDeveloperRequestHandler, developerRequestHandler);
+
+    MinionRequestHandler minionRequestHandler = MinionRequestHandler(monitor);
+    std::thread minionRequestHandlerThread(MinionRequestHandler::startMinionRequestHandler, minionRequestHandler);
+
 
     std::cout << "Approved configuration" << +monitor->getApprovedConfiguration() << "\n";
 

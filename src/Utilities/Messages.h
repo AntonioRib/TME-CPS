@@ -33,6 +33,8 @@ namespace Messages{
     static const string OK_APPROVED = "OK_APPROVED";
     static const string NOT_APPROVED = "NOT_APPROVED";
 
+    static const string START_MANAGEMENTSESSION = "START_MANAGEMENTSESSION";
+
     static const string QUIT = "QUIT";
 }
 #endif
