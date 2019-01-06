@@ -33,67 +33,55 @@ void Auditor::attestMonitor(const char* hostname){
     int n;
 
     struct hostent *serverHost;
-    serverHost = gethostbyname(hostname);
-    if (serverHost == NULL)
-        error("ERROR, no such host\n");
-
-    int serverSocket;
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket < 0)
-        error("ERROR opening socket");
-
+    serverHost = SocketUtils::getHostByName(hostname);
     sockaddr_in serverAddress;
-    bzero((char *)&serverAddress, sizeof(serverAddress));
-    serverAddress.sin_family = AF_INET;
-    bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
-    serverAddress.sin_port = htons(Ports::MONITOR_AUDITOR_PORT);
-    if (connect(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
-        error("ERROR connecting");
-    
-    cout << "Connected to the server\n";
+    serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AUDITOR_PORT);
+
+    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    // int serverSocket;
+    // serverSocket = SocketUtils::createServerSocket(serverAddress);
+     // serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+     // if (serverSocket < 0)
+     //     error("ERROR opening socket");
+
+     // sockaddr_in serverAddress;
+     // bzero((char *)&serverAddress, sizeof(serverAddress));
+     // serverAddress.sin_family = AF_INET;
+     // bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
+     // serverAddress.sin_port = htons(Ports::MONITOR_AUDITOR_PORT);
+    SocketUtils::connectToServerSocket(clientSocket, serverAddress);
+    if (DebugFlags::debugAuditor)
+        cout << "Connected to the server\n";
 
     char buffer[MESSAGE_BYTES];
-    bzero(buffer, MESSAGE_BYTES);
-
     string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
+    General::stringToCharArray(attestationRequestString, buffer, MESSAGE_BYTES);
+    SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+    
+    if (DebugFlags::debugAuditor)
+        cout << "Wrote: " << buffer << " to server\n";
 
-    strncpy(buffer, attestationRequestString.c_str(), sizeof(buffer));
-    buffer[sizeof(buffer) - 1] = 0;
-
-    // fgets(buffer, 255, stdin);
-    n = send(serverSocket, buffer, strlen(buffer), 0);
-    if (n < 0)
-        error("ERROR writing to socket");
-    // cout << "message sent \n";
-    cout << "Wrote: " << buffer << " to server\n";
-    // cout << "Will recieve message \n";
     bzero(buffer, MESSAGE_BYTES);
-    n = recv(serverSocket, buffer, MESSAGE_BYTES-1, 0);
-    if (n < 0)
-        error("ERROR reading from socket");
-    cout << "Recieved in BUFFER: " << buffer << "\n";
+    SocketUtils::receiveBuffer(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+    if (DebugFlags::debugAuditor)
+        cout << "Recieved from server: " << buffer << "\n";
+
     string quote(buffer);
     vector<string> splittedQuote = General::splitString(quote);
 
     if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE) {
-        bzero(buffer, MESSAGE_BYTES);
         string approvedMessage = Messages::OK_APPROVED + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1;
-        strncpy(buffer, approvedMessage.c_str(), sizeof(buffer));
-        buffer[sizeof(buffer) - 1] = 0;
-        n = send(serverSocket, buffer, strlen(buffer), 0);
-        if (n < 0)
-            error("ERROR writing to socket");
-        cout << "Wrote: " << buffer << " to server\n";
-        close(serverSocket);
+        General::stringToCharArray(approvedMessage, buffer, MESSAGE_BYTES);
+        SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+        if (DebugFlags::debugAuditor)
+            cout << "Wrote: " << buffer << " to server\n";
+        close(clientSocket);
     } else {
-        bzero(buffer, MESSAGE_BYTES);
-        strncpy(buffer, Messages::NOT_OK.c_str(), sizeof(buffer));
-        buffer[sizeof(buffer) - 1] = 0;
-        n = send(serverSocket, buffer, strlen(buffer), 0);
-        if (n < 0)
-            error("ERROR writing to socket");
-        cout << "Wrote: " << buffer << " to server\n";
-        close(serverSocket);
+        General::stringToCharArray(Messages::NOT_OK, buffer, MESSAGE_BYTES);
+        SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+        if (DebugFlags::debugAuditor)
+            cout << "Wrote: " << buffer << " to server\n";
+        close(clientSocket);
     }
 
     
@@ -144,7 +132,8 @@ int main(int argc, char* argv[]) {
             printHelp();
         } else if (lineSeparated[0] == "attm") {
             if(lineSeparated.size() == 2){
-                std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1] << "\n";
+                if(DebugFlags::debugAuditor)
+                    std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1] << "\n";
                 auditor->attestMonitor(lineSeparated[1].c_str());
             } else {
                 std::cout << "Bad usage of command \n";
@@ -152,7 +141,8 @@ int main(int argc, char* argv[]) {
             }
         } else if (lineSeparated[0] == "attl") {
             if (lineSeparated.size() == 2) {
-                std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1];
+                if (DebugFlags::debugAuditor)
+                    std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1];
             } else {
                 std::cout << "Bad usage of command \n";
                 printHelp();

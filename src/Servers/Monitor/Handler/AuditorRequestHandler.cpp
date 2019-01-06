@@ -23,32 +23,27 @@ AuditorRequestHandler::AuditorRequestHandler(Monitor* monitor) : monitor{monitor
     std::cout << "AuditorRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
 
-void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, Monitor& monitor)
-{
+void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, Monitor& monitor){
     char buffer[MESSAGE_BYTES];
-    bzero(buffer, MESSAGE_BYTES);
-    int n;
     std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
-    strncpy(buffer, configuration.c_str(), sizeof(buffer));
-    buffer[sizeof(buffer) - 1] = 0;
-    n = send(clientSocket, buffer, strlen(buffer), 0);
-    if (n < 0)
-        error("ERROR writing to socket");
-    cout << "Wrote: " << buffer << " to client\n";
+    General::stringToCharArray(configuration, buffer, MESSAGE_BYTES);
+    // cout << "Buffer: " << buffer;
+    SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+    if (DebugFlags::debugMonitor)
+        cout << "Wrote: " << buffer << " to client\n";
 
     bzero(buffer, MESSAGE_BYTES);
-    n = recv(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
-    if (n < 0)
-        error("ERROR reading from socket");
-    cout << "Recieved: " << buffer << "\n";
-    // cout << buffer;
+    SocketUtils::receiveBuffer(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+    if (DebugFlags::debugMonitor)
+        cout << "Recieved: " << buffer << "\n";
+
     string approved(buffer);
     vector<string> approvedSplit = General::splitString(approved);
 
     if (approvedSplit[0] == Messages::NOT_APPROVED) {
         cout << "Not approved!\n";
     } else if (approvedSplit[0] == Messages::OK_APPROVED) {
-        cout << "Approved!\n"
+        cout << "Approved!\n";
         cout << "Configuration approved. Auditor signature for monitor: " + approvedSplit[1] + ". For minions:" + approvedSplit[3];
         unsigned char * approvedConfiguration = (unsigned char *) approvedSplit[1].c_str();
         monitor.setApprovedConfiguration(approvedConfiguration, approvedSplit[2]);
@@ -59,41 +54,22 @@ void AuditorRequestHandler::processAttestation(int clientSocket, std::string non
 void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler) {
     std::cout << "Trying to create AuditorRequestHandler with Monitor with the name " << auditorRequestHandler.monitor->getHostname() << "\n";
 
+    sockaddr_in serverAddress;
+    serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AUDITOR_PORT);
+
     int serverSocket;
-    struct sockaddr_in serverAddress;
-    bzero((char *)&serverAddress, sizeof(serverAddress));
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-    serverAddress.sin_port = htons(Ports::MONITOR_AUDITOR_PORT);
-
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket < 0)
-        error("ERROR opening socket");
-
-    if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) 
-        error("ERROR on binding");
-
-    listen(serverSocket, 5);
+    serverSocket = SocketUtils::createServerSocket(serverAddress);
 
     int clientSocket;
-    struct sockaddr_in clientAddress;
-    socklen_t clientAddressLength = sizeof(clientAddress);
     while(true){
-        clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLength);
-        if (clientSocket < 0)
-            error("ERROR on accept");
-
+        clientSocket = SocketUtils::acceptClientSocket(serverSocket);
         cout << "Got connection from client\n";
-        //cout << "server: got connection from " << inet_ntoa(clientAddress.sin_addr) << " port " + ntohs(clientAddress.sin_port) << "\n";
 
-        // send(clientSocket, "Hello, world!\n", 13, 0);
         char buffer[MESSAGE_BYTES];
         bzero(buffer, MESSAGE_BYTES);
-        int n;
-        n = recv(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
-        if (n < 0)
-            error("ERROR reading from socket");
-        cout << "Recieved: " << buffer << "\n";
+        SocketUtils::receiveBuffer(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+        if (DebugFlags::debugMonitor)
+            cout << "Recieved: " << buffer << "\n";
         // cout << buffer;
         string command(buffer);
         vector<string> commandSplit = General::splitString(command);
