@@ -1,14 +1,15 @@
 #include "AuditingHub.h"
-#include "../../Utilities/Messages.h"
+#include <algorithm>
+#include <chrono>
+#include <iterator>
+#include <sstream>
 #include "Handler/AuditorRequestHandler.h"
 #include "Handler/SysAdminRequestHandler.h"
-#include "../../Utilities/Ports.h"
-#include <sstream>
 
 const int HUB_USERNAME_FLAG_INDEX = 1;
 const int HUB_KEY_FLAG_INDEX = 3;
 const int MONITOR_FLAG_INDEX = 5;
-const int HOSTNAME_FLAG_INDEX = 6;
+const int HOSTNAME_FLAG_INDEX = 7;
 
 const unsigned char *NULL_VALUE = (unsigned char *)"\0";
 
@@ -93,15 +94,14 @@ void AuditingHub::removeSession(string remoteHost) {
 
 
 int main(int argc, char *argv[]) {
-
-    if (argc != 8)
+    if (argc != 9)
     {
         cout << "Usage: AudtingHub -u userName -k key -m monitor -h hostname\n";
         return 0;
     }
 
     string hubUserName(argv[HUB_USERNAME_FLAG_INDEX + 1]);
-    string hubKey(argv[HUB_USERNAME_FLAG_INDEX + 1]);
+    string hubKey(argv[HUB_KEY_FLAG_INDEX + 1]);
     string monitorHost(argv[MONITOR_FLAG_INDEX + 1]);
     string hostname(argv[HOSTNAME_FLAG_INDEX + 1]);
 
@@ -121,20 +121,28 @@ int main(int argc, char *argv[]) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    httplib::Server svr;
-    svr.Get(("/" + Messages::START_MANAGEMENTSESSION).c_str(), [&](const httplib::Request &req, httplib::Response &res) {
-        std::cout << "Recieved an START_MANAGEMENTSESSION. Going to start it. \n";
-        SysAdminRequestHandler sysAdminRequestHandler = SysAdminRequestHandler(auditingHub);
-        std::thread sysAdminRequestHandlerThread(SysAdminRequestHandler::startSysAdminRequestHandler, sysAdminRequestHandler);
-        
-        std::ostringstream ss;
-        ss << sysAdminRequestHandlerThread.get_id();
-        std::string idstr = ss.str();
-        
-        auditingHub->getTemporaryThreads().insert(make_pair(atol(idstr.c_str()), &sysAdminRequestHandlerThread));
-    });
+    sockaddr_in serverAddress;
+    serverAddress = SocketUtils::createServerAddress(Ports::AHUB_SYSADMIN_PORT);
 
-    svr.listen(auditingHub->getHostname().c_str(), Ports::AHUB_MONITOR_PORT);
+    int serverSocket;
+    serverSocket = SocketUtils::createServerSocket(serverAddress);
+
+    thread sessionThread;
+    int clientSocket;
+    while (true){
+        clientSocket = SocketUtils::acceptClientSocket(serverSocket);
+        cout << "Management request\n";
+
+        SysAdminRequestHandler sysAdminRequestHandler = SysAdminRequestHandler(auditingHub);
+        sessionThread = thread(SysAdminRequestHandler::startSysAdminRequestHandler, sysAdminRequestHandler);
+
+        std::ostringstream ss;
+        ss << sessionThread.get_id();
+        std::string idstr = ss.str();
+
+        auditingHub->getTemporaryThreads().insert(pair<long, thread *>(atol(idstr.c_str()), &sessionThread));
+    }
+
     auditorRequestHandlerThread.join();
     // sysAdminRequestHandlerThread.join();
 

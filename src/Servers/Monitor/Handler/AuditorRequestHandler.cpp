@@ -1,19 +1,6 @@
 #include "AuditorRequestHandler.h"
 
-// #include <arpa/inet.h>
-// #include <openssl/bio.h>
-// #include <openssl/err.h>
-// #include <openssl/ssl.h>
-// #include <sys/socket.h>
-// #include <openssl/applink.c>
-
 const int MESSAGE_BYTES = 2048;
-
-void error(const char *msg)
-{
-    perror(msg);
-    exit(1);
-}
 
 AuditorRequestHandler::AuditorRequestHandler() {
     std::cout << "AuditorRequestHandler created\n";
@@ -82,37 +69,4 @@ void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler aud
 
     close(clientSocket);
     close(serverSocket);
-    //return 0;
-
-    // bool debug = true;
-
-    // //Starts with the Attest command
-    // svr.Post(("/" + Messages::ATTEST).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
-    //     if(debug)
-    //         std::cout << "Recieved an ATTEST. Going to send configuration. \n";
-    //     std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
-    //     auditorRequestHandler.processAttestation(svr, AttestationConstants::QUOTE, *(auditorRequestHandler.monitor));
-    //     res.set_content(configuration, "text/plain");
-    // });
-
-    // svr.Get(("/" + Messages::NOT_OK).c_str(), [&](const httplib::Request& req, httplib::Response& res) {
-    //     res.set_content(Messages::NOT_OK, "text/plain");
-    //     svr.stop();
-    // });
-    // if (debug)
-    //     std::cout << "AuditorRequestHandler running with Monitor with the name " << auditorRequestHandler.monitor->getHostname() << "\n";
-    // svr.listen(auditorRequestHandler.monitor->getHostname().c_str(), Ports::MONITOR_AUDITOR_PORT);
-    // if (debug)
-    //     std::cout << "AuditorRequestHandler finished \n";
 }
-
-// int main(int argc, char* argv[]) {
-//     std::cout << "Will try to create AuditorRequestHandler\n";
-
-//     AuditorRequestHandler* auditorRequestHandler;
-//     auditorRequestHandler = new AuditorRequestHandler();
-
-//     std::cout << "Bubye\n";
-
-//     return 0;
-// }

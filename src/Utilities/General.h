@@ -85,19 +85,6 @@ inline void error(const char* msg) {
         return serverSocket;
     }
 
-    // inline int getServerSocket(sockaddr_in serverAddress) {
-    //     int serverSocket;
-    //     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    //     if (serverSocket < 0)
-    //         error("ERROR opening socket");
-
-    //     if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
-    //         error("ERROR on binding");
-
-    //     listen(serverSocket, 5);
-    //     return serverSocket;
-    // }
-
     inline void connectToServerSocket(int clientSocket, sockaddr_in serverAddress) {
         if (connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
             error("ERROR connecting");

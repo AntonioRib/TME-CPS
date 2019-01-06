@@ -2,9 +2,14 @@
 #define _AUDITINGHUB_H_
 
 #include <iostream>
-#include <thread>
 #include <map>
+#include <thread>
 #include <utility>
+#include <vector>
+#include "../../Utilities/AttestationConstants.h"
+#include "../../Utilities/General.h"
+#include "../../Utilities/Messages.h"
+#include "../../Utilities/Ports.h"
 using namespace std;
 
 class AuditingHub
@@ -42,7 +47,7 @@ class AuditingHub
     //Setters
     void
     setApprovedConfiguration(unsigned char *approvedConfiguration);
-    void setApprovedSH1Configuration(string approvedSHA1Configuration);
+    void setApprovedSHA1Configuration(string approvedSHA1Configuration);
 
     //Functions
     bool checkPermissionAndUnqueue(string remoteHost);

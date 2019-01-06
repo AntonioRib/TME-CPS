@@ -18,7 +18,7 @@ class Auditor {
     Auditor();
     void saySomething(std::string message);
     void attestMonitor(const char* hostname);
-    void attestLogger(const char* hostname);
+    void attestAuditingHub(const char* hostname);
     unsigned char* generateSignature(unsigned char* data);
 };
 

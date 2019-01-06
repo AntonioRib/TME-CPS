@@ -30,25 +30,13 @@ Auditor::Auditor() {
 
 void Auditor::attestMonitor(const char* hostname){
     // cout << "got inside the method going to try to connect \n";
-    int n;
-
     struct hostent *serverHost;
     serverHost = SocketUtils::getHostByName(hostname);
     sockaddr_in serverAddress;
     serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AUDITOR_PORT);
 
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-    // int serverSocket;
-    // serverSocket = SocketUtils::createServerSocket(serverAddress);
-     // serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-     // if (serverSocket < 0)
-     //     error("ERROR opening socket");
 
-     // sockaddr_in serverAddress;
-     // bzero((char *)&serverAddress, sizeof(serverAddress));
-     // serverAddress.sin_family = AF_INET;
-     // bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
-     // serverAddress.sin_port = htons(Ports::MONITOR_AUDITOR_PORT);
     SocketUtils::connectToServerSocket(clientSocket, serverAddress);
     if (DebugFlags::debugAuditor)
         cout << "Connected to the server\n";
@@ -83,13 +71,51 @@ void Auditor::attestMonitor(const char* hostname){
             cout << "Wrote: " << buffer << " to server\n";
         close(clientSocket);
     }
-
-    
     //return 0;
 }
 
-void Auditor::attestLogger(const char* hostname){
-    //TODO
+void Auditor::attestAuditingHub(const char* hostname) {
+    struct hostent* serverHost;
+    serverHost = SocketUtils::getHostByName(hostname);
+    sockaddr_in serverAddress;
+    serverAddress = SocketUtils::createServerAddress(Ports::AHUB_AUDITOR_PORT);
+
+    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+    SocketUtils::connectToServerSocket(clientSocket, serverAddress);
+    if (DebugFlags::debugAuditor)
+        cout << "Connected to the server\n";
+
+    char buffer[MESSAGE_BYTES];
+    string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
+    General::stringToCharArray(attestationRequestString, buffer, MESSAGE_BYTES);
+    SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+
+    if (DebugFlags::debugAuditor)
+        cout << "Wrote: " << buffer << " to server\n";
+
+    bzero(buffer, MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+    if (DebugFlags::debugAuditor)
+        cout << "Recieved from server: " << buffer << "\n";
+
+    string quote(buffer);
+    vector<string> splittedQuote = General::splitString(quote);
+
+    if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE) {
+        string approvedMessage = Messages::OK_APPROVED + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1;
+        General::stringToCharArray(approvedMessage, buffer, MESSAGE_BYTES);
+        SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+        if (DebugFlags::debugAuditor)
+            cout << "Wrote: " << buffer << " to server\n";
+        close(clientSocket);
+    } else {
+        General::stringToCharArray(Messages::NOT_OK, buffer, MESSAGE_BYTES);
+        SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+        if (DebugFlags::debugAuditor)
+            cout << "Wrote: " << buffer << " to server\n";
+        close(clientSocket);
+    }
 }
 unsigned char* Auditor::generateSignature(unsigned char* data){
     //TODO
@@ -98,8 +124,6 @@ unsigned char* Auditor::generateSignature(unsigned char* data){
 void Auditor::saySomething(std::string message) {
     std::cout << "Auditor >> " + message + "\n";
 }
-
-
 
 void printHelp(){
     std::cout << "Usage: Help - help\n";
@@ -143,6 +167,7 @@ int main(int argc, char* argv[]) {
             if (lineSeparated.size() == 2) {
                 if (DebugFlags::debugAuditor)
                     std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1];
+                auditor->attestAuditingHub(lineSeparated[1].c_str());
             } else {
                 std::cout << "Bad usage of command \n";
                 printHelp();
