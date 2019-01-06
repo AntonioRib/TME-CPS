@@ -2,28 +2,44 @@
 #define _MINION_H_
 
 #include <iostream>
-#include <thread>
 #include <map>
+#include <thread>
+#include <utility>
+#include <vector>
+#include "../../Utilities/AttestationConstants.h"
+#include "../../Utilities/General.h"
+#include "../../Utilities/Messages.h"
+#include "../../Utilities/Ports.h"
 #include "../Application/Application.h"
 
 using namespace std;
 
 class Minion
 {
-  private:
+    private:
     string ipAddress;
+    string monitorHost;
+    string hostname;
     map<string, Application*> minionApplications;
 
+    void processAttestation(int monitorSocket);
+    bool startMonitorHandler();
+    bool startAuditingHubHandler();
+
     public:
-      Minion();
-      Minion(std::string ipAddress);
-      Minion(const Minion&);
+    Minion();
+    Minion(string ipAddress);
+    Minion(string monitorHost, string hostname, string ipAddress);
+    Minion(const Minion&);
 
-      string getIpAddress();
-      map<string, Application*> getApplications();
+    //Getters
+    string getMonitorHost();
+    string getHostname();
+    string getIpAddress();
+    map<string, Application*> getApplications();
 
-      void addApp(Application* app);
-      void removeApp(string appID);
+    void addApp(Application* app);
+    void removeApp(string appID);
 };
 
 #endif

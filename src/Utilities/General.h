@@ -58,9 +58,9 @@ namespace SocketUtils {
 
 const int MESSAGE_BYTES = 2048;
 
-inline void error(const char* msg) {
-    perror(msg);
-    exit(1);
+    inline void error(const char* msg) {
+        perror(msg);
+        exit(1);
     }
 
     inline sockaddr_in createServerAddress(int port){

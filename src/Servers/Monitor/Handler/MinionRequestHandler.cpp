@@ -1,5 +1,7 @@
 #include "MinionRequestHandler.h"
 
+const int MESSAGE_BYTES = 2048;
+
 MinionRequestHandler::MinionRequestHandler() {
     std::cout << "MinionRequestHandler created\n";
 }
@@ -8,12 +10,78 @@ MinionRequestHandler::MinionRequestHandler(Monitor* monitor) : monitor{monitor} 
     std::cout << "MinionRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
 
-void MinionRequestHandler::attestMinion(){
-    //TODO
+void MinionRequestHandler::attestMinion(int minionSocket) {
+    char buffer[MESSAGE_BYTES];
+    std::string request = Messages::ATTEST + " " + AttestationConstants::NONCE;
+    General::stringToCharArray(request, buffer, MESSAGE_BYTES);
+    SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+    if (DebugFlags::debugMonitor)
+        cout << "Wrote: " << buffer << " to Minion\n";
+
+    bzero(buffer, MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(minionSocket, buffer, MESSAGE_BYTES - 1, 0);
+    if (DebugFlags::debugMonitor)
+        cout << "Recieved: " << buffer << "\n";
+
+    string response(buffer);
+    vector<string> responseSplit = General::splitString(response);
+    if (responseSplit[0] == Messages::QUOTE && responseSplit[1] == AttestationConstants::QUOTE) {
+        std::string confirmation = Messages::OK;
+        General::stringToCharArray(confirmation, buffer, MESSAGE_BYTES);
+        SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+        if (DebugFlags::debugMonitor)
+            cout << "Wrote: " << buffer << " to Minion\n";
+    } else {
+        std::string confirmation = Messages::NOT_OK;
+        General::stringToCharArray(confirmation, buffer, MESSAGE_BYTES);
+        SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+        if (DebugFlags::debugMonitor)
+            cout << "Wrote: " << buffer << " to Minion\n";
+        cout << "Not approved!\n";
+    }
 }
 
 void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minionRequestHandler) {
     std::cout << "MinionRequestHandler running with Monitor with the name " << minionRequestHandler.monitor->getHostname() << "\n";
+
+    sockaddr_in serverAddress;
+    serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_MINION_PORT);
+
+    int serverSocket;
+    serverSocket = SocketUtils::createServerSocket(serverAddress);
+
+    int minionSocket;
+    while (true) {
+        minionSocket = SocketUtils::acceptClientSocket(serverSocket);
+        cout << "Got connection from Minion\n";
+        minionRequestHandler.attestMinion(minionSocket);
+
+        char buffer[MESSAGE_BYTES];
+        bzero(buffer, MESSAGE_BYTES);
+        SocketUtils::receiveBuffer(minionSocket, buffer, MESSAGE_BYTES - 1, 0);
+        if (DebugFlags::debugMonitor)
+            cout << "Recieved: " << buffer << "\n";
+        // cout << buffer;
+        string command(buffer);
+        vector<string> commandSplit = General::splitString(command);
+
+        if (commandSplit[0] == Messages::REGISTER) {
+            socklen_t len = sizeof(serverAddress);
+            char ip[32];
+            getsockname(minionSocket, (struct sockaddr*)&serverAddress, &len);
+            inet_ntop(AF_INET, &serverAddress.sin_addr, ip, sizeof(ip));
+            int r = General::random_0_to_n(0, 1000);
+            string minionAddress(ip);
+            minionAddress += std::to_string(r);
+            if (DebugFlags::debugMonitor)
+                cout << "Registering: " << minionAddress << "\n";
+            minionRequestHandler.monitor->addNewMinion(minionAddress);
+        }
+    }
+    // printf("Here is the message: %s\n", buffer);
+
+    close(minionSocket);
+    close(serverSocket);
 }
 
 // int main(int argc, char* argv[]) {

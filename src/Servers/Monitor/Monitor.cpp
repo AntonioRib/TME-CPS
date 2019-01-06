@@ -154,7 +154,7 @@ void Monitor::deleteApplication(string appID) {
 void Monitor::addNewMinion(string newMinionAddress) {
     Minion* newMinion = new Minion(newMinionAddress);
     Monitor::trustedMinions.insert(pair<string, Minion*>(newMinion->getIpAddress(), newMinion));
-    cout << "Added: " << newMinion->getIpAddress() << " #Minions: " << Monitor::trustedMinions.size();
+    cout << "Added: " << newMinion->getIpAddress() << " #Minions: " << Monitor::trustedMinions.size() << " \n";
 }
 
 void Monitor::removeMinion(string minionAddress) {

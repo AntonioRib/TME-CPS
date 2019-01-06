@@ -6,12 +6,14 @@ LINK=g++ $(LDFLAGS) -o
 
 SRCDIR= $(wildcard *.cpp) \
 	$(wildcard Handler/*.cpp) \
+	$(wildcard ../Minion/*.cpp) \
+	$(wildcard ../Minion/Handler/*.cpp) \
 	#$(wildcard ../Application/*.cpp) \
-	#$(wildcard ../Minion/*.cpp) \
 
 OBJ = $(SRCDIR:.cpp=.o) \
-	$(wildcard ../Minion/*.o) \
 	$(wildcard ../Application/*.o) \
+	#$(wildcard ../Minion/*.o) \
+	#$(wildcard ../Minion/Handler/*.o) \
 # OBJDIR = $(SRCDIR:.cpp=.o)
 
 
