@@ -1,12 +1,11 @@
 #include "Monitor.h"
+#include <algorithm>
 #include <chrono>
+#include <iterator>
 #include "Handler/AHubRequestHandler.h"
 #include "Handler/AuditorRequestHandler.h"
 #include "Handler/DeveloperRequestHandler.h"
 #include "Handler/MinionRequestHandler.h"
-#include <iterator>
-#include "../Minion/Minion.h"
-#include <algorithm>
 
 using namespace std;
 

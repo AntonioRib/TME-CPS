@@ -1,5 +1,5 @@
-#ifndef _developer_h_
-#define _developer_h_
+#ifndef _DEVELOPER_H_
+#define _DEVELOPER_H_
 
 #include <iostream>
 #include <string>

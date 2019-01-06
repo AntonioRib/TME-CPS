@@ -1,5 +1,5 @@
-#ifndef _ports_h_
-#define _ports_h_
+#ifndef _PORTS_H_
+#define _PORTS_H_
 // #include <iostream>
 
 namespace Ports{

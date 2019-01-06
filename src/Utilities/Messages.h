@@ -1,5 +1,5 @@
-#ifndef _messages_h_
-#define _messages_h_
+#ifndef _MESSAGES_H_
+#define _MESSAGES_H_
 #include <iostream>
 
 namespace Messages{

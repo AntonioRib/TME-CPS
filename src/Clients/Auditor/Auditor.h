@@ -1,5 +1,5 @@
-#ifndef _auditor_h_
-#define _auditor_h_
+#ifndef _AUDITOR_H_
+#define _AUDITOR_H_
 
 #include <iostream>
 #include <iterator>

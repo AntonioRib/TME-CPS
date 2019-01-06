@@ -1,13 +1,10 @@
-#ifndef _auditorrequesthandler_h_
-#define _auditorrequesthandler_h_
+#ifndef _AUDITORREQUESTHANDLER_H_
+#define _AUDITORREQUESTHANDLER_H_
 
 #include <iostream>
 // #include "../../../Utilities/httpLib/httplib.h"
 #include "../Monitor.h"
-#include "../../../Utilities/Messages.h"
-#include "../../../Utilities/AttestationConstants.h"
-#include "../../../Utilities/Ports.h"
-#include "../../../Utilities/General.h"
+// #include "../../../Utilities/General.h"
 // #include "../../../Utilities/httpLib/httplib.h"
 #include <stdio.h>
 #include <stdlib.h>

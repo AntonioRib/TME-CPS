@@ -1,15 +1,18 @@
-#ifndef _monitor_h_
-#define _monitor_h_
-using namespace std;
+#ifndef _MONITOR_H_
+#define _MONITOR_H_
 
-#include "../Minion/Minion.h"
-#include "../Application/Application.h"
-#include "../../Utilities/General.h"
 #include <iostream>
-#include <thread>
 #include <map>
+#include <thread>
 #include <vector>
+#include "../../Utilities/AttestationConstants.h"
+#include "../../Utilities/General.h"
+#include "../../Utilities/Messages.h"
+#include "../../Utilities/Ports.h"
+#include "../Application/Application.h"
+#include "../Minion/Minion.h"
 
+using namespace std;
 
 class Monitor {
 

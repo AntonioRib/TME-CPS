@@ -1,9 +1,8 @@
-#ifndef _developerrequesthandler_h_
-#define _developerrequesthandler_h_
+#ifndef _DEVELOPERREQUESTHANDLER_H_
+#define _DEVELOPERREQUESTHANDLER_H_
 
 #include <iostream>
 #include "../Monitor.h"
-#include "../../Minion/Minion.h"
 
 class DeveloperRequestHandler {
         

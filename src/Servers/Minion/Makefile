@@ -9,7 +9,7 @@ SRCDIR= $(wildcard *.cpp) \
 	$(wildcard ../Application/*.cpp) \
 
 OBJ = $(SRCDIR:.cpp=.o) \
-	$(wildcard ../Application/*.o) \
+	#$(wildcard ../Application/*.o) \
 # OBJDIR = $(SRCDIR:.cpp=.o)
 
 

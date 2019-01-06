@@ -1,5 +1,5 @@
-#ifndef _minion_h_
-#define _minion_h_
+#ifndef _MINION_H_
+#define _MINION_H_
 
 #include <iostream>
 #include <thread>

@@ -1,5 +1,5 @@
-#ifndef _minionrequesthandler_h_
-#define _minionrequesthandler_h_
+#ifndef _MINIONREQUESTHANDLER_H_
+#define _MINIONREQUESTHANDLER_H_
 
 #include <iostream>
 #include "../Monitor.h"

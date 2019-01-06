@@ -1,5 +1,5 @@
-#ifndef _sysadmin_h_
-#define _sysadmin_h_
+#ifndef _SYSADMIN_H_
+#define _SYSADMIN_H_
 
 #include <iostream>
 #include <string>

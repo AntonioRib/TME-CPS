@@ -1,5 +1,5 @@
-#ifndef _application_h_
-#define _application_h_
+#ifndef _APPLICATION_H_
+#define _APPLICATION_H_
 #include <iostream>
 using namespace std;
 

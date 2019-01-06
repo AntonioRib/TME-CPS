@@ -1,5 +1,5 @@
-#ifndef _auditinghub_h_
-#define _auditinghub_h_
+#ifndef _AUDITINGHUB_H_
+#define _AUDITINGHUB_H_
 
 #include <iostream>
 #include <thread>

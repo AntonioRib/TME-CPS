@@ -1,5 +1,5 @@
-#ifndef _ahubrequesthandler_h_
-#define _ahubrequesthandler_h_
+#ifndef _AHUBREQUESTHANDLER_H_
+#define _AHUBREQUESTHANDLER_H_
 
 #include <iostream>
 #include "../Monitor.h"

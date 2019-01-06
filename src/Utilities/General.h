@@ -1,5 +1,5 @@
-#ifndef _general_h_
-#define _general_h_
+#ifndef _GENERAL_H_
+#define _GENERAL_H_
 #include <time.h>
 #include <iostream>
 #include <iterator>

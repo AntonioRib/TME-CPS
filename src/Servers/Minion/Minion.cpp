@@ -32,22 +32,22 @@ void Minion::removeApp(string appID){
     Minion::minionApplications.erase(appID);
 }
 
-// int main(int argc, char *argv[]) {
-//     std::cout << "Will try to create Minion\n";
+//  int main(int argc, char *argv[]) {
+//      std::cout << "Will try to create Minion\n";
 
-//     std::string s = "Minion I";
-//     Minion* minion = new Minion(s);
+//      std::string s = "Minion I";
+//      Minion* minion = new Minion(s);
 
-//     AHubRequestHandler ahubRequestHandler = AHubRequestHandler(minion);
-//     std::thread ahubRequestHandlerThread(AHubRequestHandler::startAHubRequestHandler, ahubRequestHandler);
+//      AHubRequestHandler ahubRequestHandler = AHubRequestHandler(minion);
+//      std::thread ahubRequestHandlerThread(AHubRequestHandler::startAHubRequestHandler, ahubRequestHandler);
 
-//     MonitorRequestHandler monitorRequestHandler = MonitorRequestHandler(minion);
-//     std::thread monitorRequestHandlerThread(MonitorRequestHandler::startMonitorRequestHandler, monitorRequestHandler);
+//      MonitorRequestHandler monitorRequestHandler = MonitorRequestHandler(minion);
+//      std::thread monitorRequestHandlerThread(MonitorRequestHandler::startMonitorRequestHandler, monitorRequestHandler);
 
-//     ahubRequestHandlerThread.join();
-//     monitorRequestHandlerThread.join();
+//      ahubRequestHandlerThread.join();
+//      monitorRequestHandlerThread.join();
 
-//     std::cout << "Bubye\n";
+//      std::cout << "Bubye\n";
 
-//     return 0;
-// }
+//      return 0;
+//  }

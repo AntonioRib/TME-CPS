@@ -1,5 +1,5 @@
-#ifndef _attestationconstants_h_
-#define _attestationconstants_h_
+#ifndef _ATTESTATIONCONSTANTS_H_
+#define _ATTESTATIONCONSTANTS_H_
 #include <iostream>
 
 namespace AttestationConstants{
