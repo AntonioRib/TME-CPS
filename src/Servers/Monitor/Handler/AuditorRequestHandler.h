@@ -2,10 +2,7 @@
 #define _AUDITORREQUESTHANDLER_H_
 
 #include <iostream>
-// #include "../../../Utilities/httpLib/httplib.h"
 #include "../Monitor.h"
-// #include "../../../Utilities/General.h"
-// #include "../../../Utilities/httpLib/httplib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

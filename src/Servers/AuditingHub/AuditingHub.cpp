@@ -2,7 +2,6 @@
 #include "../../Utilities/Messages.h"
 #include "Handler/AuditorRequestHandler.h"
 #include "Handler/SysAdminRequestHandler.h"
-#include "../../Utilities/httpLib/httplib.h"
 #include "../../Utilities/Ports.h"
 #include <sstream>
 
@@ -67,7 +66,7 @@ void AuditingHub::setApprovedConfiguration(unsigned char* approvedConfiguration)
     AuditingHub::approvedConfiguration = approvedConfiguration;
 }
 
-void AuditingHub::setApprovedSH1Configuration(string approvedSHA1Configuration){
+void AuditingHub::setApprovedSHA1Configuration(string approvedSHA1Configuration){
     AuditingHub::approvedSHA1 = approvedSHA1Configuration;
 }
 

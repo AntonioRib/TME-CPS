@@ -7,6 +7,8 @@
 // #include <sys/socket.h>
 // #include <openssl/applink.c>
 
+const int MESSAGE_BYTES = 2048;
+
 void error(const char *msg)
 {
     perror(msg);
@@ -21,80 +23,89 @@ AuditorRequestHandler::AuditorRequestHandler(Monitor* monitor) : monitor{monitor
     std::cout << "AuditorRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
 
-void AuditorRequestHandler::processAttestation(int socket, std::string nonce, Monitor& monitor)
+void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, Monitor& monitor)
 {
-    unsigned char *uc = (unsigned char *)"LALA";
-    monitor.setApprovedConfiguration(uc);
-    // svr.Post(("/" + Messages::OK_APPROVED).c_str(), [&](const httplib::Request &req, httplib::Response &res) {
-    //         std::cout << "Recieved an OK. Going to update configuration. \n";
-    //     unsigned char *uc = (unsigned char *)req.body.c_str();
-    //     monitor.setApprovedConfiguration(uc);
-    //         std::cout << "Configuration was set. \n";
-    // });
+    char buffer[MESSAGE_BYTES];
+    bzero(buffer, MESSAGE_BYTES);
+    int n;
+    std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
+    strncpy(buffer, configuration.c_str(), sizeof(buffer));
+    buffer[sizeof(buffer) - 1] = 0;
+    n = send(clientSocket, buffer, strlen(buffer), 0);
+    if (n < 0)
+        error("ERROR writing to socket");
+    cout << "Wrote: " << buffer << " to client\n";
 
-    // svr.Get(("/" + Messages::NOT_APPROVED).c_str(), [&](const httplib::Request &req, httplib::Response &res) {
-    //         std::cout << "Recieved an NOT_APPROVED. Going to close. \n";
-    //     svr.stop();
-    // });
+    bzero(buffer, MESSAGE_BYTES);
+    n = recv(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+    if (n < 0)
+        error("ERROR reading from socket");
+    cout << "Recieved: " << buffer << "\n";
+    // cout << buffer;
+    string approved(buffer);
+    vector<string> approvedSplit = General::splitString(approved);
+
+    if (approvedSplit[0] == Messages::NOT_APPROVED) {
+        cout << "Not approved!\n";
+    } else if (approvedSplit[0] == Messages::OK_APPROVED) {
+        cout << "Approved!\n"
+        cout << "Configuration approved. Auditor signature for monitor: " + approvedSplit[1] + ". For minions:" + approvedSplit[3];
+        unsigned char * approvedConfiguration = (unsigned char *) approvedSplit[1].c_str();
+        monitor.setApprovedConfiguration(approvedConfiguration, approvedSplit[2]);
+        monitor.setApprovedConfigurationForMinions(approvedSplit[3]);
+    }
 }
 
 void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler) {
     std::cout << "Trying to create AuditorRequestHandler with Monitor with the name " << auditorRequestHandler.monitor->getHostname() << "\n";
 
-    // httplib::Server svr;
+    int serverSocket;
+    struct sockaddr_in serverAddress;
+    bzero((char *)&serverAddress, sizeof(serverAddress));
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+    serverAddress.sin_port = htons(Ports::MONITOR_AUDITOR_PORT);
 
-    int sockfd, newsockfd, port;
-    socklen_t clilen;
-    char buffer[256];
-    struct sockaddr_in serv_addr, cli_addr;
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket < 0)
+        error("ERROR opening socket");
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0)
-        cout << "ERROR opening socket";
-
-    bzero((char *)&serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(Ports::MONITOR_AUDITOR_PORT);
-
-    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
+    if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) 
         error("ERROR on binding");
 
-    listen(sockfd, 5);
-    newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-    if (newsockfd < 0)
-        error("ERROR on accept");
+    listen(serverSocket, 5);
 
-    printf("server: got connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
-    
-    // send(newsockfd, "Hello, world!\n", 13, 0);
+    int clientSocket;
+    struct sockaddr_in clientAddress;
+    socklen_t clientAddressLength = sizeof(clientAddress);
+    while(true){
+        clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLength);
+        if (clientSocket < 0)
+            error("ERROR on accept");
 
-    bzero(buffer, 256);
-    int n;
-    n = read(newsockfd, buffer, 255);
-    if (n < 0)
-        error("ERROR reading from socket");
+        cout << "Got connection from client\n";
+        //cout << "server: got connection from " << inet_ntoa(clientAddress.sin_addr) << " port " + ntohs(clientAddress.sin_port) << "\n";
 
-    cout << buffer;
-    string command(buffer);
-    vector<string> commandSplit = General::splitString(command);
-    if (commandSplit[0] == Messages::ATTEST){
-        auditorRequestHandler.processAttestation(sockfd, AttestationConstants::QUOTE, *(auditorRequestHandler.monitor));
-        std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
-        send(newsockfd, configuration.c_str(), 1023, 0);
-
-        bzero(buffer, 256);
-        n = read(newsockfd, buffer, 255);
-        cout << buffer;
-        string approved(buffer);
-        if (approved == Messages::OK_APPROVED){
-            cout << "Approved!\n";
+        // send(clientSocket, "Hello, world!\n", 13, 0);
+        char buffer[MESSAGE_BYTES];
+        bzero(buffer, MESSAGE_BYTES);
+        int n;
+        n = recv(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+        if (n < 0)
+            error("ERROR reading from socket");
+        cout << "Recieved: " << buffer << "\n";
+        // cout << buffer;
+        string command(buffer);
+        vector<string> commandSplit = General::splitString(command);
+        
+        if (commandSplit[0] == Messages::ATTEST){
+            auditorRequestHandler.processAttestation(clientSocket, AttestationConstants::QUOTE, *(auditorRequestHandler.monitor));
         }
     }
-        // printf("Here is the message: %s\n", buffer);
+    // printf("Here is the message: %s\n", buffer);
 
-    close(newsockfd);
-    close(sockfd);
+    close(clientSocket);
+    close(serverSocket);
     //return 0;
 
     // bool debug = true;

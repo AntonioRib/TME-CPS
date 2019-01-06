@@ -1,5 +1,4 @@
 #include "AHubRequestHandler.h"
-// #include "../../../Utilities/httpLib/httplib.h"
 
 AHubRequestHandler::AHubRequestHandler() {
     std::cout << "AHubRequestHandler created\n";

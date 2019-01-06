@@ -3,15 +3,17 @@
 #include "../../Utilities/General.h"
 #include "../../Utilities/Messages.h"
 #include "../../Utilities/Ports.h"
-#include "../../Utilities/httpLib/httplib.h"
+#include <netdb.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <sys/types.h>
+#include <unistd.h>
+using namespace std;
 
+const int MESSAGE_BYTES = 2048;
 //  Usage:
 //  Client -h: help
 //  Client
@@ -27,64 +29,74 @@ Auditor::Auditor() {
 }
 
 void Auditor::attestMonitor(const char* hostname){
-    // httplib::Client cli(hostname, Ports::MONITOR_AUDITOR_PORT);
+    // cout << "got inside the method going to try to connect \n";
+    int n;
 
-    // auto res = cli.Post(("/" + Messages::ATTEST).c_str(), "", "text/plain");
+    struct hostent *serverHost;
+    serverHost = gethostbyname(hostname);
+    if (serverHost == NULL)
+        error("ERROR, no such host\n");
 
-    // std::vector<std::string> lineSeparated = General::splitString(res.get()->body);
-
-    // std::cout << "Res: " << res.get()->body;
-
-    // if (true)
-    //     cli.Post(("/" + Messages::OK_APPROVED).c_str(), AttestationConstants::QUOTE, "text/plain");
-    // else {
-    //     cli.Post(("/" + Messages::NOT_APPROVED).c_str(), "", "text/plain");
-    // }
-
-    int sockfd, n;
-    struct sockaddr_in serv_addr;
-
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0)
+    int serverSocket;
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket < 0)
         error("ERROR opening socket");
 
-    struct hostent *server;
-    server = gethostbyname(hostname);
-    if (server == NULL)
-    {
-        fprintf(stderr, "ERROR, no such host\n");
-        exit(0);
-    }
-    bzero((char *)&serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-    serv_addr.sin_port = htons(Ports::MONITOR_AUDITOR_PORT);
-    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    sockaddr_in serverAddress;
+    bzero((char *)&serverAddress, sizeof(serverAddress));
+    serverAddress.sin_family = AF_INET;
+    bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
+    serverAddress.sin_port = htons(Ports::MONITOR_AUDITOR_PORT);
+    if (connect(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
         error("ERROR connecting");
+    
+    cout << "Connected to the server\n";
 
-    // printf("Please enter the message: ");
-    char buffer[256];
-    bzero(buffer, 256);
-    buffer << Messages::ATTEST;
+    char buffer[MESSAGE_BYTES];
+    bzero(buffer, MESSAGE_BYTES);
+
+    string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
+
+    strncpy(buffer, attestationRequestString.c_str(), sizeof(buffer));
+    buffer[sizeof(buffer) - 1] = 0;
 
     // fgets(buffer, 255, stdin);
-    n = write(sockfd, buffer, strlen(buffer));
+    n = send(serverSocket, buffer, strlen(buffer), 0);
     if (n < 0)
         error("ERROR writing to socket");
-
-    char quote[1024];
-    bzero(quote, 1024);
-    n = read(sockfd, buffer, 1023);
+    // cout << "message sent \n";
+    cout << "Wrote: " << buffer << " to server\n";
+    // cout << "Will recieve message \n";
+    bzero(buffer, MESSAGE_BYTES);
+    n = recv(serverSocket, buffer, MESSAGE_BYTES-1, 0);
     if (n < 0)
         error("ERROR reading from socket");
-    printf("QUOTE %s\n", quote);
+    cout << "Recieved in BUFFER: " << buffer << "\n";
+    string quote(buffer);
+    vector<string> splittedQuote = General::splitString(quote);
 
-    buffer << Messages::OK_APPROVED;
-    bzero(buffer, 256);
-    n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0)
-        error("ERROR writing to socket");
-    close(sockfd);
+    if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE) {
+        bzero(buffer, MESSAGE_BYTES);
+        string approvedMessage = Messages::OK_APPROVED + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1;
+        strncpy(buffer, approvedMessage.c_str(), sizeof(buffer));
+        buffer[sizeof(buffer) - 1] = 0;
+        n = send(serverSocket, buffer, strlen(buffer), 0);
+        if (n < 0)
+            error("ERROR writing to socket");
+        cout << "Wrote: " << buffer << " to server\n";
+        close(serverSocket);
+    } else {
+        bzero(buffer, MESSAGE_BYTES);
+        strncpy(buffer, Messages::NOT_OK.c_str(), sizeof(buffer));
+        buffer[sizeof(buffer) - 1] = 0;
+        n = send(serverSocket, buffer, strlen(buffer), 0);
+        if (n < 0)
+            error("ERROR writing to socket");
+        cout << "Wrote: " << buffer << " to server\n";
+        close(serverSocket);
+    }
+
+    
     //return 0;
 }
 

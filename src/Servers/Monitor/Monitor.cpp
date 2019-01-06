@@ -72,10 +72,11 @@ string Monitor::getApprovedConfigurationForMinions() {
 }
 
 //Setters
-void Monitor::setApprovedConfiguration(unsigned char* approvedConfiguration) {
-    std::cout << "Updated confg from: " << +Monitor::approvedConfiguration;
+void Monitor::setApprovedConfiguration(unsigned char* approvedConfiguration, string pcrSHA1){
+    std::cout << "Updated config from: " << +Monitor::approvedConfiguration;
     Monitor::approvedConfiguration = approvedConfiguration;
     std::cout << " to: " << +Monitor::approvedConfiguration << "\n";
+    Monitor::approvedSHA1 = pcrSHA1;
 }
 
 void Monitor::setApprovedConfigurationForMinions(string approvedConfiguration){
@@ -204,7 +205,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Will try to create Monitor\n";
 
-    std::string s = "Monitor I";
+//    std::string s = "Monitor I";
     Monitor* monitor = new Monitor(username, sshKey, hostname);
 
     AuditorRequestHandler auditorRequestHandler = AuditorRequestHandler(monitor);
@@ -212,7 +213,6 @@ int main(int argc, char* argv[]) {
 
     while (monitor->getApprovedConfiguration() == (unsigned char*)NULL_VALUE) {
         std::cout << "Im in the loop \n";
-        printf("This prints this: %s", monitor->getApprovedConfiguration());
         std::cout << "Waiting for approved config. Current Config -> " << +monitor->getApprovedConfiguration() << "\n";
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }

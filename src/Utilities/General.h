@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-namespace General {
 using namespace std;
+namespace General {
 
-    std::vector<std::string> splitString(std::string st){
+    inline std::vector<std::string> splitString(std::string st){
             std::istringstream stream(st);
             std::vector<std::string> result((std::istream_iterator<std::string>(stream)),
                                                 std::istream_iterator<std::string>());
@@ -19,13 +19,13 @@ using namespace std;
     }
 
     template <typename M, typename V>
-    void mapToVec(const M& m, V& v) {
+    inline void mapToVec(const M& m, V& v) {
         for (typename M::const_iterator it = m.begin(); it != m.end(); ++it) {
             v.push_back(it->second);
         }
     }
 
-    int random_0_to_n(int min, int max) {
+    inline int random_0_to_n(int min, int max) {
         srand(time(NULL));
         return min + (rand() % (int)(max - min + 1));
     }

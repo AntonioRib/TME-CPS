@@ -51,7 +51,7 @@ class Monitor {
     string getApprovedConfigurationForMinions();
 
     //Setters
-    void setApprovedConfiguration(unsigned char* approvedConfiguration);
+    void setApprovedConfiguration(unsigned char* approvedConfiguration, string pcrSHA1);
     void setApprovedConfigurationForMinions(string approvedConfiguration);
 
     //Special Getters
