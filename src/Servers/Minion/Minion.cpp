@@ -112,8 +112,8 @@ bool Minion::startMonitorHandler(){
     string response(buffer);
     vector<string> splittedResposnse = General::splitString(response);
     if (splittedResposnse[0] == Messages::OK){
-        MonitorRequestHandler monitorRequestHandler = MonitorRequestHandler(this);
-        std::thread monitorRequestHandlerThread(MonitorRequestHandler::startMonitorRequestHandler, monitorRequestHandler);
+        MinionMonitorRequestHandler minionMonitorRequestHandler = MinionMonitorRequestHandler(this);
+        std::thread monitorRequestHandlerThread(MinionMonitorRequestHandler::startMinionMonitorRequestHandler, minionMonitorRequestHandler);
         return true;
     } else if (splittedResposnse[0] == Messages::NOT_OK){
         return false;
@@ -146,8 +146,8 @@ bool Minion::startAuditingHubHandler(){
 //     //  MinionAHubRequestHandler minionAHubRequestHandler = MinionAHubRequestHandler(minion);
 //     //  std::thread minionAhubRequestHandlerThread(MinionAHubRequestHandler::startMinionAHubRequestHandler, minionAHubRequestHandler);
 
-//     //  MonitorRequestHandler monitorRequestHandler = MonitorRequestHandler(minion);
-//     //  std::thread monitorRequestHandlerThread(MonitorRequestHandler::startMonitorRequestHandler, monitorRequestHandler);
+//     //  MinionMonitorRequestHandler minionMonitorRequestHandler = MinionMonitorRequestHandler(minion);
+//     //  std::thread monitorRequestHandlerThread(MinionMonitorRequestHandler::startMonitorRequestHandler, minionMonitorRequestHandler);
 
 //     //  minionAhubRequestHandlerThread.join();
 //     //  monitorRequestHandlerThread.join();

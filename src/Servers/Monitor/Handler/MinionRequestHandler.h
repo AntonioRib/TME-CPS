@@ -17,7 +17,7 @@ class MinionRequestHandler {
     std::string monitorStore;
 
    private:
-    void attestMinion(int minionSocket); //TODO
+    void attestMinion(int minionSocket);
 
     public: 
     MinionRequestHandler();
