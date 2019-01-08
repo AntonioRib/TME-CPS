@@ -1,13 +1,15 @@
 #ifndef _AHUBREQUESTHANDLER_H_
 #define _AHUBREQUESTHANDLER_H_
 
+#include <algorithm>
 #include <iostream>
+#include <vector>
 #include "../Monitor.h"
 
 class AHubRequestHandler {
 
    private:
-    Monitor* monitor;
+    // Monitor* monitor;
     std::string monitorStore;
     std::string username;
     std::string sshKey;
@@ -18,10 +20,11 @@ class AHubRequestHandler {
 
     void attestMinion(std::string untrustedMinion);
 
-    public: 
-    AHubRequestHandler();
-    AHubRequestHandler(Monitor* monitor);
-    static void startAHubRequestHandler(AHubRequestHandler aHubRequestHandler);
+    public:
+     Monitor* monitor;
+     AHubRequestHandler();
+     AHubRequestHandler(Monitor* monitor);
+     static void startAHubRequestHandler(AHubRequestHandler aHubRequestHandler);
 };
 
 #endif

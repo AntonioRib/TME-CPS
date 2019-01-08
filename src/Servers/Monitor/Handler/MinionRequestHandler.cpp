@@ -1,6 +1,6 @@
 #include "MinionRequestHandler.h"
 
-const int MESSAGE_BYTES = 2048;
+// const int MESSAGE_BYTES = 2048;
 
 MinionRequestHandler::MinionRequestHandler() {
     std::cout << "MinionRequestHandler created\n";
@@ -11,15 +11,15 @@ MinionRequestHandler::MinionRequestHandler(Monitor* monitor) : monitor{monitor} 
 }
 
 void MinionRequestHandler::attestMinion(int minionSocket) {
-    char buffer[MESSAGE_BYTES];
+    char buffer[SocketUtils::MESSAGE_BYTES];
     std::string request = Messages::ATTEST + " " + AttestationConstants::NONCE;
-    General::stringToCharArray(request, buffer, MESSAGE_BYTES);
+    General::stringToCharArray(request, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
     if (DebugFlags::debugMonitor)
         cout << "Wrote: " << buffer << " to Minion\n";
 
-    bzero(buffer, MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(minionSocket, buffer, MESSAGE_BYTES - 1, 0);
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugMonitor)
         cout << "Recieved: " << buffer << "\n";
 
@@ -27,13 +27,13 @@ void MinionRequestHandler::attestMinion(int minionSocket) {
     vector<string> responseSplit = General::splitString(response);
     if (responseSplit[0] == Messages::QUOTE && responseSplit[1] == AttestationConstants::QUOTE) {
         std::string confirmation = Messages::OK;
-        General::stringToCharArray(confirmation, buffer, MESSAGE_BYTES);
+        General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugMonitor)
             cout << "Wrote: " << buffer << " to Minion\n";
     } else {
         std::string confirmation = Messages::NOT_OK;
-        General::stringToCharArray(confirmation, buffer, MESSAGE_BYTES);
+        General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugMonitor)
             cout << "Wrote: " << buffer << " to Minion\n";
@@ -56,9 +56,9 @@ void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minion
         cout << "Got connection from Minion\n";
         minionRequestHandler.attestMinion(minionSocket);
 
-        char buffer[MESSAGE_BYTES];
-        bzero(buffer, MESSAGE_BYTES);
-        SocketUtils::receiveBuffer(minionSocket, buffer, MESSAGE_BYTES - 1, 0);
+        char buffer[SocketUtils::MESSAGE_BYTES];
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
         if (DebugFlags::debugMonitor)
             cout << "Recieved: " << buffer << "\n";
         // cout << buffer;

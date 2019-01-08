@@ -13,7 +13,7 @@
 #include <unistd.h>
 using namespace std;
 
-const int MESSAGE_BYTES = 2048;
+// const int MESSAGE_BYTES = 2048;
 //  Usage:
 //  Client -h: help
 //  Client
@@ -41,16 +41,16 @@ void Auditor::attestMonitor(const char* hostname){
     if (DebugFlags::debugAuditor)
         cout << "Connected to the server\n";
 
-    char buffer[MESSAGE_BYTES];
+    char buffer[SocketUtils::MESSAGE_BYTES];
     string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
-    General::stringToCharArray(attestationRequestString, buffer, MESSAGE_BYTES);
+    General::stringToCharArray(attestationRequestString, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
     
     if (DebugFlags::debugAuditor)
         cout << "Wrote: " << buffer << " to server\n";
 
-    bzero(buffer, MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(clientSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugAuditor)
         cout << "Recieved from server: " << buffer << "\n";
 
@@ -59,13 +59,13 @@ void Auditor::attestMonitor(const char* hostname){
 
     if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE) {
         string approvedMessage = Messages::OK_APPROVED + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1;
-        General::stringToCharArray(approvedMessage, buffer, MESSAGE_BYTES);
+        General::stringToCharArray(approvedMessage, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugAuditor)
             cout << "Wrote: " << buffer << " to server\n";
         close(clientSocket);
     } else {
-        General::stringToCharArray(Messages::NOT_OK, buffer, MESSAGE_BYTES);
+        General::stringToCharArray(Messages::NOT_OK, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugAuditor)
             cout << "Wrote: " << buffer << " to server\n";
@@ -86,16 +86,16 @@ void Auditor::attestAuditingHub(const char* hostname) {
     if (DebugFlags::debugAuditor)
         cout << "Connected to the server\n";
 
-    char buffer[MESSAGE_BYTES];
+    char buffer[SocketUtils::MESSAGE_BYTES];
     string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
-    General::stringToCharArray(attestationRequestString, buffer, MESSAGE_BYTES);
+    General::stringToCharArray(attestationRequestString, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
 
     if (DebugFlags::debugAuditor)
         cout << "Wrote: " << buffer << " to server\n";
 
-    bzero(buffer, MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(clientSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugAuditor)
         cout << "Recieved from server: " << buffer << "\n";
 
@@ -104,13 +104,13 @@ void Auditor::attestAuditingHub(const char* hostname) {
 
     if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE) {
         string approvedMessage = Messages::OK_APPROVED + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1 + " " + AttestationConstants::PCR_SHA1;
-        General::stringToCharArray(approvedMessage, buffer, MESSAGE_BYTES);
+        General::stringToCharArray(approvedMessage, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugAuditor)
             cout << "Wrote: " << buffer << " to server\n";
         close(clientSocket);
     } else {
-        General::stringToCharArray(Messages::NOT_OK, buffer, MESSAGE_BYTES);
+        General::stringToCharArray(Messages::NOT_OK, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugAuditor)
             cout << "Wrote: " << buffer << " to server\n";

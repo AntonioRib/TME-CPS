@@ -44,10 +44,11 @@ class Monitor {
     string getHostname();
 
     vector<Minion*> getHosts(string appID);
-    vector<Minion*> getUntrustedMinions();
-    vector<Minion*> getTrustedMinions();
+    map<string, Minion*> getUntrustedMinions();
+    map<string, Minion*> getTrustedMinions();
 
     unsigned char* getApprovedConfiguration();
+    string getApprovedSHA1();
     string getApprovedConfigurationForMinions();
 
     //Setters

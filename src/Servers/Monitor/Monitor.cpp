@@ -13,18 +13,18 @@ const int USERNAME_FLAG_INDEX = 1;
 const int KEY_FLAG_INDEX = 3;
 const int HOSTNAME_FLAG_INDEX = 5;
 
-const unsigned char* NULL_VALUE = (unsigned char*)"\0";
+// const unsigned char* NULL_VALUE = (unsigned char*)"\0";
 
 //Constructors
 Monitor::Monitor(const Monitor& m) : username{m.username}, sshKey{m.sshKey}, hostname{m.hostname}, 
     trustedMinions{m.trustedMinions}, untrustedMinions{m.untrustedMinions}, applications{m.applications} {
-    Monitor::approvedConfiguration = (unsigned char*)NULL_VALUE;  //std::nullptr_t();
+    Monitor::approvedConfiguration = (unsigned char*)General::NULL_VALUE;  //std::nullptr_t();
     // std::cout << "Monitor created with the name " << Monitor::hostname << " - copy constructor \n";
 }
 
 Monitor::Monitor(string username, string sshKey, string hostName) : username{username}, sshKey{sshKey}, hostname{hostName} {
     std::cout << "Monitor created with the name " << Monitor::username << " - string constructor \n";
-    Monitor::approvedConfiguration = (unsigned char*)NULL_VALUE;
+    Monitor::approvedConfiguration = (unsigned char*)General::NULL_VALUE;
     // map<string, Minion> trustedMinions {};
     // map<string, Minion> untrustedMinions {};
     // map<string, string> applications {};
@@ -51,20 +51,26 @@ vector<Minion*> Monitor::getHosts(string appID){
     return appsHosts[appID];
 }
 
-vector<Minion*> Monitor::getUntrustedMinions() {
-    vector<Minion*> result;
-    General::mapToVec <map<string,Minion*>, vector<Minion*>> (Monitor::untrustedMinions, result);
-    return result;
+map<string, Minion*> Monitor::getUntrustedMinions() {
+    // vector<Minion*> result;
+    // General::mapToVec <map<string,Minion*>, vector<Minion*>> (Monitor::untrustedMinions, result);
+    // return result;
+    return Monitor::untrustedMinions;
 }
 
-vector<Minion*> Monitor::getTrustedMinions() {
-    vector<Minion*> result;
-    General::mapToVec<map<string, Minion*>, vector<Minion*>>(Monitor::trustedMinions, result);
-    return result;
+map<string, Minion*> Monitor::getTrustedMinions() {
+    // vector<Minion*> result;
+    // General::mapToVec<map<string, Minion*>, vector<Minion*>>(Monitor::trustedMinions, result);
+    // return result;
+    return Monitor::trustedMinions;
 }
 
 unsigned char* Monitor::getApprovedConfiguration() {
     return Monitor::approvedConfiguration;
+}
+
+string Monitor::getApprovedSHA1() {
+    return Monitor::approvedSHA1;
 }
 
 string Monitor::getApprovedConfigurationForMinions() {
@@ -97,6 +103,7 @@ Minion* Monitor::pickTrustedMinion(){
     std::advance(it, General::random_0_to_n(0, Monitor::trustedMinions.size()));
     return it->second;
 }
+
 vector<Minion*> Monitor::pickNTrustedMinions(int numberOfMinions){
     if (Monitor::trustedMinions.size() < numberOfMinions) {
         throw 10; //TODO check if it makes sense to send an exception or return something;
@@ -211,7 +218,7 @@ int main(int argc, char* argv[]) {
     AuditorRequestHandler auditorRequestHandler = AuditorRequestHandler(monitor);
     std::thread auditorRequestHandlerThread(AuditorRequestHandler::startAuditorRequestHandler, auditorRequestHandler);
 
-    while (monitor->getApprovedConfiguration() == (unsigned char*)NULL_VALUE) {
+    while (monitor->getApprovedConfiguration() == (unsigned char*)General::NULL_VALUE) {
         std::cout << "Im in the loop \n";
         std::cout << "Waiting for approved config. Current Config -> " << +monitor->getApprovedConfiguration() << "\n";
         std::this_thread::sleep_for(std::chrono::seconds(1));

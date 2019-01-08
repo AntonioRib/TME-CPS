@@ -1,6 +1,6 @@
 #include "AuditorRequestHandler.h"
 
-const int MESSAGE_BYTES = 2048;
+// const int MESSAGE_BYTES = 2048;
 
 AuditorRequestHandler::AuditorRequestHandler() {
     std::cout << "AuditorRequestHandler created\n";
@@ -11,16 +11,16 @@ AuditorRequestHandler::AuditorRequestHandler(AuditingHub* auditingHub) : auditin
 }
 
 void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, AuditingHub& auditingHub) {
-    char buffer[MESSAGE_BYTES];
+    char buffer[SocketUtils::MESSAGE_BYTES];
     std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
-    General::stringToCharArray(configuration, buffer, MESSAGE_BYTES);
+    General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
     // cout << "Buffer: " << buffer;
     SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
     if (DebugFlags::debugAuditingHub)
         cout << "Wrote: " << buffer << " to client\n";
 
-    bzero(buffer, MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(clientSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugAuditingHub)
         cout << "Recieved: " << buffer << "\n";
 
@@ -52,9 +52,9 @@ void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler aud
         clientSocket = SocketUtils::acceptClientSocket(serverSocket);
         cout << "Got connection from client\n";
 
-        char buffer[MESSAGE_BYTES];
-        bzero(buffer, MESSAGE_BYTES);
-        SocketUtils::receiveBuffer(clientSocket, buffer, MESSAGE_BYTES - 1, 0);
+        char buffer[SocketUtils::MESSAGE_BYTES];
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        SocketUtils::receiveBuffer(clientSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
 
         if (DebugFlags::debugAuditingHub)
             cout << "Recieved: " << buffer << "\n";

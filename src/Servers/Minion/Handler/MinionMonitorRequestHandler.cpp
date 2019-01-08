@@ -8,7 +8,7 @@ MinionMonitorRequestHandler::MinionMonitorRequestHandler(Minion* minion) : minio
     std::cout << "MonitorRequestHandler created with the name " << minion->getIpAddress() << "\n";
 }
 
-void MinionMonitorRequestHandler::MinionMonitorRequestHandler(MinionMonitorRequestHandler minionMonitorRequestHandler) {
+void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitorRequestHandler minionMonitorRequestHandler) {
     std::cout << "MonitorRequestHandler running with Minion with the name " << minionMonitorRequestHandler.minion->getIpAddress() << "\n";
 }
 

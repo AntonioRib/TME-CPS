@@ -1,22 +1,25 @@
 #ifndef _DEVELOPERREQUESTHANDLER_H_
 #define _DEVELOPERREQUESTHANDLER_H_
 
+#include <algorithm>
 #include <iostream>
+#include <vector>
 #include "../Monitor.h"
+using namespace std;
 
 class DeveloperRequestHandler {
         
    private:
     Monitor* monitor;
-    std::string monitorStore;
-    std::string username;
-    std::string sshKey;
+    string monitorStore;
+    string username;
+    string sshKey;
 
-    bool sendApp(Minion* minion, std::string appDir);
-    bool deployApp(std::string appID, int instances);
-    bool deleteApp(std::string appID);
+    bool sendApp(Minion* minion, string appDir);
+    bool deployApp(string appID, int instances);
+    bool deleteApp(string appID);
 
-    void processAttestation(); //TODO
+    void processAttestation(int developerSocket); 
 
    public:
     DeveloperRequestHandler();

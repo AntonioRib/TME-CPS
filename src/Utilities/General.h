@@ -27,12 +27,14 @@ namespace DebugFlags {
 
 namespace General {
 
-    inline std::vector<std::string> splitString(std::string st){
-            std::istringstream stream(st);
-            std::vector<std::string> result((std::istream_iterator<std::string>(stream)),
-                                                std::istream_iterator<std::string>());
+const unsigned char* NULL_VALUE = (unsigned char*)"\0";
 
-            return result;
+inline std::vector<std::string> splitString(std::string st) {
+    std::istringstream stream(st);
+    std::vector<std::string> result((std::istream_iterator<std::string>(stream)),
+                                    std::istream_iterator<std::string>());
+
+    return result;
     }
 
     template <typename M, typename V>

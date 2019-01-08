@@ -11,7 +11,7 @@ const int HUB_KEY_FLAG_INDEX = 3;
 const int MONITOR_FLAG_INDEX = 5;
 const int HOSTNAME_FLAG_INDEX = 7;
 
-const unsigned char *NULL_VALUE = (unsigned char *)"\0";
+// const unsigned char *NULL_VALUE = (unsigned char *)"\0";
 
 AuditingHub::AuditingHub()
 {
@@ -19,13 +19,13 @@ AuditingHub::AuditingHub()
 }
 
 AuditingHub::AuditingHub(const AuditingHub &m){
-    AuditingHub::approvedConfiguration = (unsigned char *)NULL_VALUE;
+    AuditingHub::approvedConfiguration = (unsigned char *)General::NULL_VALUE;
     // std::cout << "AuditingHub created with the name " << AuditingHub::name << " - copy constructor \n";
 }
 
 AuditingHub::AuditingHub(string hubUserName, string hubKey, string monitorHost, string hotsName)
     : hubUserName{hubUserName}, hubKey{hubKey}, monitorHost{monitorHost}, hostname{hostname} {
-    AuditingHub::approvedConfiguration = (unsigned char *)NULL_VALUE;
+    AuditingHub::approvedConfiguration = (unsigned char *)General::NULL_VALUE;
     // std::cout << "AuditingHub created with the name " << AuditingHub::name << " - string constructor \n";
 }
 
@@ -113,8 +113,7 @@ int main(int argc, char *argv[]) {
     AuditorRequestHandler auditorRequestHandler = AuditorRequestHandler(auditingHub);
     std::thread auditorRequestHandlerThread(AuditorRequestHandler::startAuditorRequestHandler, auditorRequestHandler);
 
-    while (auditingHub->getApprovedConfiguration() == (unsigned char *)NULL_VALUE)
-    {
+    while (auditingHub->getApprovedConfiguration() == (unsigned char *)General::NULL_VALUE) {
         std::cout << "Im in the loop \n";
         printf("This prints this: %s", auditingHub->getApprovedConfiguration());
         std::cout << "Waiting for approved config. Current Config -> " << +auditingHub->getApprovedConfiguration() << "\n";

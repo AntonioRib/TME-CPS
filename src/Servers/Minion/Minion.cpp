@@ -1,10 +1,10 @@
 #include "Minion.h"
 #include "Handler/MinionAHubRequestHandler.h"
-#include "Handler/MonitorRequestHandler.h"
+#include "Handler/MinionMonitorRequestHandler.h"
 #include <iterator>
 using namespace std;
 
-const int MESSAGE_BYTES = 2048;
+// const int MESSAGE_BYTES = 2048;
 
 const int MONITOR_HOST_FLAG_INDEX = 1;
 const int HOSTNAME_FLAG_INDEX = 3;
@@ -54,9 +54,9 @@ void Minion::removeApp(string appID){
 }
 
 void Minion::processAttestation(int monitorSocket){
-    char buffer[MESSAGE_BYTES];
-    bzero(buffer, MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(monitorSocket, buffer, MESSAGE_BYTES - 1, 0);
+    char buffer[SocketUtils::MESSAGE_BYTES];
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugMinion)
         cout << "Recieved: " << buffer << "\n";
 
@@ -65,13 +65,13 @@ void Minion::processAttestation(int monitorSocket){
 
     if (requestSplit[0] == Messages::ATTEST){
         std::string response = Messages::QUOTE + " " + AttestationConstants::QUOTE;
-        General::stringToCharArray(response, buffer, MESSAGE_BYTES);
+        General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugMinion)
             cout << "Wrote: " << buffer << " to Monitor\n";
 
-        bzero(buffer, MESSAGE_BYTES);
-        SocketUtils::receiveBuffer(monitorSocket, buffer, MESSAGE_BYTES - 1, 0);
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
         if (DebugFlags::debugMinion)
             cout << "Recieved: " << buffer << "\n";
 
@@ -96,16 +96,16 @@ bool Minion::startMonitorHandler(){
 
     processAttestation(monitorSocket);
 
-    char buffer[MESSAGE_BYTES];
+    char buffer[SocketUtils::MESSAGE_BYTES];
     string registerString = Messages::REGISTER;
-    General::stringToCharArray(registerString, buffer, MESSAGE_BYTES);
-    SocketUtils::sendBuffer(monitorSocket, buffer, MESSAGE_BYTES - 1, 0);
+    General::stringToCharArray(registerString, buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::sendBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
 
     if (DebugFlags::debugMinion)
         cout << "Wrote: " << buffer << " to Monitor\n";
 
-    bzero(buffer, MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(monitorSocket, buffer, MESSAGE_BYTES - 1, 0);
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugMinion)
         cout << "Recieved from Monitor: " << buffer << "\n";
 
