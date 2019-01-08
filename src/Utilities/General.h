@@ -16,6 +16,16 @@
 
 using namespace std;
 
+namespace Directories {
+    static const string APPS_DIR_MONITOR = "AppsMonitor/";
+    static const string APPS_DIR_MINION = "AppsMinion/";
+}  // namespace Directories
+
+namespace ProcessBinaries {
+    static const string SCP = "/usr/bin/scp";
+    static const string SSH = "/usr/bin/ssh";
+}  // namespace ProcessBinaries
+
 namespace DebugFlags {
     static const bool debugAuditor      = true;
     static const bool debugDeveloper    = true;
@@ -23,11 +33,11 @@ namespace DebugFlags {
     static const bool debugAuditingHub  = true;
     static const bool debugMinion       = true;
     static const bool debugMonitor      = true;
-}
+    }  // namespace DebugFlags
 
 namespace General {
 
-const unsigned char* NULL_VALUE = (unsigned char*)"\0";
+static const unsigned char* const NULL_VALUE = (unsigned char*)"\0";
 
 inline std::vector<std::string> splitString(std::string st) {
     std::istringstream stream(st);
@@ -39,20 +49,20 @@ inline std::vector<std::string> splitString(std::string st) {
 
     template <typename M, typename V>
     inline void mapToVec(const M& m, V& v) {
-        for (typename M::const_iterator it = m.begin(); it != m.end(); ++it) {
-            v.push_back(it->second);
-        }
+            for (typename M::const_iterator it = m.begin(); it != m.end(); ++it) {
+                v.push_back(it->second);
+            }
     }
 
     inline int random_0_to_n(int min, int max) {
-        srand(time(NULL));
-        return min + (rand() % (int)(max - min + 1));
+            srand(time(NULL));
+            return min + (rand() % (int)(max - min + 1));
     }
 
     inline void stringToCharArray(string message, char* buffer, int length){
-        bzero(buffer, length);
-        strncpy(buffer, message.c_str(), length);
-        buffer[length - 1] = 0;
+            bzero(buffer, length);
+            strncpy(buffer, message.c_str(), length);
+            buffer[length - 1] = 0;
     }
 }
 

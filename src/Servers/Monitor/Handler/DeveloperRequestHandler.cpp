@@ -12,7 +12,32 @@ DeveloperRequestHandler::DeveloperRequestHandler(Monitor* monitor) : monitor{mon
 }
 
 bool DeveloperRequestHandler::sendApp(Minion* minion, string appDir){
-    //TODO
+    char* scpArgsStream;
+    int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no ../../%s%s %s@%s:%s%s",
+                        ProcessBinaries::SCP.c_str(), sshKey.c_str(), Directories::APPS_DIR_MONITOR.c_str(), appDir.c_str(),
+                        username.c_str(), minion->getIpAddress().c_str(), Directories::APPS_DIR_MINION.c_str(), appDir.c_str());
+
+    if (DebugFlags::debugMonitor)
+        cout << "Executing command: " << scpArgsStream << "\n";
+    fflush(NULL);
+    pid_t pid = fork();
+    if (pid == 0) {
+        int result = execlp(ProcessBinaries::SCP.c_str(), scpArgsStream);
+        if (result == -1) {
+            if (DebugFlags::debugMonitor)
+                cout << "Command failed\n";
+            exit(-1);
+        }
+        exit(0);
+    }
+
+    if (pid > 0) {
+        int status;
+        waitpid(pid, &status, 0);
+        if (WEXITSTATUS(status) == -1)
+            return false;
+    }
+    return true;
 }
 
 bool DeveloperRequestHandler::deployApp(string appID, int instances){
@@ -22,38 +47,40 @@ bool DeveloperRequestHandler::deployApp(string appID, int instances){
     bool copyResult = true;
     for_each(trustedMinions.begin(), trustedMinions.end(),
              [&](Minion* minion) {
-                 if(DebugFlags::debugMonitor)
-                    cout << "Uploading app to minion";
-                copyResult &= sendApp(minion, appID);
-                if (!copyResult)
-                    return false;
+                 if(copyResult){
+                    if(DebugFlags::debugMonitor)
+                        cout << "Uploading app to minion";
+                    copyResult &= sendApp(minion, appID);
+                    if (!copyResult)
+                        copyResult = false;
 
-                sockaddr_in minionAddress;
-                minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
-                minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
-                int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
-                SocketUtils::connectToServerSocket(minionSocket, minionAddress);
+                    sockaddr_in minionAddress;
+                    minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
+                    minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
+                    int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
+                    SocketUtils::connectToServerSocket(minionSocket, minionAddress);
 
-                char buffer[SocketUtils::MESSAGE_BYTES];
-                string message = Messages::DEPLOY + " " + appID;
-                General::stringToCharArray(message, buffer, SocketUtils::MESSAGE_BYTES);
-                SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-                if (DebugFlags::debugMonitor)
-                    cout << "Wrote: " << buffer << " to Minion\n";
+                    char buffer[SocketUtils::MESSAGE_BYTES];
+                    string message = Messages::DEPLOY + " " + appID;
+                    General::stringToCharArray(message, buffer, SocketUtils::MESSAGE_BYTES);
+                    SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+                    if (DebugFlags::debugMonitor)
+                        cout << "Wrote: " << buffer << " to Minion\n";
 
-                bzero(buffer, SocketUtils::MESSAGE_BYTES);
-                SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-                if (DebugFlags::debugMonitor)
-                    cout << "Recieved: " << buffer << " from Minion\n";
+                    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                    SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+                    if (DebugFlags::debugMonitor)
+                        cout << "Recieved: " << buffer << " from Minion\n";
 
-                string result(buffer);
-                vector<string> resultSplit = General::splitString(result);
+                    string resultMessage(buffer);
+                    vector<string> resultSplit = General::splitString(resultMessage);
 
-                if (resultSplit[0] == Messages::OK){
-                    // continue;
-                } else if (resultSplit[0] == Messages::NOT_OK){
-                    return false;
-                }
+                    if (resultSplit[0] == Messages::OK){
+                        // continue;
+                    } else if (resultSplit[0] == Messages::NOT_OK){
+                        copyResult = false;
+                    }
+                 }
              });
     return copyResult;
 }
@@ -65,34 +92,36 @@ bool DeveloperRequestHandler::deleteApp(string appID){
     bool result = true;
     for_each(appHosts.begin(), appHosts.end(),
              [&](Minion* minion) {
-                 if (DebugFlags::debugMonitor)
-                     cout << "Deleting app to minion";
+                 if (result) {
+                     if (DebugFlags::debugMonitor)
+                         cout << "Deleting app to minion";
 
-                 sockaddr_in minionAddress;
-                 minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
-                 minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
-                 int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
-                 SocketUtils::connectToServerSocket(minionSocket, minionAddress);
+                     sockaddr_in minionAddress;
+                     minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
+                     minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
+                     int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
+                     SocketUtils::connectToServerSocket(minionSocket, minionAddress);
 
-                 char buffer[SocketUtils::MESSAGE_BYTES];
-                 string message = Messages::DELETE_APP + " " + appID;
-                 General::stringToCharArray(message, buffer, SocketUtils::MESSAGE_BYTES);
-                 SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-                 if (DebugFlags::debugMonitor)
-                     cout << "Wrote: " << buffer << " to Minion\n";
+                     char buffer[SocketUtils::MESSAGE_BYTES];
+                     string message = Messages::DELETE_APP + " " + appID;
+                     General::stringToCharArray(message, buffer, SocketUtils::MESSAGE_BYTES);
+                     SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+                     if (DebugFlags::debugMonitor)
+                         cout << "Wrote: " << buffer << " to Minion\n";
 
-                 bzero(buffer, SocketUtils::MESSAGE_BYTES);
-                 SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-                 if (DebugFlags::debugMonitor)
-                     cout << "Recieved: " << buffer << " from Minion\n";
+                     bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                     SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+                     if (DebugFlags::debugMonitor)
+                         cout << "Recieved: " << buffer << " from Minion\n";
 
-                 string result(buffer);
-                 vector<string> resultSplit = General::splitString(result);
+                     string resultMessage(buffer);
+                     vector<string> resultSplit = General::splitString(resultMessage);
 
-                 if (resultSplit[0] == Messages::OK) {
-                    //  continue;
-                 } else if (resultSplit[0] == Messages::NOT_OK) {
-                     return false;
+                     if (resultSplit[0] == Messages::OK) {
+                         //  continue;
+                     } else if (resultSplit[0] == Messages::NOT_OK) {
+                         result = false;
+                     }
                  }
              });
     return result;
@@ -185,7 +214,6 @@ void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandl
     close(developerSocket);
     close(serverSocket);
 }
-
 
 // int main(int argc, char* argv[]) {
 //     std::cout << "Will try to create DeveloperRequestHandler\n";

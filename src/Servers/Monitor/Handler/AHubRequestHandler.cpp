@@ -8,11 +8,72 @@ AHubRequestHandler::AHubRequestHandler() {
 }
 
 bool AHubRequestHandler::sendApp(Minion* minion, std::string appDir){
-    //TODO
+    char* scpArgsStream;
+    int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no ../../%s%s %s@%s:%s%s",
+                        ProcessBinaries::SCP.c_str(), sshKey.c_str(), Directories::APPS_DIR_MONITOR.c_str(), appDir.c_str(),
+                        username.c_str(), minion->getIpAddress().c_str(), Directories::APPS_DIR_MINION.c_str(), appDir.c_str());
+
+    if (DebugFlags::debugMonitor)
+        cout << "Executing command: " << scpArgsStream << "\n";
+    fflush(NULL);
+    pid_t pid = fork();
+    if (pid == 0) {
+        int result = execlp(ProcessBinaries::SCP.c_str(), scpArgsStream);
+        if (result == -1){
+            if (DebugFlags::debugMonitor)
+                cout << "Command failed\n";
+            exit(-1);
+        }
+        exit(0);
+    }
+
+    if (pid > 0) {
+        int status;
+        waitpid(pid, &status, 0);
+        if (WEXITSTATUS(status) == -1)
+            return false;
+    } 
+    return true;
 }
 
-bool AHubRequestHandler::deployAppOnMinion(std::string appId, Minion* host) {
-    //TODO
+bool AHubRequestHandler::deployAppOnMinion(Minion* host, string appId) {
+    bool scpResult;
+    string deployResult;
+
+    if (DebugFlags::debugMonitor)
+        cout << "Uploading app to minion\n";
+    scpResult &= sendApp(host, appId);
+
+    struct hostent* minionHost;
+    minionHost = SocketUtils::getHostByName(host->getIpAddress());
+    sockaddr_in minionAddress;
+    minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
+
+    int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+    SocketUtils::connectToServerSocket(minionSocket, minionAddress);
+    if (DebugFlags::debugMonitor)
+        cout << "Got connection to Minion\n";
+
+    char buffer[SocketUtils::MESSAGE_BYTES];
+    std::string request = Messages::DEPLOY + " " + appId;
+    General::stringToCharArray(request, buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+    if (DebugFlags::debugMonitor)
+        cout << "Wrote: " << buffer << " to Minion\n";
+
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    if (DebugFlags::debugMonitor)
+        cout << "Recieved: " << buffer << "\n";
+
+    string response(buffer);
+    vector<string> responseSplit = General::splitString(response);
+    if (responseSplit[0] == Messages::OK) {
+        return scpResult;
+    } else {
+        return false;
+    }
 }
 
 bool AHubRequestHandler::spawnReplacementInstances(Minion* untrustedMinion){
@@ -34,7 +95,7 @@ bool AHubRequestHandler::spawnReplacementInstances(Minion* untrustedMinion){
             if (tempTrustedSet.size() == 0)
                 throw 10; //TODO
         }
-        spawnResult &= this->deployAppOnMinion(entry.first, trustedMinions.find(tempTrustedSet[0])->second);
+        spawnResult &= this->deployAppOnMinion(trustedMinions.find(tempTrustedSet[0])->second, entry.first);
         if (!spawnResult)
             return false;
     }
@@ -87,6 +148,10 @@ void AHubRequestHandler::attestMinion(std::string untrustedMinion) {
     }
 }
 
+void AHubRequestHandler::setMinionUntrustedOnMonitor(string untrustedMinion) {
+    monitor->setMinionUntrusted(untrustedMinion);
+}
+
 AHubRequestHandler::AHubRequestHandler(Monitor* monitor) : monitor{monitor} {
     std::cout << "AHubRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
@@ -118,7 +183,7 @@ void AHubRequestHandler::startAHubRequestHandler(AHubRequestHandler aHubRequestH
         if (commandSplit[0] == Messages::SET_TRUSTED) {
             aHubRequestHandler.attestMinion(commandSplit[1]);
         } else if (commandSplit[0] == Messages::SET_UNTRUSTED) {
-            aHubRequestHandler.monitor->setMinionUntrusted(commandSplit[1]);
+            aHubRequestHandler.setMinionUntrustedOnMonitor(commandSplit[1]);
         }
 
         if (requestResult) {
