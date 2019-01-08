@@ -233,8 +233,7 @@ int main(int argc, char* argv[]) {
     MinionRequestHandler minionRequestHandler = MinionRequestHandler(monitor);
     std::thread minionRequestHandlerThread(MinionRequestHandler::startMinionRequestHandler, minionRequestHandler);
 
-
-    std::cout << "Approved configuration" << +monitor->getApprovedConfiguration() << "\n";
+    std::cout << "Approved configuration on " << monitor->getHostname() << "\n";
 
     ahubRequestHandlerThread.join();
     auditorRequestHandlerThread.join();
