@@ -35,6 +35,8 @@ namespace Messages{
 
     static const string START_MANAGEMENTSESSION = "START_MANAGEMENTSESSION";
 
+    static const string PURGE = "PURGE";
+
     static const string QUIT = "QUIT";
 }
 #endif

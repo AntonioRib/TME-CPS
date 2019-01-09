@@ -8,12 +8,77 @@ MinionAHubRequestHandler::MinionAHubRequestHandler(Minion* minion) : minion{mini
     std::cout << "AHubRequestHandler created with the name " << minion->getIpAddress() << "\n";
 }
 
-void MinionAHubRequestHandler::startMinionAHubRequestHandler(MinionAHubRequestHandler minionAHubRequestHandler) {
-    std::cout << "AHubRequestHandler running with Minion with the name " << minionAHubRequestHandler.minion->getIpAddress() << "\n";
+bool MinionAHubRequestHandler::purgeMinion() {
+    char* purgeArgsStream;
+    int size = asprintf(&purgeArgsStream, "sudo ../%s", Scripts::PURGE_MINION.c_str());
+
+    if (DebugFlags::debugMonitor)
+        cout << "Executing command: " << purgeArgsStream << "\n";
+    fflush(NULL);
+    pid_t pid = fork();
+    if (pid == 0) {
+        int result = execlp(purgeArgsStream, purgeArgsStream);
+        if (result == -1) {
+            if (DebugFlags::debugMonitor)
+                cout << "Command failed\n";
+            exit(-1);
+        }
+        exit(0);
+    }
+
+    if (pid > 0) {
+        int status;
+        waitpid(pid, &status, 0);
+        if (WEXITSTATUS(status) == -1)
+            return false;
+    }
+    return true;
 }
 
-bool MinionAHubRequestHandler::purgeMinion() {
-    //TODO
+void MinionAHubRequestHandler::startMinionAHubRequestHandler(MinionAHubRequestHandler minionAHubRequestHandler) {
+    std::cout << "MinionAHubRequestHandler running with Minion with the ip " << minionAHubRequestHandler.minion->getIpAddress() << "\n";
+
+    sockaddr_in minionAddress;
+    minionAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT);
+
+    int minionSocket;
+    minionSocket = SocketUtils::createServerSocket(minionAddress);
+
+    int aHubSocket;
+    while (true) {
+        aHubSocket = SocketUtils::acceptClientSocket(minionSocket);
+        cout << "Got connection from AuditingHub\n";
+
+        char buffer[SocketUtils::MESSAGE_BYTES];
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        SocketUtils::receiveBuffer(aHubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+        if (DebugFlags::debugMonitor)
+            cout << "Recieved: " << buffer << "\n";
+        // cout << buffer;
+        string command(buffer);
+        vector<string> commandSplit = General::splitString(command);
+
+        bool requestResult = false;
+        if (commandSplit[0] == Messages::PURGE) {
+            requestResult = minionAHubRequestHandler.purgeMinion();
+        }
+
+        if (requestResult) {
+            bzero(buffer, SocketUtils::MESSAGE_BYTES);
+            std::string result = Messages::OK;
+            General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
+            SocketUtils::sendBuffer(aHubSocket, buffer, strlen(buffer), 0);
+            if (DebugFlags::debugMonitor)
+                cout << "Success \n";
+        } else {
+            bzero(buffer, SocketUtils::MESSAGE_BYTES);
+            std::string result = Messages::NOT_OK;
+            General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
+            SocketUtils::sendBuffer(aHubSocket, buffer, strlen(buffer), 0);
+            if (DebugFlags::debugMonitor)
+                cout << "Failed \n";
+        }
+    }
 }
 
 // int main(int argc, char* argv[]) {

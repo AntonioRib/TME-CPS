@@ -16,6 +16,11 @@
 
 using namespace std;
 
+namespace Scripts {
+    static const string PURGE_MINION = "PurgeMinion.sh";
+    static const string DELETE_APP = "DeleteApp.sh";
+}  // namespace Directories
+
 namespace Directories {
     static const string APPS_DIR_MONITOR = "AppsMonitor/";
     static const string APPS_DIR_MINION = "AppsMinion/";
