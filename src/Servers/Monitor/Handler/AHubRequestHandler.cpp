@@ -102,7 +102,7 @@ bool AHubRequestHandler::spawnReplacementInstances(Minion* untrustedMinion){
     return true;
 }
 
-void AHubRequestHandler::attestMinion(std::string untrustedMinion) {
+bool AHubRequestHandler::attestMinion(std::string untrustedMinion) {
     struct hostent* minionHost;
     minionHost = SocketUtils::getHostByName(untrustedMinion);
     sockaddr_in minionAddress;
@@ -133,18 +133,20 @@ void AHubRequestHandler::attestMinion(std::string untrustedMinion) {
     string response(buffer);
     vector<string> responseSplit = General::splitString(response);
     if (responseSplit[0] == Messages::QUOTE && responseSplit[1] == AttestationConstants::QUOTE) {
-        std::string confirmation = Messages::OK;
+        std::string confirmation = Messages::OK_APPROVED;
         General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugMonitor)
             cout << "Wrote: " << buffer << " to Minion\n";
+            return true;
     } else {
-        std::string confirmation = Messages::NOT_OK;
+        std::string confirmation = Messages::NOT_APPROVED;
         General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugMonitor)
             cout << "Wrote: " << buffer << " to Minion\n";
         cout << "Not approved!\n";
+        return false;
     }
 }
 
@@ -181,9 +183,10 @@ void AHubRequestHandler::startAHubRequestHandler(AHubRequestHandler aHubRequestH
 
         bool requestResult = false;
         if (commandSplit[0] == Messages::SET_TRUSTED) {
-            aHubRequestHandler.attestMinion(commandSplit[1]);
+            requestResult = aHubRequestHandler.attestMinion(commandSplit[1]);
         } else if (commandSplit[0] == Messages::SET_UNTRUSTED) {
             aHubRequestHandler.setMinionUntrustedOnMonitor(commandSplit[1]);
+            requestResult = true;
         }
 
         if (requestResult) {

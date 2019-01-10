@@ -23,7 +23,7 @@ class AHubRequestHandler {
     bool deployAppOnMinion(Minion* host, string appId);
     bool spawnReplacementInstances(Minion* untrustedMinion);
 
-    void attestMinion(std::string untrustedMinion);
+    bool attestMinion(std::string untrustedMinion);
 
     public:
    //   Monitor* monitor;

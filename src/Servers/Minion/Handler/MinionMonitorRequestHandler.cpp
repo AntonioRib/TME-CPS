@@ -108,7 +108,7 @@ void MinionMonitorRequestHandler::processAttestation(int monitorSocket, string n
         throw 10;  //TODO
     } else if (approvedSplit[0] == Messages::OK_APPROVED) {
         cout << "Approved!\n";
-        cout << "Configuration approved. Auditor signature for monitor: " + approvedSplit[1] + ". For minions:" + approvedSplit[3];
+        // cout << "Configuration approved. Auditor signature for monitor: " + approvedSplit[1] + ". For minions:" + approvedSplit[3];
     }
 }
 
