@@ -112,19 +112,24 @@ void MinionMonitorRequestHandler::processAttestation(int monitorSocket, string n
     }
 }
 
-void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitorRequestHandler minionMonitorRequestHandler) {
-    std::cout << "MonitorRequestHandler running with Minion with the name " << minionMonitorRequestHandler.minion->getIpAddress() << "\n";
+void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitorRequestHandler* minionMonitorRequestHandler) {
+    std::cout << "MinionMonitorRequestHandler running with Minion with the name " << minionMonitorRequestHandler->minion->getIpAddress() << "\n";
 
     sockaddr_in minionAddress;
-    minionAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT);
+    minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
 
     int minionSocket;
     minionSocket = SocketUtils::createServerSocket(minionAddress);
 
+    if (DebugFlags::debugMinion)
+        cout << "MinionMonitorRequestHandler Created socket to Monitor\n";
+
     int monitorSocket;
     while (true) {
+        if (DebugFlags::debugMinion)
+            cout << "MinionMonitorRequestHandler Waiting for connection\n";
         monitorSocket = SocketUtils::acceptClientSocket(minionSocket);
-        cout << "Got connection from AuditingHub\n";
+        cout << "Got connection from Monitor\n";
 
         char buffer[SocketUtils::MESSAGE_BYTES];
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
@@ -139,13 +144,13 @@ void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitor
         if (commandSplit[0] == Messages::DEPLOY) {
             if (DebugFlags::debugMinion)
                 cout << "Deploying " << commandSplit[1] << "\n";
-            requestResult = minionMonitorRequestHandler.deployApp(commandSplit[1]);
+            requestResult = minionMonitorRequestHandler->deployApp(commandSplit[1]);
         } else if (commandSplit[0] == Messages::DELETE_APP) {
             if (DebugFlags::debugMinion)
                 cout << "Deleting " << commandSplit[1] << "\n";
-            requestResult = minionMonitorRequestHandler.deleteApp(commandSplit[1]);
+            requestResult = minionMonitorRequestHandler->deleteApp(commandSplit[1]);
         } else if (commandSplit[0] == Messages::ATTEST) {
-            minionMonitorRequestHandler.processAttestation(monitorSocket, commandSplit[1]);
+            minionMonitorRequestHandler->processAttestation(monitorSocket, commandSplit[1]);
         }
 
         if (requestResult) {

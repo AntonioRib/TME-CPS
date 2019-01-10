@@ -35,8 +35,8 @@ bool MinionAHubRequestHandler::purgeMinion() {
     return true;
 }
 
-void MinionAHubRequestHandler::startMinionAHubRequestHandler(MinionAHubRequestHandler minionAHubRequestHandler) {
-    std::cout << "MinionAHubRequestHandler running with Minion with the ip " << minionAHubRequestHandler.minion->getIpAddress() << "\n";
+void MinionAHubRequestHandler::startMinionAHubRequestHandler(MinionAHubRequestHandler* minionAHubRequestHandler) {
+    std::cout << "MinionAHubRequestHandler running with Minion with the ip " << minionAHubRequestHandler->minion->getIpAddress() << "\n";
 
     sockaddr_in minionAddress;
     minionAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT);
@@ -44,8 +44,13 @@ void MinionAHubRequestHandler::startMinionAHubRequestHandler(MinionAHubRequestHa
     int minionSocket;
     minionSocket = SocketUtils::createServerSocket(minionAddress);
 
+    if (DebugFlags::debugMinion)
+        cout << "MinionAHubRequestHandler Created socket to Monitor\n";
+
     int aHubSocket;
     while (true) {
+        if (DebugFlags::debugMinion)
+            cout << "MinionAHubRequestHandler Waiting for connection\n";
         aHubSocket = SocketUtils::acceptClientSocket(minionSocket);
         cout << "Got connection from AuditingHub\n";
 
@@ -60,7 +65,7 @@ void MinionAHubRequestHandler::startMinionAHubRequestHandler(MinionAHubRequestHa
 
         bool requestResult = false;
         if (commandSplit[0] == Messages::PURGE) {
-            requestResult = minionAHubRequestHandler.purgeMinion();
+            requestResult = minionAHubRequestHandler->purgeMinion();
         }
 
         if (requestResult) {

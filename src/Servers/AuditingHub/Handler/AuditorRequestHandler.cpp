@@ -31,7 +31,7 @@ void AuditorRequestHandler::processAttestation(int clientSocket, std::string non
         cout << "Not approved!\n";
     } else if (approvedSplit[0] == Messages::OK_APPROVED) {
         cout << "Approved!\n";
-        cout << "Configuration approved. Auditor signature for AuditingHub: " + approvedSplit[1] + ". For minions:" + approvedSplit[3];
+        cout << "Configuration approved. Auditor signature for AuditingHub: " + approvedSplit[1] + ". For minions:" + approvedSplit[3] + "\n";
         unsigned char* approvedConfiguration = (unsigned char*)approvedSplit[1].c_str();
         auditingHub.setApprovedConfiguration(approvedConfiguration);
         auditingHub.setApprovedSHA1Configuration(approvedSplit[2]);

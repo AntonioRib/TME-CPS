@@ -27,8 +27,15 @@ Minion::Minion(string ipAddress) : ipAddress{ipAddress} {
 
 Minion::Minion(string monitorHost, string hostname, string ipAddress) : monitorHost{monitorHost}, hostname{hostname}, ipAddress{ipAddress} {
     // std::cout << "Minion created with the name " << Minion::name << " - string constructor \n";
-    Minion::startMonitorHandler();
-    Minion::startAuditingHubHandler();
+    bool handlersStartResult = true;
+    handlersStartResult &= Minion::startMonitorHandler();
+    handlersStartResult &= Minion::startAuditingHubHandler();
+
+    if (handlersStartResult){
+        while (true) {
+            this_thread::yield();
+        }
+    }
 }
 
 string Minion::getMonitorHost(){
@@ -91,8 +98,6 @@ bool Minion::startMonitorHandler(){
 
     int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(monitorSocket, monitorAddress);
-    // int monitorSocket;
-    // monitorSocket = SocketUtils::connectToServerSocket(monitorAddress);
 
     processAttestation(monitorSocket);
 
@@ -111,48 +116,50 @@ bool Minion::startMonitorHandler(){
 
     string response(buffer);
     vector<string> splittedResposnse = General::splitString(response);
-    if (splittedResposnse[0] == Messages::OK){
-        MinionMonitorRequestHandler minionMonitorRequestHandler = MinionMonitorRequestHandler(this);
+    if (splittedResposnse[0] == Messages::OK_APPROVED){
+        MinionMonitorRequestHandler* minionMonitorRequestHandler = new MinionMonitorRequestHandler(this);
         std::thread monitorRequestHandlerThread(MinionMonitorRequestHandler::startMinionMonitorRequestHandler, minionMonitorRequestHandler);
+        monitorRequestHandlerThread.detach();
         return true;
-    } else if (splittedResposnse[0] == Messages::NOT_OK){
+    } else if (splittedResposnse[0] == Messages::NOT_APPROVED){
         return false;
     }
     return false;
 }
 
 bool Minion::startAuditingHubHandler(){
-    MinionAHubRequestHandler minionAhubRequestHandler = MinionAHubRequestHandler(this);
+    MinionAHubRequestHandler* minionAhubRequestHandler = new MinionAHubRequestHandler(this);
     std::thread ahubRequestHandlerThread(MinionAHubRequestHandler::startMinionAHubRequestHandler, minionAhubRequestHandler);
+    ahubRequestHandlerThread.detach();
     return true;
 }
 
 
-// int main(int argc, char *argv[]) {
-//     if (argc != 7) {
-//         cout << "Usage: Minion -m monitorHostName -h hostname -i ipAddress\n";
-//         return 0;
-//     }
+int main(int argc, char *argv[]) {
+    if (argc != 7) {
+        cout << "Usage: Minion -m monitorHostName -h hostname -i ipAddress\n";
+        return 0;
+    }
 
-//     string monitorHostname(argv[MONITOR_HOST_FLAG_INDEX + 1]);
-//     string hostname(argv[HOSTNAME_FLAG_INDEX + 1]);  //IPADDRESS_FLAG_INDEX
-//     string ipAddress(argv[IPADDRESS_FLAG_INDEX + 1]);
+    string monitorHostname(argv[MONITOR_HOST_FLAG_INDEX + 1]);
+    string hostname(argv[HOSTNAME_FLAG_INDEX + 1]);  //IPADDRESS_FLAG_INDEX
+    string ipAddress(argv[IPADDRESS_FLAG_INDEX + 1]);
 
-//     std::cout << "Will try to create Minion\n";
+    std::cout << "Will try to create Minion\n";
 
-//     //  std::string s = "Minion I";
-//      Minion *minion = new Minion(monitorHostname, hostname, ipAddress);
+    //  std::string s = "Minion I";
+     Minion *minion = new Minion(monitorHostname, hostname, ipAddress);
 
-//     //  MinionAHubRequestHandler minionAHubRequestHandler = MinionAHubRequestHandler(minion);
-//     //  std::thread minionAhubRequestHandlerThread(MinionAHubRequestHandler::startMinionAHubRequestHandler, minionAHubRequestHandler);
+    //  MinionAHubRequestHandler minionAHubRequestHandler = MinionAHubRequestHandler(minion);
+    //  std::thread minionAhubRequestHandlerThread(MinionAHubRequestHandler::startMinionAHubRequestHandler, minionAHubRequestHandler);
 
-//     //  MinionMonitorRequestHandler minionMonitorRequestHandler = MinionMonitorRequestHandler(minion);
-//     //  std::thread monitorRequestHandlerThread(MinionMonitorRequestHandler::startMonitorRequestHandler, minionMonitorRequestHandler);
+    //  MinionMonitorRequestHandler minionMonitorRequestHandler = MinionMonitorRequestHandler(minion);
+    //  std::thread monitorRequestHandlerThread(MinionMonitorRequestHandler::startMonitorRequestHandler, minionMonitorRequestHandler);
 
-//     //  minionAhubRequestHandlerThread.join();
-//     //  monitorRequestHandlerThread.join();
+    //  minionAhubRequestHandlerThread.join();
+    //  monitorRequestHandlerThread.join();
 
-//      std::cout << "Bubye\n";
+     std::cout << "Bubye\n";
 
-//      return 0;
-//  }
+     return 0;
+ }

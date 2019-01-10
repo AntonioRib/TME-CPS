@@ -114,8 +114,6 @@ int main(int argc, char *argv[]) {
     std::thread auditorRequestHandlerThread(AuditorRequestHandler::startAuditorRequestHandler, auditorRequestHandler);
 
     while (auditingHub->getApprovedConfiguration() == (unsigned char *)General::NULL_VALUE) {
-        std::cout << "Im in the loop \n";
-        printf("This prints this: %s", auditingHub->getApprovedConfiguration());
         std::cout << "Waiting for approved config. Current Config -> " << +auditingHub->getApprovedConfiguration() << "\n";
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
@@ -133,7 +131,7 @@ int main(int argc, char *argv[]) {
         cout << "Management request\n";
 
         SysAdminRequestHandler sysAdminRequestHandler = SysAdminRequestHandler(auditingHub);
-        sessionThread = thread(SysAdminRequestHandler::startSysAdminRequestHandler, sysAdminRequestHandler);
+        sessionThread = thread(SysAdminRequestHandler::startSysAdminRequestHandler, sysAdminRequestHandler, clientSocket);
 
         std::ostringstream ss;
         ss << sessionThread.get_id();
@@ -143,6 +141,9 @@ int main(int argc, char *argv[]) {
     }
 
     auditorRequestHandlerThread.join();
+    for (auto const &th : auditingHub->getTemporaryThreads()) {
+        th.second->join();
+    }
     // sysAdminRequestHandlerThread.join();
 
     std::cout << "Bubye\n";

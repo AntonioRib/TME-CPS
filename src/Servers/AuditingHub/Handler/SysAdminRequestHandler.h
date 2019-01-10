@@ -10,14 +10,23 @@ class SysAdminRequestHandler {
     AuditingHub* auditingHub;
     string adminUsername;
     string remoteHost;
-    
-   private:
-    ;
+    int pidAuditingHubToNodeSessionProcess;
+    int adminToHubSocket;
+    int processWrite[2];
+    int processRead[2];
+
+    private: 
+    void launchSessionProcess();
+    void launchLogger();
+    bool setNodeUntrusted();
+    bool purgeMinion();
+    bool launchManagementSession();
+    void processAttestation(int adminSocket);
 
    public:
     SysAdminRequestHandler();
     SysAdminRequestHandler(AuditingHub* auditingHub);
-    static void startSysAdminRequestHandler(SysAdminRequestHandler sysAdminRequestHandler);
+    static void startSysAdminRequestHandler(SysAdminRequestHandler sysAdminRequestHandler, int adminToHubSocket);
 };
 
 #endif

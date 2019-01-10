@@ -22,7 +22,7 @@ class MinionAHubRequestHandler {
    public:
     MinionAHubRequestHandler();
     MinionAHubRequestHandler(Minion* minion);
-    static void startMinionAHubRequestHandler(MinionAHubRequestHandler minionAHubRequestHandler);
+    static void startMinionAHubRequestHandler(MinionAHubRequestHandler* minionAHubRequestHandler);
 };
 
 #endif

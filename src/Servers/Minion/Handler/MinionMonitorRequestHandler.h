@@ -27,7 +27,7 @@ class MinionMonitorRequestHandler {
     public:
      MinionMonitorRequestHandler();
      MinionMonitorRequestHandler(Minion* minion);
-     static void startMinionMonitorRequestHandler(MinionMonitorRequestHandler minionMonitorRequestHandler);
+     static void startMinionMonitorRequestHandler(MinionMonitorRequestHandler* minionMonitorRequestHandler);
 };
 
 #endif
