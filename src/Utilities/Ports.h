@@ -33,5 +33,6 @@ namespace Ports{
      static const int MINION_MINION_PORT = 7005;
      static const int MINION_MONITOR_PORT = 7005;
 
+     static const int ADMIN_SSH_PORT = 5000;
 }
 #endif

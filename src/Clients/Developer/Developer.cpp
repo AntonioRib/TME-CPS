@@ -26,24 +26,15 @@ Developer::Developer(string monitorHost, string username, string key, string app
 }
 
 void Developer::attestMonitor(int monitorSocket){
-    sockaddr_in serverAddress;
-    serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_DEVELOPER_PORT);
-
-    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-    SocketUtils::connectToServerSocket(clientSocket, serverAddress);
-    if (DebugFlags::debugDeveloper)
-        cout << "Connected to the server\n";
-
     char buffer[SocketUtils::MESSAGE_BYTES];
     string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
     General::stringToCharArray(attestationRequestString, buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+    SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
     if (DebugFlags::debugDeveloper)
         cout << "Wrote: " << buffer << " to server\n";
 
     bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(clientSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugDeveloper)
         cout << "Recieved from server: " << buffer << "\n";
 
@@ -53,12 +44,12 @@ void Developer::attestMonitor(int monitorSocket){
     if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE && splittedQuote[2] == AttestationConstants::PCR_SHA1 && splittedQuote[3] == AttestationConstants::PCR_SHA1) {
         string approvedMessage = Messages::OK_APPROVED;
         General::stringToCharArray(approvedMessage, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+        SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugDeveloper)
             cout << "Wrote: " << buffer << " to server\n";
     } else {
         General::stringToCharArray(Messages::NOT_APPROVED, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
+        SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugDeveloper)
             cout << "Wrote: " << buffer << " to server\n";
     }
@@ -72,7 +63,6 @@ bool Developer::sendSyncMessageAndGetResponse(string message){
     serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_DEVELOPER_PORT);
 
     int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
-
     SocketUtils::connectToServerSocket(monitorSocket, serverAddress);
     if (DebugFlags::debugDeveloper)
         cout << "Connected to the server\n";
