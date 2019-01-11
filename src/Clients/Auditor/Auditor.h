@@ -1,6 +1,14 @@
 #ifndef _AUDITOR_H_
 #define _AUDITOR_H_
 
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <iostream>
 #include <iterator>
 #include <sstream>

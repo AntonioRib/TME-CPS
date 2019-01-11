@@ -128,8 +128,10 @@ bool DeveloperRequestHandler::deleteApp(string appID){
 }
 
 void DeveloperRequestHandler::processAttestation(int developerSocket) {
+    cout << "in the process attestation";
     char buffer[SocketUtils::MESSAGE_BYTES];
     bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    cout << "need to recieve buffas";
     SocketUtils::receiveBuffer(developerSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugMonitor)
         cout << "Recieved: " << buffer << "\n";
@@ -154,10 +156,15 @@ void DeveloperRequestHandler::processAttestation(int developerSocket) {
 
     string response(buffer);
     vector<string> responseSplit = General::splitString(response);
-    if (requestSplit[0] == Messages::NOT_OK) {
+    if (requestSplit[0] == Messages::NOT_APPROVED) {
         if (DebugFlags::debugMonitor)
             cout << "Developer rejected platform attestation.\n";
+    } else if (requestSplit[0] == Messages::OK_APPROVED){
+        if (DebugFlags::debugMonitor)
+            cout << "Developer approved platform attestation.\n";
     }
+    if (DebugFlags::debugMonitor)
+        cout << "Developer sent somehting unknown.\n";
 }
 
 void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandler developerRequestHandler) {
@@ -173,6 +180,8 @@ void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandl
     while (true) {
         developerSocket = SocketUtils::acceptClientSocket(serverSocket);
         cout << "Got connection from Developer\n";
+
+        developerRequestHandler.processAttestation(developerSocket);
 
         char buffer[SocketUtils::MESSAGE_BYTES];
         bzero(buffer, SocketUtils::MESSAGE_BYTES);

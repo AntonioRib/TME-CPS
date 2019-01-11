@@ -3,27 +3,12 @@
 #include "../../Utilities/General.h"
 #include "../../Utilities/Messages.h"
 #include "../../Utilities/Ports.h"
-#include <netdb.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
 using namespace std;
 
 // const int MESSAGE_BYTES = 2048;
 //  Usage:
 //  Client -h: help
 //  Client
-
-void error(const char *msg)
-{
-    perror(msg);
-    exit(1);
-}
-
 Auditor::Auditor() {
     std::cout << "Auditor created\n";
 }
