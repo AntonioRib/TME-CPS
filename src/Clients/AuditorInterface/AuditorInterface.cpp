@@ -14,7 +14,7 @@ AuditorInterface::AuditorInterface() {
     std::cout << "AuditorInterface created\n";
 }
 
-AuditorInterface::AuditorInterface(string monitorHost, string hostname) {
+AuditorInterface::AuditorInterface(string monitorHost, string hostname) : monitorHost{monitorHost}, hostname{hostname} {
     std::cout << "AuditorInterface created\n";
 }
 

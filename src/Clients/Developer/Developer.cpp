@@ -17,11 +17,11 @@ Developer::Developer() {
     std::cout << "Developer created\n";
 }
 
-Developer::Developer(string monitorHost, string username, string key, string appDir, int instances) {
+Developer::Developer(string monitorHost, string username, string key, string appDir, int instances) : monitorHost{monitorHost}, username{username}, key{key}, appDir{appDir}, instances{instances} {
     std::cout << "Developer created\n";
 }
 
-Developer::Developer(string monitorHost, string username, string key, string appDir) {
+Developer::Developer(string monitorHost, string username, string key, string appDir) : monitorHost{monitorHost}, username{username}, key{key}, appDir{appDir}  {
     std::cout << "Developer created\n";
 }
 
@@ -179,18 +179,18 @@ int main(int argc, char* argv[]) {
     string command = argv[REQUEST_FLAG_INDEX];
     bool commandResult = false;
     if(command == "-deploy"){
-        monitorHost = argv[MONITOR_HOST_FLAG_INDEX];
-        username = argv[USERNAME_FLAG_INDEX];
-        key = argv[KEY_FLAG_INDEX];
-        appDir = argv[APPDIR_FLAG_INDEX];
-        instances = argv[INSTANCES_FLAG_INDEX];
+        monitorHost = argv[MONITOR_HOST_FLAG_INDEX+1];
+        username = argv[USERNAME_FLAG_INDEX]+1;
+        key = argv[KEY_FLAG_INDEX+1];
+        appDir = argv[APPDIR_FLAG_INDEX+1];
+        instances = argv[INSTANCES_FLAG_INDEX+1];
         developer = new Developer(monitorHost, username, key, appDir, atoi(instances.c_str()));
         commandResult = developer->deployApp();
     } else if (command == "-delete"){
-        monitorHost = argv[MONITOR_HOST_FLAG_INDEX];
-        username = argv[USERNAME_FLAG_INDEX];
-        key = argv[KEY_FLAG_INDEX];
-        appDir = argv[APPDIR_FLAG_INDEX];
+        monitorHost = argv[MONITOR_HOST_FLAG_INDEX+1];
+        username = argv[USERNAME_FLAG_INDEX+1];
+        key = argv[KEY_FLAG_INDEX+1];
+        appDir = argv[APPDIR_FLAG_INDEX+1];
         developer = new Developer(monitorHost, username, key, appDir);
         commandResult = developer->deleteApp();
     } else {

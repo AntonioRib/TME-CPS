@@ -71,9 +71,7 @@ void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minion
             char ip[32];
             getsockname(minionSocket, (struct sockaddr*)&serverAddress, &len);
             inet_ntop(AF_INET, &serverAddress.sin_addr, ip, sizeof(ip));
-            int r = General::random_0_to_n(0, 1000);
             string minionAddress(ip);
-            minionAddress += std::to_string(r);
             if (DebugFlags::debugMonitor)
                 cout << "Registering: " << minionAddress << "\n";
             minionRequestHandler.monitor->addNewMinion(minionAddress);

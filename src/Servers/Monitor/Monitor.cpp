@@ -79,10 +79,12 @@ string Monitor::getApprovedConfigurationForMinions() {
 
 //Setters
 void Monitor::setApprovedConfiguration(unsigned char* approvedConfiguration, string pcrSHA1){
-    std::cout << "Updated config from: " << +Monitor::approvedConfiguration;
+    std::cout << "Updated approvedConfiguration from: " << +Monitor::approvedConfiguration;
     Monitor::approvedConfiguration = approvedConfiguration;
     std::cout << " to: " << +Monitor::approvedConfiguration << "\n";
+    std::cout << "Updated pcrSHA1 from: " << Monitor::approvedSHA1;
     Monitor::approvedSHA1 = pcrSHA1;
+    std::cout << " to: " << Monitor::approvedSHA1 << "\n";
 }
 
 void Monitor::setApprovedConfigurationForMinions(string approvedConfiguration){

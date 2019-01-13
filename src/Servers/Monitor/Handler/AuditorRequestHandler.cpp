@@ -34,6 +34,7 @@ void AuditorRequestHandler::processAttestation(int clientSocket, std::string non
         unsigned char * approvedConfiguration = (unsigned char *) approvedSplit[1].c_str();
         monitor.setApprovedConfiguration(approvedConfiguration, approvedSplit[2]);
         monitor.setApprovedConfigurationForMinions(approvedSplit[3]);
+        cout << "Approved Configuration " << +monitor.getApprovedConfiguration();
     }
 }
 

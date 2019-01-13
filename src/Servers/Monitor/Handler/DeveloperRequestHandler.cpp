@@ -77,7 +77,7 @@ bool DeveloperRequestHandler::deployApp(string appID, int instances){
 
                     if (resultSplit[0] == Messages::OK){
                         // continue;
-                    } else if (resultSplit[0] == Messages::NOT_OK){
+                    } else if (resultSplit[0] == Messages::NOT_APPROVED) {
                         copyResult = false;
                     }
                  }
@@ -128,10 +128,8 @@ bool DeveloperRequestHandler::deleteApp(string appID){
 }
 
 void DeveloperRequestHandler::processAttestation(int developerSocket) {
-    cout << "in the process attestation";
     char buffer[SocketUtils::MESSAGE_BYTES];
     bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    cout << "need to recieve buffas";
     SocketUtils::receiveBuffer(developerSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugMonitor)
         cout << "Recieved: " << buffer << "\n";
@@ -141,9 +139,9 @@ void DeveloperRequestHandler::processAttestation(int developerSocket) {
 
     if (requestSplit[0] == Messages::ATTEST) {
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
-        string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE + " " + monitor->getApprovedSHA1() + " " + string((char*)monitor->getApprovedConfiguration());
+        //TODO last getApprovedSHA1 must be getApprovedConfiguration instead
+        string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE + " " + monitor->getApprovedSHA1() + " " + monitor->getApprovedSHA1(); 
         General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
-        // cout << "Buffer: " << buffer;
         SocketUtils::sendBuffer(developerSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugMonitor)
             cout << "Wrote: " << buffer << " to client\n";
@@ -156,10 +154,10 @@ void DeveloperRequestHandler::processAttestation(int developerSocket) {
 
     string response(buffer);
     vector<string> responseSplit = General::splitString(response);
-    if (requestSplit[0] == Messages::NOT_APPROVED) {
+    if (responseSplit[0] == Messages::NOT_APPROVED) {
         if (DebugFlags::debugMonitor)
             cout << "Developer rejected platform attestation.\n";
-    } else if (requestSplit[0] == Messages::OK_APPROVED){
+    } else if (responseSplit[0] == Messages::OK_APPROVED) {
         if (DebugFlags::debugMonitor)
             cout << "Developer approved platform attestation.\n";
     }

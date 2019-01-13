@@ -11,11 +11,11 @@ const int ADMIN_KEY_INDEX = 7;
 //  SysAdmin
 
 SysAdmin::SysAdmin() {
-    std::cout << "Auditor created\n";
+    std::cout << "SysAdmin created\n";
 }
 
-SysAdmin::SysAdmin(string username, string hubhost, string remoteHost, string key) {
-    std::cout << "Auditor created\n";
+SysAdmin::SysAdmin(string username, string hubhost, string remoteHost, string key) : username{username}, hubHost{hubhost}, remoteHost{remoteHost}, key{key} {
+    std::cout << "SysAdmin created\n";
 }
 
 void SysAdmin::attestLogger(int loggerSocket){
