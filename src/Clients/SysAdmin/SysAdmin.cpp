@@ -6,6 +6,8 @@ const int HOST_FLAG_INDEX = 3;
 const int USERNAME_FLAG_INDEX = 5;
 const int ADMIN_KEY_INDEX = 7;
 
+const int ERROR_CODE = 255;
+
 //  Usage:
 //  SysAdmin -h: help
 //  SysAdmin
@@ -54,33 +56,50 @@ bool SysAdmin::startLocalProxy() {
                         ProcessBinaries::SSH.c_str(), key.c_str(), username.c_str(), hubHost.c_str(), 
                         Ports::ADMIN_SSH_PORT, hubHost.c_str(), Ports::AHUB_LOCAL_PORT);
 
+
     if (DebugFlags::debugSysAdmin)
         cout << "Executing command: " << sshArgsStream << "\n";
     fflush(NULL);
     pid_t pid = fork();
     if (pid == 0) {
-        int result = execlp(ProcessBinaries::SSH.c_str(), sshArgsStream);
+        int result = 0;
+        result = execlp(ProcessBinaries::SSH.c_str(), sshArgsStream, (char*)0);
         if (result == -1) {
-            if (DebugFlags::debugSysAdmin)
+            if (DebugFlags::debugSysAdmin){
                 cout << "Command failed\n";
-            exit(-1);
+                cout << "Result: "<< result<< "\n";
+                cout << strerror(errno) << "\n";
+            }
+                exit(-1);
         }
-        exit(0);
+        if (DebugFlags::debugSysAdmin)
+            cout << "Command suceeded\n";
+         exit(0);
     }
 
     if (pid > 0) {
-        int status;
-        waitpid(pid, &status, 0);
-        if (WEXITSTATUS(status) == -1)
-            return false;
+        int status = 0;
+        if (DebugFlags::debugSysAdmin)
+            cout << "Waiting for child process\n";
+            waitpid(pid, &status, 0);
+            cout << "Status: " << WIFEXITED(status);
+            cout << "Status: " << WEXITSTATUS(status);
+            if (WIFEXITED(status) && WEXITSTATUS(status) == ERROR_CODE) {
+                if (DebugFlags::debugSysAdmin)
+                    cout << "child process returned bad\n";
+                return false;
+            }
+
     }
+    if (DebugFlags::debugSysAdmin)
+        cout << "child process returned good\n";
     return true;
 }
 
 bool SysAdmin::manageNode(){
     bool proxyCreationResult = SysAdmin::startLocalProxy();
-
-    if (!proxyCreationResult)
+    
+    if (!proxyCreationResult) 
         return false;
 
     sockaddr_in serverAddress;
@@ -156,7 +175,7 @@ int main(int argc, char* argv[]) {
 
     string hubHost = argv[HUB_FLAG_INDEX+1];
     string remoteHost = argv[HOST_FLAG_INDEX+1];
-    string username = argv[HUB_FLAG_INDEX+1];
+    string username = argv[USERNAME_FLAG_INDEX + 1];
     string key = argv[ADMIN_KEY_INDEX+1];
     SysAdmin* sysAdmin;
     sysAdmin = new SysAdmin(username, hubHost, remoteHost, key);
