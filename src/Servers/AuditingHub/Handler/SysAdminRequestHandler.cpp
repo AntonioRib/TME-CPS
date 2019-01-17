@@ -12,6 +12,15 @@ void SysAdminRequestHandler::launchSessionProcess(){
     char* sshArgsStream;
     int size = asprintf(&sshArgsStream, "%s -i %s -oStrictHostKeyChecking=no -t %s@%s -vvvvv",
                         ProcessBinaries::SSH.c_str(), auditingHub->getHubKey().c_str(), auditingHub->getHubUserName().c_str(), remoteHost.c_str());
+    string sshArgsStreamStr(sshArgsStream);
+    std::vector<std::string> sshArgsStreamVec = General::splitString(sshArgsStreamStr);
+    char* sshArgsStreamCharVec[sshArgsStreamVec.size()];
+    int i = 0;
+    for (const std::string& str : sshArgsStreamVec) {
+        sshArgsStreamCharVec[i] = const_cast<char*>(str.c_str());
+        i++;
+    }
+    sshArgsStreamCharVec[i] = NULL;
 
     if (DebugFlags::debugMonitor)
         cout << "Executing command: " << sshArgsStream << "\n";
@@ -22,7 +31,7 @@ void SysAdminRequestHandler::launchSessionProcess(){
     if (pid == 0) {
         close(pProcessWrite[1]);
         close(pProcessRead[0]);
-        int result = execlp(ProcessBinaries::SSH.c_str(), sshArgsStream);
+        int result = execvp(ProcessBinaries::SSH.c_str(), sshArgsStreamCharVec);
         if (result == -1) {
             if (DebugFlags::debugMonitor)
                 cout << "Command failed\n";
@@ -48,61 +57,76 @@ void SysAdminRequestHandler::launchLogger(){
 }
 
 bool SysAdminRequestHandler::setNodeUntrusted(){
-    sockaddr_in serverAddress;
-    serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT);
+    sockaddr_in monitorAddress;
+    monitorAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT);
 
-    int serverSocket;
-    serverSocket = SocketUtils::createServerSocket(serverAddress);
+    // int serverSocket;
+    // serverSocket = SocketUtils::createServerSocket(serverAddress);
+    int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
+    SocketUtils::connectToServerSocket(monitorSocket, monitorAddress);
+    if (DebugFlags::debugAuditor)
+        cout << "Connected to the server\n";
 
     hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
+    struct in_addr addr;
+     memcpy(&addr, rHost->h_addr_list[0], sizeof(struct in_addr));
+     string host = inet_ntoa(addr);
+     if (DebugFlags::debugAuditor)
+         cout << "Host: " << host << "\n";
+     char buffer[SocketUtils::MESSAGE_BYTES];
+     std::string configuration = Messages::SET_UNTRUSTED + " " + host.c_str();
+     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
+     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
+     if (DebugFlags::debugAuditingHub)
+         cout << "Wrote: " << buffer << " to Monitor\n";
 
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string configuration = Messages::SET_UNTRUSTED + " " + rHost->h_addr_list[0];
-    General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::sendBuffer(serverSocket, buffer, strlen(buffer), 0);
-    if (DebugFlags::debugAuditingHub)
-        cout << "Wrote: " << buffer << " to Monitor\n";
+     bzero(buffer, SocketUtils::MESSAGE_BYTES);
+     SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+     if (DebugFlags::debugAuditingHub)
+         cout << "Recieved: " << buffer << "\n";
 
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(serverSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugAuditingHub)
-        cout << "Recieved: " << buffer << "\n";
+     string result(buffer);
+     vector<string> resultSplit = General::splitString(result);
 
-    string result(buffer);
-    vector<string> resultSplit = General::splitString(result);
-
-    if (resultSplit[0] == Messages::NOT_OK) {
-        if (DebugFlags::debugAuditingHub)
-            cout << "Unsucessfull migration\n";
-            return false;
+     if (resultSplit[0] == Messages::NOT_OK) {
+         if (DebugFlags::debugAuditingHub)
+             cout << "Unsucessfull migration\n";
+         close(monitorSocket);
+         return false;
     } else if (resultSplit[0] == Messages::OK) {
         if (DebugFlags::debugAuditingHub)
             cout << "Sucessfull migration\n";
-            return true;
+        close(monitorSocket);
+        return true;
     }
     if (DebugFlags::debugAuditingHub)
         cout << "Unknown command about migration\n";
-        return false;
+    close(monitorSocket);
+    return false;
 }
 
 bool SysAdminRequestHandler::purgeMinion(){
-    sockaddr_in serverAddress;
-    serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT);
+    sockaddr_in monitorAddress;
+    monitorAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT);
 
-    int serverSocket;
-    serverSocket = SocketUtils::createServerSocket(serverAddress);
+    // int serverSocket;
+    // serverSocket = SocketUtils::createServerSocket(serverAddress);
+    int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
+    SocketUtils::connectToServerSocket(monitorSocket, monitorAddress);
+    if (DebugFlags::debugAuditor)
+        cout << "Connected to the server\n";
 
     hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
 
     char buffer[SocketUtils::MESSAGE_BYTES];
     std::string configuration = Messages::PURGE;
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::sendBuffer(serverSocket, buffer, strlen(buffer), 0);
+    SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
     if (DebugFlags::debugAuditingHub)
         cout << "Wrote: " << buffer << " to Monitor\n";
 
     bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(serverSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugAuditingHub)
         cout << "Recieved: " << buffer << "\n";
 
@@ -112,18 +136,23 @@ bool SysAdminRequestHandler::purgeMinion(){
     if (resultSplit[0] == Messages::NOT_OK) {
         if (DebugFlags::debugAuditingHub)
             cout << "Unsucessfull purge\n";
-            return false;
+        close(monitorSocket);
+        return false;
     } else if (resultSplit[0] == Messages::OK) {
         if (DebugFlags::debugAuditingHub)
             cout << "Sucessfull purge\n";
-            return true;
+        close(monitorSocket);
+        return true;
     }
     if (DebugFlags::debugAuditingHub)
         cout << "Unknown command about purge\n";
-        return false;
+    close(monitorSocket);
+    return false;
 }
 
 bool SysAdminRequestHandler::launchManagementSession(){
+    if (DebugFlags::debugAuditingHub)
+        cout << "Will set and purge stuff.\n";
     if(!setNodeUntrusted())
 
     if(!purgeMinion())
@@ -178,7 +207,7 @@ void SysAdminRequestHandler::processAttestation(int adminSocket) {
         if (DebugFlags::debugAuditingHub)
             cout << "Being attested\n";
 
-        std::string quote = string(Messages::QUOTE) + " " + string(AttestationConstants::QUOTE) + " " + string(auditingHub->getApprovedSHA1()) + " " + string((char*)auditingHub->getApprovedConfiguration());
+        std::string quote = string(Messages::QUOTE) + " " + string(AttestationConstants::QUOTE) + " " + string(auditingHub->getApprovedSHA1()) + " " +  string(auditingHub->getApprovedSHA1());
         General::stringToCharArray(quote, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(adminSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugAuditingHub)
@@ -231,6 +260,7 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
             SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
             if (DebugFlags::debugAuditingHub)
                 cout << "Wrote: " << buffer << " to client\n";
+            return;
         }
 
         sysAdminRequestHandler.adminUsername = commandSplit[1];

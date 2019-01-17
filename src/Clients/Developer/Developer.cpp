@@ -8,6 +8,7 @@ const int KEY_FLAG_INDEX = 6;
 const int APPDIR_FLAG_INDEX = 8;
 const int INSTANCES_FLAG_INDEX = 10;
 
+const int ERROR_CODE = 255;
 
 //  Usage:
 //  Developer -h: help
@@ -121,16 +122,27 @@ bool Developer::sendApp(){
     int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no %s %s@%s:%s%s",
                         ProcessBinaries::SCP.c_str(), key.c_str(), appDir.c_str(), username.c_str(),
                         monitorHost.c_str(), Directories::APPS_DIR_MONITOR.c_str(), appDir.substr(appDir.find("/")+1).c_str());
-
+    string scpArgsStreamStr(scpArgsStream);
+    std::vector<std::string> scpArgsStreamVec = General::splitString(scpArgsStreamStr);
+    char* scpArgsStreamCharVec[scpArgsStreamVec.size()];
+    int i = 0;
+    for (const std::string& str : scpArgsStreamCharVec) {
+        scpArgsStreamCharVec[i] = const_cast<char*>(str.c_str());
+        i++;
+    }
+    scpArgsStreamCharVec[i] = NULL;
     if (DebugFlags::debugDeveloper)
         cout << "Executing command: " << scpArgsStream << "\n";
     fflush(NULL);
     pid_t pid = fork();
     if (pid == 0) {
-        int result = execlp(ProcessBinaries::SCP.c_str(), scpArgsStream);
+        int result = execvp(ProcessBinaries::SCP.c_str(), scpArgsStreamCharVec);
         if (result == -1) {
-            if (DebugFlags::debugDeveloper)
+            if (DebugFlags::debugDeveloper){
                 cout << "Command failed\n";
+                cout << "Result: " << result << "\n";
+                cout << strerror(errno) << "\n";
+            }
             exit(-1);
         }
         exit(0);
@@ -139,7 +151,7 @@ bool Developer::sendApp(){
     if (pid > 0) {
         int status;
         waitpid(pid, &status, 0);
-        if (WEXITSTATUS(status) == -1)
+        if (WIFEXITED(status) && WEXITSTATUS(status) == ERROR_CODE)
             return false;
     }
     return true;
@@ -180,7 +192,7 @@ int main(int argc, char* argv[]) {
     bool commandResult = false;
     if(command == "-deploy"){
         monitorHost = argv[MONITOR_HOST_FLAG_INDEX+1];
-        username = argv[USERNAME_FLAG_INDEX]+1;
+        username = argv[USERNAME_FLAG_INDEX+1];
         key = argv[KEY_FLAG_INDEX+1];
         appDir = argv[APPDIR_FLAG_INDEX+1];
         instances = argv[INSTANCES_FLAG_INDEX+1];

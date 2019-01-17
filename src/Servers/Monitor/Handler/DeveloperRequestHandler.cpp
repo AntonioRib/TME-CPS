@@ -1,6 +1,8 @@
 #include "DeveloperRequestHandler.h"
 using namespace std;
 
+const int ERROR_CODE = 255;
+
 // const int MESSAGE_BYTES = 2048;
 
 DeveloperRequestHandler::DeveloperRequestHandler() {
@@ -16,13 +18,22 @@ bool DeveloperRequestHandler::sendApp(Minion* minion, string appDir){
     int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no ../../%s%s %s@%s:%s%s",
                         ProcessBinaries::SCP.c_str(), sshKey.c_str(), Directories::APPS_DIR_MONITOR.c_str(), appDir.c_str(),
                         username.c_str(), minion->getIpAddress().c_str(), Directories::APPS_DIR_MINION.c_str(), appDir.c_str());
+    string scpArgsStreamStr(scpArgsStream);
+    std::vector<std::string> scpArgsStreamVec = General::splitString(scpArgsStreamStr);
+    char* scpArgsStreamCharVec[scpArgsStreamVec.size()];
+    int i = 0;
+    for (const std::string& str : scpArgsStreamCharVec) {
+        scpArgsStreamCharVec[i] = const_cast<char*>(str.c_str());
+        i++;
+    }
+    scpArgsStreamCharVec[i] = NULL;
 
     if (DebugFlags::debugMonitor)
         cout << "Executing command: " << scpArgsStream << "\n";
     fflush(NULL);
     pid_t pid = fork();
     if (pid == 0) {
-        int result = execlp(ProcessBinaries::SCP.c_str(), scpArgsStream);
+        int result = execvp(ProcessBinaries::SCP.c_str(), scpArgsStreamCharVec);
         if (result == -1) {
             if (DebugFlags::debugMonitor)
                 cout << "Command failed\n";
@@ -34,7 +45,7 @@ bool DeveloperRequestHandler::sendApp(Minion* minion, string appDir){
     if (pid > 0) {
         int status;
         waitpid(pid, &status, 0);
-        if (WEXITSTATUS(status) == -1)
+        if (WIFEXITED(status) && WEXITSTATUS(status) == ERROR_CODE)
             return false;
     }
     return true;

@@ -55,15 +55,24 @@ bool SysAdmin::startLocalProxy() {
     int size = asprintf(&sshArgsStream, "%s -i %s -oStrictHostKeyChecking=no -f %s@%s -L %d:%s:%d -N",
                         ProcessBinaries::SSH.c_str(), key.c_str(), username.c_str(), hubHost.c_str(), 
                         Ports::ADMIN_SSH_PORT, hubHost.c_str(), Ports::AHUB_LOCAL_PORT);
-
-
+    // int size = asprintf(&sshArgsStream, "%s -i %s -oStrictHostKeyChecking=no %s",
+    //                     ProcessBinaries::SSH.c_str(), key.c_str(), hubHost.c_str());
+    string sshArgsStreamStr(sshArgsStream);
+    std::vector<std::string> sshArgsStreamVec = General::splitString(sshArgsStreamStr);
+    char* sshArgsStreamCharVec[sshArgsStreamVec.size()];
+    int i = 0;
+    for (const std::string& str : sshArgsStreamVec) {
+        sshArgsStreamCharVec[i] = const_cast<char*>(str.c_str());
+        i++;
+    }
+    sshArgsStreamCharVec[i] = NULL;
     if (DebugFlags::debugSysAdmin)
         cout << "Executing command: " << sshArgsStream << "\n";
     fflush(NULL);
     pid_t pid = fork();
     if (pid == 0) {
         int result = 0;
-        result = execlp(ProcessBinaries::SSH.c_str(), sshArgsStream, (char*)0);
+        result = execvp(ProcessBinaries::SSH.c_str(), sshArgsStreamCharVec);
         if (result == -1) {
             if (DebugFlags::debugSysAdmin){
                 cout << "Command failed\n";
@@ -82,17 +91,15 @@ bool SysAdmin::startLocalProxy() {
         if (DebugFlags::debugSysAdmin)
             cout << "Waiting for child process\n";
             waitpid(pid, &status, 0);
-            cout << "Status: " << WIFEXITED(status);
-            cout << "Status: " << WEXITSTATUS(status);
             if (WIFEXITED(status) && WEXITSTATUS(status) == ERROR_CODE) {
                 if (DebugFlags::debugSysAdmin)
-                    cout << "child process returned bad\n";
+                    cout << "Child process returned bad\n";
                 return false;
             }
 
     }
     if (DebugFlags::debugSysAdmin)
-        cout << "child process returned good\n";
+        cout << "Child process returned good\n";
     return true;
 }
 
@@ -103,7 +110,7 @@ bool SysAdmin::manageNode(){
         return false;
 
     sockaddr_in serverAddress;
-    serverAddress = SocketUtils::createServerAddress(Ports::ADMIN_SSH_PORT);
+    serverAddress = SocketUtils::createServerAddress(Ports::AHUB_SYSADMIN_PORT);
 
     int hubSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(hubSocket, serverAddress);

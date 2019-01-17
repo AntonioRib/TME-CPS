@@ -176,6 +176,11 @@ void Monitor::removeMinion(string minionAddress) {
 
     Monitor::trustedMinions.erase(minionAddress);
     Monitor::untrustedMinions.erase(minionAddress);
+
+    if (DebugFlags::debugMonitor)
+        cout << "#trustedMinions: " << Monitor::trustedMinions.size() << "\n";
+    if (DebugFlags::debugMonitor)
+        cout << "#untrustedMinions: " << Monitor::untrustedMinions.size() << "\n";
 }
 
 void Monitor::setMinionUntrusted(string minionAddress){
@@ -187,6 +192,11 @@ void Monitor::setMinionUntrusted(string minionAddress){
     }
 
     //TODO
+    
+    if (DebugFlags::debugMonitor)
+        cout << "#trustedMinions: " << Monitor::trustedMinions.size() << "\n";
+    if (DebugFlags::debugMonitor)
+        cout << "#untrustedMinions: " << Monitor::untrustedMinions.size() << "\n";
 }
 
 void Monitor::setMinionTrusted(string minionAddress) {

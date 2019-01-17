@@ -21,7 +21,6 @@ void Auditor::attestMonitor(const char* hostname){
     serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AUDITOR_PORT);
 
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
     SocketUtils::connectToServerSocket(clientSocket, serverAddress);
     if (DebugFlags::debugAuditor)
         cout << "Connected to the server\n";
