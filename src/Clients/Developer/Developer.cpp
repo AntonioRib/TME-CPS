@@ -119,9 +119,9 @@ bool Developer::deleteApp(){
 
 bool Developer::sendApp(){
     char* scpArgsStream;
-    int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no %s %s@%s:%s%s",
+    int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no %s %s@%s:%s",
                         ProcessBinaries::SCP.c_str(), key.c_str(), appDir.c_str(), username.c_str(),
-                        monitorHost.c_str(), Directories::APPS_DIR_MONITOR.c_str(), appDir.substr(appDir.find("/")+1).c_str());
+                        monitorHost.c_str(), Directories::APPS_DIR_MONITOR.c_str());//, appDir.substr(appDir.find("/")+1).c_str());
     string scpArgsStreamStr(scpArgsStream);
     std::vector<std::string> scpArgsStreamVec = General::splitString(scpArgsStreamStr);
     char* scpArgsStreamCharVec[scpArgsStreamVec.size()];
@@ -145,6 +145,8 @@ bool Developer::sendApp(){
             }
             exit(-1);
         }
+        cout << "Result: " << result << "\n";
+        cout << strerror(errno) << "\n";
         exit(0);
     }
 

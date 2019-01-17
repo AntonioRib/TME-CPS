@@ -19,8 +19,11 @@ bool MinionAHubRequestHandler::purgeMinion() {
     if (pid == 0) {
         int result = execlp(purgeArgsStream, purgeArgsStream);
         if (result == -1) {
-            if (DebugFlags::debugMonitor)
+            if (DebugFlags::debugMinion){
                 cout << "Command failed\n";
+                cout << "Result: " << result << "\n";
+                cout << strerror(errno) << "\n";   
+            }
             exit(-1);
         }
         exit(0);

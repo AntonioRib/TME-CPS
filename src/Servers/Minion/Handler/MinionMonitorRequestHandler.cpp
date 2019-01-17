@@ -1,4 +1,5 @@
 #include "MinionMonitorRequestHandler.h"
+using namespace std;
 
 MinionMonitorRequestHandler::MinionMonitorRequestHandler() {
     std::cout << "MonitorRequestHandler created\n";
@@ -10,10 +11,10 @@ MinionMonitorRequestHandler::MinionMonitorRequestHandler(Minion* minion) : minio
 
 bool MinionMonitorRequestHandler::deployApp(string appId) {
     char* createContainerArgsStream;
-    int sizeCreateStream = asprintf(&createContainerArgsStream, "sudo docker build -t %s-container ../../%s%s", appId, Directories::APPS_DIR_MINION);
+    int sizeCreateStream = asprintf(&createContainerArgsStream, "sudo docker build -t %s-container ../../%s%s", appId.c_str(), Directories::APPS_DIR_MINION.c_str(), appId.c_str());
 
     char* deployContainerArgsStream;
-    int sizeDeployStream = asprintf(&deployContainerArgsStream, "sudo docker run -p 80 -d --name %s %s-container", appId, appId);
+    int sizeDeployStream = asprintf(&deployContainerArgsStream, "sudo docker run -p 80 -d --name %s %s-container", appId.c_str(), appId.c_str());
 
     if (DebugFlags::debugMonitor)
         cout << "Executing command: " << createContainerArgsStream << "\n";
@@ -22,8 +23,11 @@ bool MinionMonitorRequestHandler::deployApp(string appId) {
     if (pidCreate == 0) {
         int result = execlp(createContainerArgsStream, createContainerArgsStream);
         if (result == -1) {
-            if (DebugFlags::debugMonitor)
+            if (DebugFlags::debugMinion){
                 cout << "Command failed\n";
+                cout << "Result: " << result << "\n";
+                cout << strerror(errno) << "\n";   
+            }
             exit(-1);
         }
         exit(0);
@@ -43,8 +47,11 @@ bool MinionMonitorRequestHandler::deployApp(string appId) {
     if (pidDeploy == 0) {
         int result = execlp(deployContainerArgsStream, deployContainerArgsStream);
         if (result == -1) {
-            if (DebugFlags::debugMonitor)
+            if (DebugFlags::debugMinion){
                 cout << "Command failed\n";
+                cout << "Result: " << result << "\n";
+                cout << strerror(errno) << "\n";   
+            }
             exit(-1);
         }
         exit(0);
@@ -62,7 +69,7 @@ bool MinionMonitorRequestHandler::deployApp(string appId) {
 
 bool MinionMonitorRequestHandler::deleteApp(string appId) {
     char* deleteArgsStream;
-    int size = asprintf(&deleteArgsStream, "sudo ../%s", Scripts::DELETE_APP);
+    int size = asprintf(&deleteArgsStream, "sudo ../%s", Scripts::DELETE_APP.c_str());
 
     if (DebugFlags::debugMonitor)
         cout << "Executing command: " << deleteArgsStream << "\n";
@@ -71,8 +78,11 @@ bool MinionMonitorRequestHandler::deleteApp(string appId) {
     if (pid == 0) {
         int result = execlp(deleteArgsStream, deleteArgsStream);
         if (result == -1) {
-            if (DebugFlags::debugMonitor)
+            if (DebugFlags::debugMinion){
                 cout << "Command failed\n";
+                cout << "Result: " << result << "\n";
+                cout << strerror(errno) << "\n";
+            }
             exit(-1);
         }
         exit(0);

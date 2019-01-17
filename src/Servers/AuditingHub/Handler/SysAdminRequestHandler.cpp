@@ -33,8 +33,11 @@ void SysAdminRequestHandler::launchSessionProcess(){
         close(pProcessRead[0]);
         int result = execvp(ProcessBinaries::SSH.c_str(), sshArgsStreamCharVec);
         if (result == -1) {
-            if (DebugFlags::debugMonitor)
+            if (DebugFlags::debugAuditingHub){
                 cout << "Command failed\n";
+                cout << "Result: " << result << "\n";
+                cout << strerror(errno) << "\n";   
+            }
             exit(-1);
         }
         exit(0);

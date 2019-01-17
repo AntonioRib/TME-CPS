@@ -30,8 +30,11 @@ bool AHubRequestHandler::sendApp(Minion* minion, std::string appDir){
     if (pid == 0) {
         int result = execvp(ProcessBinaries::SCP.c_str(), scpArgsStreamCharVec);
         if (result == -1){
-            if (DebugFlags::debugMonitor)
+            if (DebugFlags::debugMonitor){
                 cout << "Command failed\n";
+                cout << "Result: " << result << "\n";
+                cout << strerror(errno) << "\n";   
+            }
             exit(-1);
         }
         exit(0);
