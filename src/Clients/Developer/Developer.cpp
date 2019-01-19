@@ -28,6 +28,7 @@ Developer::Developer(string monitorHost, string username, string key, string app
 
 void Developer::attestMonitor(int monitorSocket){
     char buffer[SocketUtils::MESSAGE_BYTES];
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
     string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
     General::stringToCharArray(attestationRequestString, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
@@ -57,12 +58,12 @@ void Developer::attestMonitor(int monitorSocket){
 }
 
 bool Developer::sendSyncMessageAndGetResponse(string message){
-    // struct hostent* serverHost;
-    // serverHost = SocketUtils::getHostByName(hostname);
+    struct hostent* serverHost;
+    serverHost = SocketUtils::getHostByName(monitorHost);
 
     sockaddr_in serverAddress;
     serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_DEVELOPER_PORT);
-
+    bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
     int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(monitorSocket, serverAddress);
     if (DebugFlags::debugDeveloper)
@@ -80,6 +81,7 @@ bool Developer::sendSyncMessageAndGetResponse(string message){
         return sendResult;
 
     char buffer[SocketUtils::MESSAGE_BYTES];
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
     General::stringToCharArray(message, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
     if (DebugFlags::debugDeveloper)

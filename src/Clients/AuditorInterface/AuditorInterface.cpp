@@ -24,7 +24,7 @@ bool AuditorInterface::setTrusted(string hostname) {
 
     sockaddr_in serverAddress;
     serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT);
-
+    bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
     int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
 
     SocketUtils::connectToServerSocket(monitorSocket, serverAddress);

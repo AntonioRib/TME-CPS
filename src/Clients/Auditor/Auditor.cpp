@@ -19,6 +19,7 @@ void Auditor::attestMonitor(const char* hostname){
     serverHost = SocketUtils::getHostByName(hostname);
     sockaddr_in serverAddress;
     serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AUDITOR_PORT);
+    bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
 
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(clientSocket, serverAddress);
@@ -63,7 +64,7 @@ void Auditor::attestAuditingHub(const char* hostname) {
     serverHost = SocketUtils::getHostByName(hostname);
     sockaddr_in serverAddress;
     serverAddress = SocketUtils::createServerAddress(Ports::AHUB_AUDITOR_PORT);
-
+    bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 
     SocketUtils::connectToServerSocket(clientSocket, serverAddress);

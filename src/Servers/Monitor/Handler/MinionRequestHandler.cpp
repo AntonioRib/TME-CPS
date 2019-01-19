@@ -69,7 +69,7 @@ void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minion
         if (commandSplit[0] == Messages::REGISTER) {
             socklen_t len = sizeof(serverAddress);
             char ip[32];
-            getsockname(minionSocket, (struct sockaddr*)&serverAddress, &len);
+            getpeername(minionSocket, (struct sockaddr*)&serverAddress, &len);
             inet_ntop(AF_INET, &serverAddress.sin_addr, ip, sizeof(ip));
             string minionAddress(ip);
             if (DebugFlags::debugMonitor)

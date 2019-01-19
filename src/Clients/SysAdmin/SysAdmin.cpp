@@ -108,10 +108,13 @@ bool SysAdmin::manageNode(){
     
     if (!proxyCreationResult) 
         return false;
+        
+    struct hostent* serverHost;
+    serverHost = SocketUtils::getHostByName(hubHost);
 
     sockaddr_in serverAddress;
     serverAddress = SocketUtils::createServerAddress(Ports::AHUB_SYSADMIN_PORT);
-
+    bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
     int hubSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(hubSocket, serverAddress);
 

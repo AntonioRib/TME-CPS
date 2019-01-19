@@ -68,9 +68,13 @@ bool DeveloperRequestHandler::deployApp(string appID, int instances){
                     if (!copyResult)
                         copyResult = false;
 
+                    struct hostent* minionHost;
+                    minionHost = SocketUtils::getHostByName(minion->getIpAddress());
+
                     sockaddr_in minionAddress;
                     minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
-                    minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
+                    // minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
+                    bcopy((char *)minionHost->h_addr, (char *)&minionAddress.sin_addr.s_addr, minionHost->h_length);
                     int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
                     SocketUtils::connectToServerSocket(minionSocket, minionAddress);
 
@@ -110,13 +114,18 @@ bool DeveloperRequestHandler::deleteApp(string appID){
                      if (DebugFlags::debugMonitor)
                          cout << "Deleting app to minion";
 
+                    struct hostent* minionHost;
+                    minionHost = SocketUtils::getHostByName(minion->getIpAddress());
+
                      sockaddr_in minionAddress;
                      minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
-                     minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
+                    //  minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
+                    bcopy((char *)minionHost->h_addr, (char *)&minionAddress.sin_addr.s_addr, minionHost->h_length);
                      int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
                      SocketUtils::connectToServerSocket(minionSocket, minionAddress);
 
                      char buffer[SocketUtils::MESSAGE_BYTES];
+                     bzero(buffer, SocketUtils::MESSAGE_BYTES);
                      string message = Messages::DELETE_APP + " " + appID;
                      General::stringToCharArray(message, buffer, SocketUtils::MESSAGE_BYTES);
                      SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);

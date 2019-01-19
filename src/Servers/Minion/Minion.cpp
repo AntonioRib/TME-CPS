@@ -93,9 +93,12 @@ void Minion::processAttestation(int monitorSocket){
 }
 
 bool Minion::startMonitorHandler(){
+    struct hostent* serverHost;
+    serverHost = SocketUtils::getHostByName(monitorHost);
+
     sockaddr_in monitorAddress;
     monitorAddress = SocketUtils::createServerAddress(Ports::MONITOR_MINION_PORT);
-
+    bcopy((char *)serverHost->h_addr, (char *)&monitorAddress.sin_addr.s_addr, serverHost->h_length);
     int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(monitorSocket, monitorAddress);
 

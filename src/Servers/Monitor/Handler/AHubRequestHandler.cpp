@@ -59,9 +59,10 @@ bool AHubRequestHandler::deployAppOnMinion(Minion* host, string appId) {
 
     struct hostent* minionHost;
     minionHost = SocketUtils::getHostByName(host->getIpAddress());
+
     sockaddr_in minionAddress;
     minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
-
+    bcopy((char *)minionHost->h_addr, (char *)&minionAddress.sin_addr.s_addr, minionHost->h_length);
     int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
 
     SocketUtils::connectToServerSocket(minionSocket, minionAddress);
@@ -120,7 +121,7 @@ bool AHubRequestHandler::attestMinion(std::string untrustedMinion) {
     minionHost = SocketUtils::getHostByName(untrustedMinion);
     sockaddr_in minionAddress;
     minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
-
+    bcopy((char *)minionHost->h_addr, (char *)&minionAddress.sin_addr.s_addr, minionHost->h_length);
     int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
 
     SocketUtils::connectToServerSocket(minionSocket, minionAddress);
