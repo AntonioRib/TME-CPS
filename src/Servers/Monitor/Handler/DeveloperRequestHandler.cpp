@@ -22,7 +22,7 @@ bool DeveloperRequestHandler::sendApp(Minion* minion, string appDir){
     std::vector<std::string> scpArgsStreamVec = General::splitString(scpArgsStreamStr);
     char* scpArgsStreamCharVec[scpArgsStreamVec.size()];
     int i = 0;
-    for (const std::string& str : scpArgsStreamCharVec) {
+    for (const std::string& str : scpArgsStreamVec) {
         scpArgsStreamCharVec[i] = const_cast<char*>(str.c_str());
         i++;
     }
