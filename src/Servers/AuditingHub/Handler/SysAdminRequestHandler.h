@@ -19,6 +19,7 @@ class SysAdminRequestHandler {
     string adminUsername;
     string remoteHost;
     int pidAuditingHubToNodeSessionProcess;
+    shared_ptr<spdlog::logger> logger;
     int adminToHubSocket;
     int processWrite[2];
     int processRead[2];

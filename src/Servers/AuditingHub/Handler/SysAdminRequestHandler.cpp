@@ -59,15 +59,12 @@ void SysAdminRequestHandler::launchSessionProcess(){
 }
 
 void SysAdminRequestHandler::launchLogger(){
-    //TODO
-        //CREATE LOG FOLDER
     if (mkdir(UNCOMMITED_LOGS_DIR.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != -1)
         cout << "Directory created";
 
     string logPath(UNCOMMITED_LOGS_DIR + "AuditingHub" + "." + adminUsername + "." + remoteHost + "." + General::currentDateTime());
-    spdlog::info("Welcome to spdlog!");
-    auto logger = spdlog::basic_logger_mt("logger", logPath);
-    logger->info("Logger started");
+    logger = spdlog::basic_logger_mt("Logger", logPath);
+    // logger->info("Logger started");
 }
 
 bool SysAdminRequestHandler::setNodeUntrusted(){
@@ -199,6 +196,7 @@ bool SysAdminRequestHandler::launchManagementSession(){
         if (hostOutput != promptString)
             continue;
 
+        logger->info("Host->Admin:\n"+hostOutput);
         //LOG "Host->Admin:\n"+hostCompleteResponseBuilder.toString()
 
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
@@ -208,6 +206,7 @@ bool SysAdminRequestHandler::launchManagementSession(){
             //auditingHubToNodeSessionProcess destroy process
             auditingHub->removeSession(remoteHost);
         }
+        logger->info("Admin->Host:\n"+hostInput);
         //xx = hostInput //WRITE to process
 
         //LOG "Admin->Host:"+hostInput+System.lineSeparator()
