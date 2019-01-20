@@ -37,18 +37,18 @@ void SysAdmin::attestLogger(int loggerSocket){
     vector<string> splittedQuote = General::splitString(quote);
 
     if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE && splittedQuote[2] == AttestationConstants::PCR_SHA1 && splittedQuote[3] == AttestationConstants::PCR_SHA1) {
-        string approvedMessage = Messages::OK_APPROVED + "\0";
+        string approvedMessage = Messages::OK_APPROVED;
         General::stringToCharArray(approvedMessage, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(loggerSocket, buffer, strlen(buffer), 0);
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
         if (DebugFlags::debugSysAdmin)
             cout << "Wrote: " << buffer << " to server\n";
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
     } else {
         General::stringToCharArray(Messages::NOT_APPROVED, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(loggerSocket, buffer, strlen(buffer), 0);
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
         if (DebugFlags::debugSysAdmin)
             cout << "Wrote: " << buffer << " to server\n";
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
     }
 }
 
@@ -152,7 +152,7 @@ bool SysAdmin::manageNode(){
         vector<string> hostOutputQuote = General::splitString(hostOutput);
         if (responseQuote[0] == Messages::NOT_OK)
             return false;
-        cout << buffer;
+        // cout << buffer;
         fflush(NULL);
 
         if (hostOutput != prompt)

@@ -24,14 +24,10 @@ void SysAdminRequestHandler::launchSessionProcess(){
         i++;
     }
     sshArgsStreamCharVec[i] = NULL;
-
-    if (DebugFlags::debugMonitor)
+    cout << "Im in launchSessionProcess";
+    if (DebugFlags::debugAuditingHub)
         cout << "Executing command: " << sshArgsStream << "\n";
     fflush(NULL);
-    // int pProcessWrite[2]; 
-    // int pProcessRead[2]; 
-    // processWrite = pProcessWrite;
-    // processRead = pProcessRead;
     pipe(processWrite);
     pipe(processRead);
     pid_t pid = fork();
@@ -80,15 +76,14 @@ bool SysAdminRequestHandler::setNodeUntrusted(){
     // serverSocket = SocketUtils::createServerSocket(serverAddress);
     int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(monitorSocket, monitorAddress);
-    if (DebugFlags::debugAuditor)
+    if (DebugFlags::debugAuditingHub)
         cout << "Connected to the server\n";
 
     hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
     struct in_addr addr;
      memcpy(&addr, rHost->h_addr_list[0], sizeof(struct in_addr));
      string host = inet_ntoa(addr);
-     if (DebugFlags::debugAuditor)
-         cout << "Host: " << host << "\n";
+
      char buffer[SocketUtils::MESSAGE_BYTES];
      std::string configuration = Messages::SET_UNTRUSTED + " " + host.c_str();
      General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
@@ -123,16 +118,16 @@ bool SysAdminRequestHandler::setNodeUntrusted(){
 
 bool SysAdminRequestHandler::purgeMinion(){
     struct hostent* serverHost;
-    serverHost = SocketUtils::getHostByName(auditingHub->getMonitorHost());
+    serverHost = SocketUtils::getHostByName(SysAdminRequestHandler::remoteHost);
 
     sockaddr_in monitorAddress;
-    monitorAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT);
+    monitorAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT);
     bcopy((char *)serverHost->h_addr, (char *)&monitorAddress.sin_addr.s_addr, serverHost->h_length);
     // int serverSocket;
     // serverSocket = SocketUtils::createServerSocket(serverAddress);
     int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(monitorSocket, monitorAddress);
-    if (DebugFlags::debugAuditor)
+    if (DebugFlags::debugAuditingHub)
         cout << "Connected to the server\n";
 
     hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
@@ -173,21 +168,22 @@ bool SysAdminRequestHandler::launchManagementSession(){
     if (DebugFlags::debugAuditingHub)
         cout << "Will set and purge stuff.\n";
     if(!setNodeUntrusted())
+        return false;
 
     if(!purgeMinion())
-
+        return false;
+    
     launchSessionProcess();
     launchLogger();
 
     if (DebugFlags::debugAuditingHub)
         cout << "Session created. Sending prompt to admin.\n";
 
-    string promptString = "[" + adminUsername + "@" + remoteHost + "]>";
+    string promptString = "AntonioRib@AntonioRib-PC:~$";//"[" + adminUsername + "@" + remoteHost + "]>";
     string promptStringCmd = string("echo ") + string("\"") + promptString + string("\"\n");
     write(processWrite[1], promptStringCmd.c_str(), strlen(promptStringCmd.c_str())+1);
-    //TODO  
-    //     pipe(processWrite);
-    // pipe(processRead);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Wrote: " << promptStringCmd << " to Pipe\n";
 
     string hostInput;
     string hostOutput;
@@ -196,11 +192,20 @@ bool SysAdminRequestHandler::launchManagementSession(){
     while(true){
         int nbytes = read(processRead[0], buffer, sizeof(buffer));
         hostOutput = string(buffer); //READ from process
-        hostOutput = hostOutput + "\n";
+        // hostOutput = hostOutput + "\n";
+        // if (DebugFlags::debugAuditingHub)
+        //     cout << "Read: " << hostOutput << " from Pipe\n";
+        
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         General::stringToCharArray(hostOutput, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
-
+        // if (DebugFlags::debugAuditingHub)
+        //     cout << "Wrote: " << buffer << " to Admin\n";
+        // if (DebugFlags::debugAuditingHub)
+        //     cout << "hostOutput: " << hostOutput << "\n";
+        // if (DebugFlags::debugAuditingHub)
+        //     cout << "promptString: " << promptString << "\n";
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         if (hostOutput != promptString)
             continue;
 
@@ -248,23 +253,23 @@ void SysAdminRequestHandler::processAttestation(int adminSocket) {
     } else 
         throw 10; //TODO
 
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(adminSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugAuditingHub)
-        cout << "Recieved: " << buffer << "\n";
+    // bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    // SocketUtils::receiveBuffer(adminSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    // if (DebugFlags::debugAuditingHub)
+    //     cout << "Recieved: " << buffer << "\n";
 
-    string response(buffer);
-    vector<string> responseSplit = General::splitString(response);
-    if (responseSplit[0] == Messages::NOT_OK) {
-        throw 10;  //TODO
-    }
+    // string response(buffer);
+    // vector<string> responseSplit = General::splitString(response);
+    // if (responseSplit[0] == Messages::NOT_OK) {
+    //     throw 10;  //TODO
+    // }
 }
 
 void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler sysAdminRequestHandler, int adminToHubSocket) {
     std::cout << "SysAdminRequestHandler running with Auditing Hub with the name " << sysAdminRequestHandler.auditingHub->getHostname() << "\n";
     sysAdminRequestHandler.adminToHubSocket = adminToHubSocket;
     sysAdminRequestHandler.processAttestation(adminToHubSocket);
-
+    //  std::this_thread::sleep_for(std::chrono::seconds(1));
     // sockaddr_in serverAddress;
     // serverAddress = SocketUtils::createServerAddress(Ports::AHUB_AUDITOR_PORT);
 
@@ -282,11 +287,20 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
 
         if (DebugFlags::debugAuditingHub)
             cout << "Recieved: " << buffer << "\n";
+       std::this_thread::sleep_for(std::chrono::seconds(1));
 
         string command(buffer);
+       if(command.size() == Messages::OK_APPROVED.size()){
+            bzero(buffer, SocketUtils::MESSAGE_BYTES);
+            SocketUtils::receiveBuffer(adminToHubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+            if (DebugFlags::debugAuditingHub)
+                cout << "Recieved: " << buffer << "\n";
+       }
+        command = string(buffer);
         vector<string> commandSplit = General::splitString(command);
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
 
-        if (commandSplit[0] != Messages::MANAGE) {
+        if (commandSplit[0].find(Messages::MANAGE) == string::npos) {
             std::string response = Messages::NOT_OK;
             bzero(buffer, SocketUtils::MESSAGE_BYTES);
             General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);

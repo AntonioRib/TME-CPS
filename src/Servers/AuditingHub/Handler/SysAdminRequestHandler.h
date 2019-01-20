@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <string>
 #include "../AuditingHub.h"
 using namespace std;
 
