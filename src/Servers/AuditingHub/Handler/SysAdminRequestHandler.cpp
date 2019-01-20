@@ -28,12 +28,16 @@ void SysAdminRequestHandler::launchSessionProcess(){
     if (DebugFlags::debugMonitor)
         cout << "Executing command: " << sshArgsStream << "\n";
     fflush(NULL);
-    int pProcessWrite[2]; 
-    int pProcessRead[2]; 
+    // int pProcessWrite[2]; 
+    // int pProcessRead[2]; 
+    // processWrite = pProcessWrite;
+    // processRead = pProcessRead;
+    pipe(processWrite);
+    pipe(processRead);
     pid_t pid = fork();
     if (pid == 0) {
-        close(pProcessWrite[1]);
-        close(pProcessRead[0]);
+        close(processWrite[1]);
+        close(processRead[0]);
         int result = execvp(ProcessBinaries::SSH.c_str(), sshArgsStreamCharVec);
         if (result == -1) {
             if (DebugFlags::debugAuditingHub){
@@ -44,17 +48,15 @@ void SysAdminRequestHandler::launchSessionProcess(){
             exit(-1);
         }
         exit(0);
-    } else {
-        close(pProcessWrite[0]);
-        close(pProcessRead[1]);
     }
 
     if (pid > 0) {
+        close(processWrite[0]);
+        close(processRead[1]);
         SysAdminRequestHandler::pidAuditingHubToNodeSessionProcess = pid;
         // SysAdminRequestHandler::processWrite = &pProcessWrite; //TODO
         // SysAdminRequestHandler::processRead = &pProcessRead;
-        pipe(processWrite);
-        pipe(processRead);
+
     }
 }
 
@@ -181,14 +183,20 @@ bool SysAdminRequestHandler::launchManagementSession(){
         cout << "Session created. Sending prompt to admin.\n";
 
     string promptString = "[" + adminUsername + "@" + remoteHost + "]>";
+    string promptStringCmd = string("echo ") + string("\"") + promptString + string("\"\n");
+    write(processWrite[1], promptStringCmd.c_str(), strlen(promptStringCmd.c_str())+1);
     //TODO  
-    string x = string("echo ") + string("\"") + promptString + string("\"\n");
+    //     pipe(processWrite);
+    // pipe(processRead);
 
     string hostInput;
     string hostOutput;
     char buffer[SocketUtils::MESSAGE_BYTES];
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
     while(true){
-        hostOutput = "xxx\n"; //READ from process
+        int nbytes = read(processRead[0], buffer, sizeof(buffer));
+        hostOutput = string(buffer); //READ from process
+        hostOutput = hostOutput + "\n";
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         General::stringToCharArray(hostOutput, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
@@ -203,9 +211,15 @@ bool SysAdminRequestHandler::launchManagementSession(){
         SocketUtils::receiveBuffer(adminToHubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
         hostInput = string(buffer);
         if (hostInput == Messages::MANAGE_TEARDOWN){
+            if (DebugFlags::debugAuditingHub)
+                cout << "Session has ended\n";
             //auditingHubToNodeSessionProcess destroy process
             auditingHub->removeSession(remoteHost);
+            return true;
         }
+        // string promptString = "[" + adminUsername + "@" + remoteHost + "]>";
+        string response = hostInput + string("; echo ") + string("\"") + promptString + string("\"\n");
+        write(processWrite[1], response.c_str(), strlen(response.c_str())+1);
         logger->info("Admin->Host:\n"+hostInput);
         //xx = hostInput //WRITE to process
 
@@ -248,7 +262,7 @@ void SysAdminRequestHandler::processAttestation(int adminSocket) {
 
 void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler sysAdminRequestHandler, int adminToHubSocket) {
     std::cout << "SysAdminRequestHandler running with Auditing Hub with the name " << sysAdminRequestHandler.auditingHub->getHostname() << "\n";
-
+    sysAdminRequestHandler.adminToHubSocket = adminToHubSocket;
     sysAdminRequestHandler.processAttestation(adminToHubSocket);
 
     // sockaddr_in serverAddress;

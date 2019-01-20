@@ -37,14 +37,16 @@ void SysAdmin::attestLogger(int loggerSocket){
     vector<string> splittedQuote = General::splitString(quote);
 
     if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE && splittedQuote[2] == AttestationConstants::PCR_SHA1 && splittedQuote[3] == AttestationConstants::PCR_SHA1) {
-        string approvedMessage = Messages::OK_APPROVED;
+        string approvedMessage = Messages::OK_APPROVED + "\0";
         General::stringToCharArray(approvedMessage, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(loggerSocket, buffer, strlen(buffer), 0);
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
         if (DebugFlags::debugSysAdmin)
             cout << "Wrote: " << buffer << " to server\n";
     } else {
         General::stringToCharArray(Messages::NOT_APPROVED, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(loggerSocket, buffer, strlen(buffer), 0);
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
         if (DebugFlags::debugSysAdmin)
             cout << "Wrote: " << buffer << " to server\n";
     }
@@ -121,6 +123,7 @@ bool SysAdmin::manageNode(){
     attestLogger(hubSocket);
 
     char buffer[SocketUtils::MESSAGE_BYTES];
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
     string requestString = Messages::MANAGE + " " + username + " " + remoteHost;
     General::stringToCharArray(requestString, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(hubSocket, buffer, strlen(buffer), 0);
@@ -136,7 +139,7 @@ bool SysAdmin::manageNode(){
     vector<string> responseQuote = General::splitString(response);
     if(responseQuote[0] == Messages::NOT_OK)
         return false;
-
+    
     string prompt = "[" + username + "@" + remoteHost + "]>";
 
     while(true){
