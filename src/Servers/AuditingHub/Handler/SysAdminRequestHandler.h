@@ -1,7 +1,15 @@
 #ifndef _sysadminrequesthandler_h_
 #define _sysadminrequesthandler_h_
 
+#include <iostream> 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <fstream>
 #include <iostream>
+#include <iterator>
+#include <sstream>
 #include "../AuditingHub.h"
 using namespace std;
 

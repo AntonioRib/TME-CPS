@@ -1,5 +1,8 @@
 #include "SysAdminRequestHandler.h"
 
+const string UNCOMMITED_LOGS_DIR = "Logs/Uncommited/";
+const string COMMITED_LOGS_DIR = "Logs/Commited/";
+
 SysAdminRequestHandler::SysAdminRequestHandler() {
     std::cout << "SysAdminRequestHandler created\n";
 }
@@ -57,6 +60,14 @@ void SysAdminRequestHandler::launchSessionProcess(){
 
 void SysAdminRequestHandler::launchLogger(){
     //TODO
+        //CREATE LOG FOLDER
+    if (mkdir(UNCOMMITED_LOGS_DIR.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != -1)
+        cout << "Directory created";
+
+    string logPath(UNCOMMITED_LOGS_DIR + "AuditingHub" + "." + adminUsername + "." + remoteHost + "." + General::currentDateTime());
+    spdlog::info("Welcome to spdlog!");
+    auto logger = spdlog::basic_logger_mt("logger", logPath);
+    logger->info("Logger started");
 }
 
 bool SysAdminRequestHandler::setNodeUntrusted(){

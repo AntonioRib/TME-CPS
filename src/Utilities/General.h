@@ -3,6 +3,10 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <iostream>
+#include <string>
+#include <stdio.h>
+#include <time.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -68,6 +72,18 @@ inline std::vector<std::string> splitString(std::string st) {
             bzero(buffer, length);
             strncpy(buffer, message.c_str(), length);
             buffer[length - 1] = 0;
+    }
+
+    const std::string currentDateTime() {
+        time_t     now = time(0);
+        struct tm  tstruct;
+        char       buf[80];
+        tstruct = *localtime(&now);
+        // Visit http://en.cppreference.com/w/cpp/chrono/c/strftime
+        // for more information about date/time format
+        strftime(buf, sizeof(buf), "%Y%m%d%H%M%S", &tstruct);
+
+        return buf;
     }
 }
 
