@@ -60,7 +60,11 @@ void SysAdminRequestHandler::launchLogger(){
 
     string logPath(UNCOMMITED_LOGS_DIR + "AuditingHub" + "." + adminUsername + "." + remoteHost + "." + General::currentDateTime());
     SysAdminRequestHandler::logger = spdlog::basic_logger_mt("Logger", logPath);
-    // logger->info("Logger started");
+    spdlog::set_level(spdlog::level::trace); // Set global log level to everything
+    spdlog::flush_on(spdlog::level::info);
+    spdlog::set_default_logger(SysAdminRequestHandler::logger);
+    SysAdminRequestHandler::logger->info("Logger started");
+    cout << "Logger Started";
 }
 
 bool SysAdminRequestHandler::setNodeUntrusted(){
@@ -176,44 +180,48 @@ bool SysAdminRequestHandler::launchManagementSession(){
 
     if (DebugFlags::debugAuditingHub)
         cout << "Session created. Sending prompt to admin.\n";
-
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     string promptString = "[" + adminUsername + "@" + remoteHost + "]>";
     string promptStringCmd = string("echo ") + string("\"") + promptString + string("\"\n");
-    write(processWrite[1], promptStringCmd.c_str(), strlen(promptStringCmd.c_str())+1);
+    write(processWrite[1], promptStringCmd.c_str(), strlen(promptStringCmd.c_str()));
     if (DebugFlags::debugAuditingHub)
         cout << "Wrote: " << promptStringCmd << " to Pipe\n";
-
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     string hostInput;
     string hostOutput;
     char buffer[SocketUtils::MESSAGE_BYTES];
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
     while(true){
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
         int nbytes = read(processRead[0], buffer, sizeof(buffer));
         hostOutput = string(buffer); //READ from process
+        hostOutput.pop_back();
         // hostOutput = hostOutput + "\n";
         // if (DebugFlags::debugAuditingHub)
         //     cout << "Read: " << hostOutput << " from Pipe\n";
-        
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         General::stringToCharArray(hostOutput, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugAuditingHub)
-            cout << "Wrote: " << buffer << " to Admin\n";
-        if (DebugFlags::debugAuditingHub)
-            cout << "hostOutput: " << hostOutput << "\n";
-        if (DebugFlags::debugAuditingHub)
-            cout << "promptString: " << promptString << "\n";
+        // if (DebugFlags::debugAuditingHub)
+        //     cout << "Wrote: " << buffer << " to Admin\n";
+        // if (DebugFlags::debugAuditingHub)
+        //     cout << "hostOutput: " << hostOutput << "\n";
+        // if (DebugFlags::debugAuditingHub)
+        //     cout << "promptString: " << promptString << "\n";
         // std::this_thread::sleep_for(std::chrono::seconds(1));
-        if (hostOutput.substr(0, promptString.size()) != promptString)
+        if (hostOutput != promptString)
             continue;
 
+        if (DebugFlags::debugAuditingHub)
+            cout << "Going to log: " << "Host->Admin:\n"+hostOutput << "\n";
         SysAdminRequestHandler::logger->info("Host->Admin:\n"+hostOutput);
         //LOG "Host->Admin:\n"+hostCompleteResponseBuilder.toString()
 
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::receiveBuffer(adminToHubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
         hostInput = string(buffer);
-        if (hostInput == Messages::MANAGE_TEARDOWN){
+        if (DebugFlags::debugAuditingHub)
+            cout << "Recieved: " << buffer << "\n";
+        if (hostInput == Messages::QUIT){
             if (DebugFlags::debugAuditingHub)
                 cout << "Session has ended\n";
             //auditingHubToNodeSessionProcess destroy process
