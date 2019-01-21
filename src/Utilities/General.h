@@ -74,7 +74,7 @@ inline std::vector<std::string> splitString(std::string st) {
             buffer[length - 1] = 0;
     }
 
-    const std::string currentDateTime() {
+    inline const std::string currentDateTime() {
         time_t     now = time(0);
         struct tm  tstruct;
         char       buf[80];
