@@ -145,29 +145,24 @@ bool SysAdmin::manageNode(){
     while(true){
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::receiveBuffer(hubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-        if (DebugFlags::debugSysAdmin)
-            cout << "Recieved from server: " << buffer << "\n";
 
         string hostOutput(buffer);
         vector<string> hostOutputQuote = General::splitString(hostOutput);
         if (responseQuote[0] == Messages::NOT_OK)
             return false;
-        cout << buffer << " ";
+        cout << buffer;
+        // cout << "\n";
         fflush(NULL);
-        // if (DebugFlags::debugSysAdmin)
-        //     cout << "hostOutput: " << hostOutput << "\n";
-        // if (DebugFlags::debugSysAdmin)
-        //     cout << "prompt: " << prompt << "\n";
+
         if (hostOutput != prompt)
             continue;
+
         string hostinput;
         getline(cin, hostinput);
 
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         General::stringToCharArray(hostinput, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(hubSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugSysAdmin)
-            cout << "Wrote: " << buffer << " to server\n";
         
         if (hostinput == Messages::QUIT)
             break;

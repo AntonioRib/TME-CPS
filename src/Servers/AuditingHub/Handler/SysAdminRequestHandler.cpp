@@ -189,32 +189,27 @@ bool SysAdminRequestHandler::launchManagementSession(){
     std::this_thread::sleep_for(std::chrono::seconds(1));
     string hostInput;
     string hostOutput;
+    std::ostringstream oss;
     char buffer[SocketUtils::MESSAGE_BYTES];
     while(true){
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         int nbytes = read(processRead[0], buffer, sizeof(buffer));
         hostOutput = string(buffer); //READ from process
         hostOutput.pop_back();
-        // hostOutput = hostOutput + "\n";
-        // if (DebugFlags::debugAuditingHub)
-        //     cout << "Read: " << hostOutput << " from Pipe\n";
+        oss << hostOutput;
+
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         General::stringToCharArray(hostOutput, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
-        // if (DebugFlags::debugAuditingHub)
-        //     cout << "Wrote: " << buffer << " to Admin\n";
-        // if (DebugFlags::debugAuditingHub)
-        //     cout << "hostOutput: " << hostOutput << "\n";
-        // if (DebugFlags::debugAuditingHub)
-        //     cout << "promptString: " << promptString << "\n";
-        // std::this_thread::sleep_for(std::chrono::seconds(1));
+        cout << "hostOutput: " << hostOutput;
+        cout << "promptString: " << promptString;
         if (hostOutput != promptString)
             continue;
 
         if (DebugFlags::debugAuditingHub)
-            cout << "Going to log: " << "Host->Admin:\n"+hostOutput << "\n";
-        SysAdminRequestHandler::logger->info("Host->Admin:\n"+hostOutput);
-        //LOG "Host->Admin:\n"+hostCompleteResponseBuilder.toString()
+            cout << "Going to log: " << "Host->Admin:\n"+oss.str() << "\n";
+        SysAdminRequestHandler::logger->info("\nHost->Admin:\n"+oss.str());
+        oss.str(string());
 
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::receiveBuffer(adminToHubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
@@ -228,13 +223,12 @@ bool SysAdminRequestHandler::launchManagementSession(){
             auditingHub->removeSession(remoteHost);
             return true;
         }
-        // string promptString = "[" + adminUsername + "@" + remoteHost + "]>";
-        string response = hostInput + string("; echo ") + string("\"") + promptString + string("\"\n");
-        write(processWrite[1], response.c_str(), strlen(response.c_str())+1);
-        SysAdminRequestHandler::logger->info("Admin->Host:\n"+hostInput);
-        //xx = hostInput //WRITE to process
 
-        //LOG "Admin->Host:"+hostInput+System.lineSeparator()
+        string response = hostInput + string("; echo ") + string("\"") + promptString + string("\"\n");
+        write(processWrite[1], response.c_str(), strlen(response.c_str()));
+         if (DebugFlags::debugAuditingHub)
+            cout << "Going to log: " << "Admin->Host:\n"+hostInput << "\n";
+        SysAdminRequestHandler::logger->info("\nAdmin->Host:\n"+hostInput);
     }
 }
 
