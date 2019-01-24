@@ -89,6 +89,7 @@ bool AuditingHub::checkPermissionAndUnqueue(string remoteHost){
 }
 
 void AuditingHub::removeSession(string remoteHost) {
+    // AuditingHub::remoteHostThreadMap[remoteHost]->detach();
     AuditingHub::remoteHostThreadMap.erase(remoteHost);
 }
 

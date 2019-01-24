@@ -140,7 +140,7 @@ bool SysAdmin::manageNode(){
     if(responseQuote[0] == Messages::NOT_OK)
         return false;
     
-    string prompt = "[" + username + "@" + remoteHost + "]>";
+    string prompt = "[" + username + "@" + remoteHost + "]> ";
 
     while(true){
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
@@ -150,11 +150,12 @@ bool SysAdmin::manageNode(){
         vector<string> hostOutputQuote = General::splitString(hostOutput);
         if (responseQuote[0] == Messages::NOT_OK)
             return false;
-        cout << buffer;
-        // cout << "\n";
-        fflush(NULL);
 
-        if (hostOutput != prompt)
+        cout << buffer;
+        fflush(NULL);
+        // cout << "\n";
+
+        if (hostOutput.find(prompt) == std::string::npos)
             continue;
 
         string hostinput;

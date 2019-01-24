@@ -29,13 +29,16 @@ void SysAdminRequestHandler::launchSessionProcess(){
     fflush(NULL);
     pipe(processWrite);
     pipe(processRead);
+    pipe(processReadErr);
     pid_t pid = fork();
     if (pid == 0) {
         close(processWrite[1]);
         close(processRead[0]);
+        close(processReadErr[0]);
         
         dup2(processWrite[0], fileno(stdin));
         dup2(processRead[1], fileno(stdout));
+        dup2(processReadErr[1], fileno(stderr));
 
         int result = execvp(ProcessBinaries::SSH.c_str(), sshArgsStreamCharVec);
         if (result == -1) {
@@ -180,13 +183,15 @@ bool SysAdminRequestHandler::launchManagementSession(){
 
     if (DebugFlags::debugAuditingHub)
         cout << "Session created. Sending prompt to admin.\n";
+        
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    string promptString = "[" + adminUsername + "@" + remoteHost + "]>";
-    string promptStringCmd = string("echo ") + string("\"") + promptString + string("\"\n");
+    string promptString = "[" + adminUsername + "@" + remoteHost + "]> ";
+    string promptStringCmd = string("echo ") + string("\"\n") + promptString + string("\"") + "\n";
     write(processWrite[1], promptStringCmd.c_str(), strlen(promptStringCmd.c_str()));
     if (DebugFlags::debugAuditingHub)
         cout << "Wrote: " << promptStringCmd << " to Pipe\n";
     std::this_thread::sleep_for(std::chrono::seconds(1));
+
     string hostInput;
     string hostOutput;
     std::ostringstream oss;
@@ -194,6 +199,8 @@ bool SysAdminRequestHandler::launchManagementSession(){
     while(true){
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         int nbytes = read(processRead[0], buffer, sizeof(buffer));
+        if(nbytes <= 0)
+            nbytes = read(processReadErr[0], buffer, sizeof(buffer));
         hostOutput = string(buffer); //READ from process
         hostOutput.pop_back();
         oss << hostOutput;
@@ -201,9 +208,9 @@ bool SysAdminRequestHandler::launchManagementSession(){
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         General::stringToCharArray(hostOutput, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
-        cout << "hostOutput: " << hostOutput;
-        cout << "promptString: " << promptString;
-        if (hostOutput != promptString)
+        cout << "hostOutput: " << hostOutput << "\n";
+        cout << "promptString: " << promptString << "\n";
+        if (hostOutput.find(promptString) == std::string::npos)
             continue;
 
         if (DebugFlags::debugAuditingHub)
@@ -224,7 +231,7 @@ bool SysAdminRequestHandler::launchManagementSession(){
             return true;
         }
 
-        string response = hostInput + string("; echo ") + string("\"") + promptString + string("\"\n");
+        string response = hostInput + string("; echo ") + string("\"") + promptString + string("\"") + "\n";
         write(processWrite[1], response.c_str(), strlen(response.c_str()));
          if (DebugFlags::debugAuditingHub)
             cout << "Going to log: " << "Admin->Host:\n"+hostInput << "\n";
@@ -331,6 +338,7 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
             SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
             if (DebugFlags::debugAuditingHub)
                 cout << "Wrote: " << buffer << " to client\n";
+            break;
         } else {
             std::string response = Messages::NOT_OK;
             bzero(buffer, SocketUtils::MESSAGE_BYTES);
@@ -338,6 +346,7 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
             SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
             if (DebugFlags::debugAuditingHub)
                 cout << "Wrote: " << buffer << " to client\n";
+            break;
         }
     }
 }

@@ -24,6 +24,7 @@ class SysAdminRequestHandler {
     int adminToHubSocket;
     int processWrite[2];
     int processRead[2];
+    int processReadErr[2];
 
     private: 
     void launchSessionProcess();
