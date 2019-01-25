@@ -30,6 +30,7 @@ class AHubRequestHandler {
      AHubRequestHandler();
      AHubRequestHandler(Monitor* monitor);
      void setMinionUntrustedOnMonitor(string untrustedMinion);
+     void setMinionTrustedOnMonitor(string trustedMinion);
      static void startAHubRequestHandler(AHubRequestHandler aHubRequestHandler);
 };
 

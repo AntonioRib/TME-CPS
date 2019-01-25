@@ -22,7 +22,7 @@ class MinionMonitorRequestHandler {
     bool deployApp(string appId);
     bool deleteApp(string appId);
 
-    void processAttestation(int monitorSocket, string nonce);
+    bool processAttestation(int monitorSocket, string nonce);
 
     public:
      MinionMonitorRequestHandler();

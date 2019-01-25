@@ -32,7 +32,10 @@ bool AuditorInterface::setTrusted(string hostname) {
         cout << "Connected to the server\n";
 
     char buffer[SocketUtils::MESSAGE_BYTES];
-    string host(serverHost->h_name);
+    struct in_addr addr;
+     memcpy(&addr, serverHost->h_addr_list[0], sizeof(struct in_addr));
+     string host = inet_ntoa(addr);
+
     string requestString = Messages::SET_TRUSTED + " " + host;
     General::stringToCharArray(requestString, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);

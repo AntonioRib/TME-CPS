@@ -20,13 +20,13 @@ AuditingHub::AuditingHub()
 
 AuditingHub::AuditingHub(const AuditingHub &m){
     AuditingHub::approvedConfiguration = (unsigned char *)General::NULL_VALUE;
-    // std::cout << "AuditingHub created with the name " << AuditingHub::name << " - copy constructor \n";
+    std::cout << "AuditingHub created with the name " << AuditingHub::hostname << " - copy constructor \n";
 }
 
-AuditingHub::AuditingHub(string hubUserName, string hubKey, string monitorHost, string hotsName)
+AuditingHub::AuditingHub(string hubUserName, string hubKey, string monitorHost, string hostname)
     : hubUserName{hubUserName}, hubKey{hubKey}, monitorHost{monitorHost}, hostname{hostname} {
     AuditingHub::approvedConfiguration = (unsigned char *)General::NULL_VALUE;
-    // std::cout << "AuditingHub created with the name " << AuditingHub::name << " - string constructor \n";
+    std::cout << "AuditingHub created with the name " << AuditingHub::hostname << " - string constructor \n";
 }
 
 //Getters
@@ -126,9 +126,9 @@ int main(int argc, char *argv[]) {
     serverSocket = SocketUtils::createServerSocket(serverAddress);
 
     thread sessionThread;
-    int clientSocket;
+    // int clientSocket;
     while (true){
-        clientSocket = SocketUtils::acceptClientSocket(serverSocket);
+        int clientSocket = SocketUtils::acceptClientSocket(serverSocket);
         cout << "Management request\n";
 
         SysAdminRequestHandler sysAdminRequestHandler = SysAdminRequestHandler(auditingHub);
@@ -139,6 +139,7 @@ int main(int argc, char *argv[]) {
         std::string idstr = ss.str();
 
         auditingHub->getTemporaryThreads().insert(pair<long, thread *>(atol(idstr.c_str()), &sessionThread));
+        sessionThread.detach();
     }
 
     auditorRequestHandlerThread.join();

@@ -185,13 +185,12 @@ void Monitor::removeMinion(string minionAddress) {
 
 void Monitor::setMinionUntrusted(string minionAddress){
     map<string, Minion*>::iterator trustedContains = Monitor::trustedMinions.find(minionAddress);
-    map<string, Minion*>::iterator untrustedContains = Monitor::untrustedMinions.find(minionAddress);
     //If contains == Monitor::applications.end it means element not found
-    if (trustedContains == Monitor::trustedMinions.end() && untrustedContains == Monitor::untrustedMinions.end()) {
+    if (trustedContains == Monitor::trustedMinions.end())
         throw 10;  //TODO check if it makes sense to send an exception or return something;
-    }
 
-    //TODO
+    Monitor::untrustedMinions[trustedContains->first] = trustedContains->second;
+    Monitor::trustedMinions.erase(trustedContains->first);
     
     if (DebugFlags::debugMonitor)
         cout << "#trustedMinions: " << Monitor::trustedMinions.size() << "\n";
@@ -202,13 +201,17 @@ void Monitor::setMinionUntrusted(string minionAddress){
 void Monitor::setMinionTrusted(string minionAddress) {
     map<string, Minion*>::iterator untrustedContains = Monitor::untrustedMinions.find(minionAddress);
     //If contains == Monitor::applications.end it means element not found
-    if (untrustedContains == Monitor::untrustedMinions.end()) {
+    if (untrustedContains == Monitor::untrustedMinions.end())
         throw 10;  //TODO check if it makes sense to send an exception or return something;
-    }
 
     Minion* minion = untrustedContains->second;
     Monitor::untrustedMinions.erase(minionAddress);
     Monitor::trustedMinions.insert(pair<string, Minion*>(minionAddress, minion));
+
+    if (DebugFlags::debugMonitor)
+        cout << "#trustedMinions: " << Monitor::trustedMinions.size() << "\n";
+    if (DebugFlags::debugMonitor)
+        cout << "#untrustedMinions: " << Monitor::untrustedMinions.size() << "\n";
 }
 
 int main(int argc, char* argv[]) {

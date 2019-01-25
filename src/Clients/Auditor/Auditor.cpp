@@ -131,6 +131,7 @@ int main(int argc, char* argv[]) {
     std::string line;
     
     while (true) {
+        std::cout << ">> ";
         std::getline(std::cin, line);
         std::vector<std::string> lineSeparated = General::splitString(line);
 

@@ -170,6 +170,12 @@ void AHubRequestHandler::setMinionUntrustedOnMonitor(string untrustedMinion) {
     monitor->setMinionUntrusted(untrustedMinion);
 }
 
+void AHubRequestHandler::setMinionTrustedOnMonitor(string trustedMinion) {
+    if (DebugFlags::debugMonitor)
+        cout << "Setting Minion with IP " + trustedMinion + " untrusted\n";
+    monitor->setMinionTrusted(trustedMinion);
+}
+
 AHubRequestHandler::AHubRequestHandler(Monitor* monitor) : monitor{monitor} {
     std::cout << "AHubRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
@@ -200,6 +206,7 @@ void AHubRequestHandler::startAHubRequestHandler(AHubRequestHandler aHubRequestH
         bool requestResult = false;
         if (commandSplit[0] == Messages::SET_TRUSTED) {
             requestResult = aHubRequestHandler.attestMinion(commandSplit[1]);
+            aHubRequestHandler.setMinionTrustedOnMonitor(commandSplit[1]);
         } else if (commandSplit[0] == Messages::SET_UNTRUSTED) {
             aHubRequestHandler.setMinionUntrustedOnMonitor(commandSplit[1]);
             requestResult = true;

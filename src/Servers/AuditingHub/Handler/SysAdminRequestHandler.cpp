@@ -61,7 +61,8 @@ void SysAdminRequestHandler::launchLogger(){
     if (mkdir(UNCOMMITED_LOGS_DIR.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != -1)
         cout << "Directory created";
 
-    string logPath(UNCOMMITED_LOGS_DIR + "AuditingHub" + "." + adminUsername + "." + remoteHost + "." + General::currentDateTime());
+    string logPath(UNCOMMITED_LOGS_DIR + remoteHost + "." + adminUsername + "." + General::currentDateTime() + ".log");
+    spdlog::drop_all();
     SysAdminRequestHandler::logger = spdlog::basic_logger_mt("Logger", logPath);
     spdlog::set_level(spdlog::level::trace); // Set global log level to everything
     spdlog::flush_on(spdlog::level::info);
@@ -252,6 +253,7 @@ void SysAdminRequestHandler::processAttestation(int adminSocket) {
         if (DebugFlags::debugAuditingHub)
             cout << "Being attested\n";
 
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
         std::string quote = string(Messages::QUOTE) + " " + string(AttestationConstants::QUOTE) + " " + string(auditingHub->getApprovedSHA1()) + " " +  string(auditingHub->getApprovedSHA1());
         General::stringToCharArray(quote, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(adminSocket, buffer, strlen(buffer), 0);
@@ -348,6 +350,7 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
                 cout << "Wrote: " << buffer << " to client\n";
             break;
         }
+        close(adminToHubSocket);
     }
 }
 

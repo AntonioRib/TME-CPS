@@ -11,7 +11,7 @@ MinionMonitorRequestHandler::MinionMonitorRequestHandler(Minion* minion) : minio
 
 bool MinionMonitorRequestHandler::deployApp(string appId) {
     char* createContainerArgsStream;
-    int sizeCreateStream = asprintf(&createContainerArgsStream, "sudo docker build -t %s-container ../../%s%s", appId.c_str(), Directories::APPS_DIR_MINION.c_str(), appId.c_str());
+    int sizeCreateStream = asprintf(&createContainerArgsStream, "sudo docker build -t %s-container /home/AntonioRib/%s%s", appId.c_str(), Directories::APPS_DIR_MINION.c_str(), appId.c_str());
 
     char* deployContainerArgsStream;
     int sizeDeployStream = asprintf(&deployContainerArgsStream, "sudo docker run -p 80 -d --name %s %s-container", appId.c_str(), appId.c_str());
@@ -97,7 +97,7 @@ bool MinionMonitorRequestHandler::deleteApp(string appId) {
     return true;
 }
 
-void MinionMonitorRequestHandler::processAttestation(int monitorSocket, string nonce) { 
+bool MinionMonitorRequestHandler::processAttestation(int monitorSocket, string nonce) { 
     char buffer[SocketUtils::MESSAGE_BYTES];
     std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
@@ -115,11 +115,13 @@ void MinionMonitorRequestHandler::processAttestation(int monitorSocket, string n
 
     if (approvedSplit[0] == Messages::NOT_APPROVED) {
         cout << "Not approved!\n";
-        throw 10;  //TODO
+        return false;
     } else if (approvedSplit[0] == Messages::OK_APPROVED) {
         cout << "Approved!\n";
+        return true;
         // cout << "Configuration approved. Auditor signature for monitor: " + approvedSplit[1] + ". For minions:" + approvedSplit[3];
     }
+    return false;
 }
 
 void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitorRequestHandler* minionMonitorRequestHandler) {
@@ -160,7 +162,7 @@ void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitor
                 cout << "Deleting " << commandSplit[1] << "\n";
             requestResult = minionMonitorRequestHandler->deleteApp(commandSplit[1]);
         } else if (commandSplit[0] == Messages::ATTEST) {
-            minionMonitorRequestHandler->processAttestation(monitorSocket, commandSplit[1]);
+            requestResult = minionMonitorRequestHandler->processAttestation(monitorSocket, commandSplit[1]);
         }
 
         if (requestResult) {
