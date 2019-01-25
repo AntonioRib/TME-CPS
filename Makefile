@@ -1,21 +1,21 @@
 SUBDIRS = $(wildcard src/Servers/AuditingHub/.) \
-	$(wildcard src/Servers/Minion/.) \
-	$(wildcard src/Servers/Monitor/.) \
-	$(wildcard src/Servers/Application/.) \
 	$(wildcard src/Clients/Auditor/.) \
 	$(wildcard src/Clients/AuditorInterface/.) \
 	$(wildcard src/Clients/Developer/.) \
-	$(wildcard src/Clients/SysAdmin/.) 
+	$(wildcard src/Clients/SysAdmin/.) \
+	$(wildcard src/Servers/Minion/.) \
+	$(wildcard src/Servers/Monitor/.) \
+	$(wildcard src/Servers/Application/.) 
 	 #$(wildcard src/Utilities/.)
 
 RMSUBDIRS = $(wildcard src/Servers/AuditingHub/.) \
-	$(wildcard src/Servers/Minion/.) \
-	$(wildcard src/Servers/Monitor/.) \
-	$(wildcard src/Servers/Application/.) \
 	$(wildcard src/Clients/Auditor/.) \
 	$(wildcard src/Clients/AuditorInterface/.) \
 	$(wildcard src/Clients/Developer/.) \
-	$(wildcard src/Clients/SysAdmin/.) 
+	$(wildcard src/Clients/SysAdmin/.) \
+	$(wildcard src/Servers/Minion/.) \
+	$(wildcard src/Servers/Monitor/.) \
+	$(wildcard src/Servers/Application/.) 
 	#$(wildcard src/Utilities/.)
 
 .PHONY : all $(SUBDIRS)
