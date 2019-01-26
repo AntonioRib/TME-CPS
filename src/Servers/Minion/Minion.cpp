@@ -95,6 +95,7 @@ void Minion::processAttestation(int monitorSocket){
 bool Minion::startMonitorHandler(){
     struct hostent* serverHost;
     serverHost = SocketUtils::getHostByName(Minion::monitorHost);
+    cout << "Server host address: " << (char *)serverHost->h_addr << "\n";
 
     sockaddr_in monitorAddress;
     monitorAddress = SocketUtils::createServerAddress(Ports::MONITOR_MINION_PORT);

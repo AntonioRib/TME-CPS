@@ -63,11 +63,13 @@ void Auditor::attestMonitor(const char* hostname){
 void Auditor::attestAuditingHub(const char* hostname) {
     struct hostent* serverHost;
     serverHost = SocketUtils::getHostByName(hostname);
+    cout << "Server host address: " << (char *)serverHost->h_addr << "\n";
+
     sockaddr_in serverAddress;
     serverAddress = SocketUtils::createServerAddress(Ports::AHUB_AUDITOR_PORT);
     bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
+   
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
     SocketUtils::connectToServerSocket(clientSocket, serverAddress);
     if (DebugFlags::debugAuditor)
         cout << "Connected to the server\n";

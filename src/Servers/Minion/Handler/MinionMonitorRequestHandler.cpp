@@ -1,6 +1,8 @@
 #include "MinionMonitorRequestHandler.h"
 using namespace std;
 
+const int ERROR_CODE = 255;
+
 MinionMonitorRequestHandler::MinionMonitorRequestHandler() {
     std::cout << "MonitorRequestHandler created\n";
 }
@@ -10,18 +12,41 @@ MinionMonitorRequestHandler::MinionMonitorRequestHandler(Minion* minion) : minio
 }
 
 bool MinionMonitorRequestHandler::deployApp(string appId) {
+    // string createString = "sudo docker build -t %s-container /home/AntonioRib/%s%s"; 
+    // string deployString = "sudo docker run -p 80 -d --name %s %s-container";
+    string createString = "sudo docker pull redis";
+    string deployString = "sudo docker run -d -p 6379:6379 -i -t redis";
+
     char* createContainerArgsStream;
-    int sizeCreateStream = asprintf(&createContainerArgsStream, "sudo docker build -t %s-container /home/AntonioRib/%s%s", appId.c_str(), Directories::APPS_DIR_MINION.c_str(), appId.c_str());
+    int sizeCreateStream = asprintf(&createContainerArgsStream, "sudo docker pull redis", appId.c_str(), Directories::APPS_DIR_MINION.c_str(), appId.c_str());
+    string createContainerArgsStreamStr(createContainerArgsStream);
+    std::vector<std::string> createContainerArgsStreamVec = General::splitString(createContainerArgsStreamStr);
+    char* createContainerArgsStreamCharVec[createContainerArgsStreamVec.size()];
+    int i = 0;
+    for (const std::string& str : createContainerArgsStreamVec) {
+        createContainerArgsStreamCharVec[i] = const_cast<char*>(str.c_str());
+        i++;
+    }
+    createContainerArgsStreamCharVec[i] = NULL;
 
     char* deployContainerArgsStream;
-    int sizeDeployStream = asprintf(&deployContainerArgsStream, "sudo docker run -p 80 -d --name %s %s-container", appId.c_str(), appId.c_str());
+    int sizeDeployStream = asprintf(&deployContainerArgsStream, "sudo docker run -d -p 6379:6379 -i -t redis", appId.c_str(), appId.c_str());
+    string deployContainerArgsStreamStr(deployContainerArgsStream);
+    std::vector<std::string> deployContainerArgsStreamVec = General::splitString(deployContainerArgsStreamStr);
+    char* deployContainerArgsStreamCharVec[deployContainerArgsStreamVec.size()];
+    i = 0;
+    for (const std::string& str : deployContainerArgsStreamVec) {
+        deployContainerArgsStreamCharVec[i] = const_cast<char*>(str.c_str());
+        i++;
+    }
+    deployContainerArgsStreamCharVec[i] = NULL;
 
     if (DebugFlags::debugMonitor)
         cout << "Executing command: " << createContainerArgsStream << "\n";
     fflush(NULL);
     pid_t pidCreate = fork();
     if (pidCreate == 0) {
-        int result = execlp(createContainerArgsStream, createContainerArgsStream);
+        int result = execvp(createContainerArgsStreamCharVec[0], createContainerArgsStreamCharVec);
         if (result == -1) {
             if (DebugFlags::debugMinion){
                 cout << "Command failed\n";
@@ -36,7 +61,7 @@ bool MinionMonitorRequestHandler::deployApp(string appId) {
     if (pidCreate > 0) {
         int status;
         waitpid(pidCreate, &status, 0);
-        if (WEXITSTATUS(status) == -1)
+        if (WIFEXITED(status) && WEXITSTATUS(status) == ERROR_CODE) 
             return false;
     }
 
@@ -45,7 +70,7 @@ bool MinionMonitorRequestHandler::deployApp(string appId) {
     fflush(NULL);
     pid_t pidDeploy = fork();
     if (pidDeploy == 0) {
-        int result = execlp(deployContainerArgsStream, deployContainerArgsStream);
+        int result = execvp(deployContainerArgsStreamCharVec[0], deployContainerArgsStreamCharVec);
         if (result == -1) {
             if (DebugFlags::debugMinion){
                 cout << "Command failed\n";
@@ -60,7 +85,7 @@ bool MinionMonitorRequestHandler::deployApp(string appId) {
     if (pidDeploy > 0) {
         int status;
         waitpid(pidDeploy, &status, 0);
-        if (WEXITSTATUS(status) == -1)
+        if (WIFEXITED(status) && WEXITSTATUS(status) == ERROR_CODE) 
             return false;
     }
 
