@@ -199,45 +199,50 @@ void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandl
 
     int developerSocket;
     while (true) {
-        developerSocket = SocketUtils::acceptClientSocket(serverSocket);
-        cout << "Got connection from Developer\n";
+        try{
+            developerSocket = SocketUtils::acceptClientSocket(serverSocket);
+            cout << "Got connection from Developer\n";
 
-        developerRequestHandler.processAttestation(developerSocket);
+            developerRequestHandler.processAttestation(developerSocket);
 
-        char buffer[SocketUtils::MESSAGE_BYTES];
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::receiveBuffer(developerSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Recieved: " << buffer << "\n";
-        // cout << buffer;
-        string command(buffer);
-        vector<string> commandSplit = General::splitString(command);
-
-        bool requestResult = false;
-        if (commandSplit[0] == Messages::NEW_APP) {
-            if (DebugFlags::debugMonitor)
-                cout << "Deploying: " << commandSplit[2] << "\n";
-            requestResult = developerRequestHandler.deployApp(commandSplit[2], atoi(commandSplit[3].c_str()));
-        } else if (commandSplit[0] == Messages::DELETE_APP) {
-            if (DebugFlags::debugMonitor)
-                cout << "Deleting: " << commandSplit[2] << "\n";
-            requestResult = developerRequestHandler.deleteApp(commandSplit[2]);
-        }
-
-        if (requestResult){
+            char buffer[SocketUtils::MESSAGE_BYTES];
             bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            std::string result = Messages::OK;
-            General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(developerSocket, buffer, strlen(buffer), 0);
+            SocketUtils::receiveBuffer(developerSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
             if (DebugFlags::debugMonitor)
-                cout << "Success \n";
-        } else {
-            bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            std::string result = Messages::NOT_OK;
-            General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(developerSocket, buffer, strlen(buffer), 0);
-            if (DebugFlags::debugMonitor)
-                cout << "Failed \n";
+                cout << "Recieved: " << buffer << "\n";
+            // cout << buffer;
+            string command(buffer);
+            vector<string> commandSplit = General::splitString(command);
+
+            bool requestResult = false;
+            if (commandSplit[0] == Messages::NEW_APP) {
+                if (DebugFlags::debugMonitor)
+                    cout << "Deploying: " << commandSplit[2] << "\n";
+                requestResult = developerRequestHandler.deployApp(commandSplit[2], atoi(commandSplit[3].c_str()));
+            } else if (commandSplit[0] == Messages::DELETE_APP) {
+                if (DebugFlags::debugMonitor)
+                    cout << "Deleting: " << commandSplit[2] << "\n";
+                requestResult = developerRequestHandler.deleteApp(commandSplit[2]);
+            }
+
+            if (requestResult){
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                std::string result = Messages::OK;
+                General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(developerSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugMonitor)
+                    cout << "Success \n";
+            } else {
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                std::string result = Messages::NOT_OK;
+                General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(developerSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugMonitor)
+                    cout << "Failed \n";
+            }
+        } catch (int i){
+            close(developerSocket);
+            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
         }
     }
 

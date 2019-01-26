@@ -152,7 +152,7 @@ const int MESSAGE_BYTES = 2048;
     inline struct hostent* getHostByName(string hostname) {
         struct hostent* serverHost;
         serverHost = gethostbyname(hostname.c_str());
-        if (serverHost == NULL)
+        if (serverHost == NULL) 
             error("ERROR, no such host\n");
         return serverHost;
     }

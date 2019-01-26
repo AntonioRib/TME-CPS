@@ -17,6 +17,7 @@ void Auditor::attestMonitor(const char* hostname){
     // cout << "got inside the method going to try to connect \n";
     struct hostent *serverHost;
     serverHost = SocketUtils::getHostByName(hostname);
+    
     sockaddr_in serverAddress;
     serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AUDITOR_PORT);
     bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
@@ -131,37 +132,41 @@ int main(int argc, char* argv[]) {
     std::string line;
     
     while (true) {
-        std::cout << ">> ";
-        std::getline(std::cin, line);
-        std::vector<std::string> lineSeparated = General::splitString(line);
+        try {
+            std::cout << ">> ";
+            std::getline(std::cin, line);
+            std::vector<std::string> lineSeparated = General::splitString(line);
 
-        if (line == "exit") {
-            std::cout << "Bye bye\n";
-            break;
-        } else if (line == "help"){
-            printHelp();
-        } else if (lineSeparated[0] == "attm") {
-            if(lineSeparated.size() == 2){
-                if(DebugFlags::debugAuditor)
-                    std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1] << "\n";
-                auditor->attestMonitor(lineSeparated[1].c_str());
-            } else {
-                std::cout << "Bad usage of command \n";
+            if (line == "exit") {
+                std::cout << "Bye bye\n";
+                break;
+            } else if (line == "help"){
                 printHelp();
-            }
-        } else if (lineSeparated[0] == "attl") {
-            if (lineSeparated.size() == 2) {
-                if (DebugFlags::debugAuditor)
-                    std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1];
-                auditor->attestAuditingHub(lineSeparated[1].c_str());
+            } else if (lineSeparated[0] == "attm") {
+                if(lineSeparated.size() == 2){
+                    if(DebugFlags::debugAuditor)
+                        std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1] << "\n";
+                    auditor->attestMonitor(lineSeparated[1].c_str());
+                } else {
+                    std::cout << "Bad usage of command \n";
+                    printHelp();
+                }
+            } else if (lineSeparated[0] == "attl") {
+                if (lineSeparated.size() == 2) {
+                    if (DebugFlags::debugAuditor)
+                        std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1];
+                    auditor->attestAuditingHub(lineSeparated[1].c_str());
+                } else {
+                    std::cout << "Bad usage of command \n";
+                    printHelp();
+                }
             } else {
-                std::cout << "Bad usage of command \n";
-                printHelp();
+                std::cout << "Unknown command \n";
             }
-        } else {
-            std::cout << "Unknown command \n";
+            // auditor->saySomething(line);
+        } catch (int i){
+                std::cout << "Unknown command \n";
         }
-        // auditor->saySomething(line);
     }
     return 0;
 }

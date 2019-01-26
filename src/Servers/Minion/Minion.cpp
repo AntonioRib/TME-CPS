@@ -26,7 +26,7 @@ Minion::Minion(string ipAddress) : ipAddress{ipAddress} {
 }
 
 Minion::Minion(string monitorHost, string hostname, string ipAddress) : monitorHost{monitorHost}, hostname{hostname}, ipAddress{ipAddress} {
-    // std::cout << "Minion created with the name " << Minion::name << " - string constructor \n";
+    std::cout << "Minion created with the name " << Minion::monitorHost << " - string constructor \n";
     bool handlersStartResult = true;
     handlersStartResult &= Minion::startMonitorHandler();
     handlersStartResult &= Minion::startAuditingHubHandler();
@@ -94,13 +94,16 @@ void Minion::processAttestation(int monitorSocket){
 
 bool Minion::startMonitorHandler(){
     struct hostent* serverHost;
-    serverHost = SocketUtils::getHostByName(monitorHost);
+    serverHost = SocketUtils::getHostByName(Minion::monitorHost);
 
     sockaddr_in monitorAddress;
     monitorAddress = SocketUtils::createServerAddress(Ports::MONITOR_MINION_PORT);
     bcopy((char *)serverHost->h_addr, (char *)&monitorAddress.sin_addr.s_addr, serverHost->h_length);
+    
     int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(monitorSocket, monitorAddress);
+    if (DebugFlags::debugAuditor)
+        cout << "Connected to the Monitor\n";
 
     processAttestation(monitorSocket);
 
@@ -138,31 +141,31 @@ bool Minion::startAuditingHubHandler(){
 }
 
 
-// int main(int argc, char *argv[]) {
-//     if (argc != 7) {
-//         cout << "Usage: Minion -m monitorHostName -h hostname -i ipAddress\n";
-//         return 0;
-//     }
+int main(int argc, char *argv[]) {
+    if (argc != 7) {
+        cout << "Usage: Minion -m monitorHostName -h hostname -i ipAddress\n";
+        return 0;
+    }
 
-//     string monitorHostname(argv[MONITOR_HOST_FLAG_INDEX + 1]);
-//     string hostname(argv[HOSTNAME_FLAG_INDEX + 1]);  //IPADDRESS_FLAG_INDEX
-//     string ipAddress(argv[IPADDRESS_FLAG_INDEX + 1]);
+    string monitorHostname(argv[MONITOR_HOST_FLAG_INDEX + 1]);
+    string hostname(argv[HOSTNAME_FLAG_INDEX + 1]);  //IPADDRESS_FLAG_INDEX
+    string ipAddress(argv[IPADDRESS_FLAG_INDEX + 1]);
 
-//     std::cout << "Will try to create Minion\n";
+    std::cout << "Will try to create Minion\n";
 
-//     //  std::string s = "Minion I";
-//      Minion *minion = new Minion(monitorHostname, hostname, ipAddress);
+    //  std::string s = "Minion I";
+     Minion *minion = new Minion(monitorHostname, hostname, ipAddress);
 
-//     //  MinionAHubRequestHandler minionAHubRequestHandler = MinionAHubRequestHandler(minion);
-//     //  std::thread minionAhubRequestHandlerThread(MinionAHubRequestHandler::startMinionAHubRequestHandler, minionAHubRequestHandler);
+    //  MinionAHubRequestHandler minionAHubRequestHandler = MinionAHubRequestHandler(minion);
+    //  std::thread minionAhubRequestHandlerThread(MinionAHubRequestHandler::startMinionAHubRequestHandler, minionAHubRequestHandler);
 
-//     //  MinionMonitorRequestHandler minionMonitorRequestHandler = MinionMonitorRequestHandler(minion);
-//     //  std::thread monitorRequestHandlerThread(MinionMonitorRequestHandler::startMonitorRequestHandler, minionMonitorRequestHandler);
+    //  MinionMonitorRequestHandler minionMonitorRequestHandler = MinionMonitorRequestHandler(minion);
+    //  std::thread monitorRequestHandlerThread(MinionMonitorRequestHandler::startMonitorRequestHandler, minionMonitorRequestHandler);
 
-//     //  minionAhubRequestHandlerThread.join();
-//     //  monitorRequestHandlerThread.join();
+    //  minionAhubRequestHandlerThread.join();
+    //  monitorRequestHandlerThread.join();
 
-//      std::cout << "Bubye\n";
+     std::cout << "Bubye\n";
 
-//      return 0;
-//  }
+     return 0;
+ }

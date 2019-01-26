@@ -52,45 +52,50 @@ void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minion
 
     int minionSocket;
     while (true) {
-        minionSocket = SocketUtils::acceptClientSocket(serverSocket);
-        cout << "Got connection from Minion\n";
-        minionRequestHandler.attestMinion(minionSocket);
+        try{
+            minionSocket = SocketUtils::acceptClientSocket(serverSocket);
+            cout << "Got connection from Minion\n";
+            minionRequestHandler.attestMinion(minionSocket);
 
-        char buffer[SocketUtils::MESSAGE_BYTES];
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Recieved: " << buffer << "\n";
-        // cout << buffer;
-        string command(buffer);
-        vector<string> commandSplit = General::splitString(command);
-
-        bool requestResult = true;
-        if (commandSplit[0] == Messages::REGISTER) {
-            socklen_t len = sizeof(serverAddress);
-            char ip[32];
-            getpeername(minionSocket, (struct sockaddr*)&serverAddress, &len);
-            inet_ntop(AF_INET, &serverAddress.sin_addr, ip, sizeof(ip));
-            string minionAddress(ip);
+            char buffer[SocketUtils::MESSAGE_BYTES];
+            bzero(buffer, SocketUtils::MESSAGE_BYTES);
+            SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
             if (DebugFlags::debugMonitor)
-                cout << "Registering: " << minionAddress << "\n";
-            minionRequestHandler.monitor->addNewMinion(minionAddress);
-        }
+                cout << "Recieved: " << buffer << "\n";
+            // cout << buffer;
+            string command(buffer);
+            vector<string> commandSplit = General::splitString(command);
 
-        if (requestResult) {
-            bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            std::string result = Messages::OK_APPROVED;
-            General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-            if (DebugFlags::debugMinion)
-                cout << "Success \n";
-        } else {
-            bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            std::string result = Messages::NOT_APPROVED;
-            General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-            if (DebugFlags::debugMinion)
-                cout << "Failed \n";
+            bool requestResult = true;
+            if (commandSplit[0] == Messages::REGISTER) {
+                socklen_t len = sizeof(serverAddress);
+                char ip[32];
+                getpeername(minionSocket, (struct sockaddr*)&serverAddress, &len);
+                inet_ntop(AF_INET, &serverAddress.sin_addr, ip, sizeof(ip));
+                string minionAddress(ip);
+                if (DebugFlags::debugMonitor)
+                    cout << "Registering: " << minionAddress << "\n";
+                minionRequestHandler.monitor->addNewMinion(minionAddress);
+            }
+
+            if (requestResult) {
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                std::string result = Messages::OK_APPROVED;
+                General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugMinion)
+                    cout << "Success \n";
+            } else {
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                std::string result = Messages::NOT_APPROVED;
+                General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugMinion)
+                    cout << "Failed \n";
+            }
+        } catch (int i){
+            close(minionSocket);
+            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
         }
     }
     // printf("Here is the message: %s\n", buffer);

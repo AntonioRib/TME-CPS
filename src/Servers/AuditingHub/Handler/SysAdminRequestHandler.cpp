@@ -289,68 +289,72 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
     while (true) {
         // clientSocket = SocketUtils::acceptClientSocket(serverSocket);
         // cout << "Got connection from client\n";
-
-        char buffer[SocketUtils::MESSAGE_BYTES];
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::receiveBuffer(adminToHubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-
-        if (DebugFlags::debugAuditingHub)
-            cout << "Recieved: " << buffer << "\n";
-       std::this_thread::sleep_for(std::chrono::seconds(1));
-
-        string command(buffer);
-       if(command.size() == Messages::OK_APPROVED.size()){
+        try {
+            char buffer[SocketUtils::MESSAGE_BYTES];
             bzero(buffer, SocketUtils::MESSAGE_BYTES);
             SocketUtils::receiveBuffer(adminToHubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+
             if (DebugFlags::debugAuditingHub)
                 cout << "Recieved: " << buffer << "\n";
-       }
-        command = string(buffer);
-        vector<string> commandSplit = General::splitString(command);
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
 
-        if (commandSplit[0].find(Messages::MANAGE) == string::npos) {
-            std::string response = Messages::NOT_OK;
-            bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
-            if (DebugFlags::debugAuditingHub)
-                cout << "Wrote: " << buffer << " to client\n";
-            return;
+            string command(buffer);
+        if(command.size() == Messages::OK_APPROVED.size()){
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::receiveBuffer(adminToHubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+                if (DebugFlags::debugAuditingHub)
+                    cout << "Recieved: " << buffer << "\n";
         }
-
-        sysAdminRequestHandler.adminUsername = commandSplit[1];
-        sysAdminRequestHandler.remoteHost = commandSplit[2];
-
-        bool launchManagementSessionResult = false;
-        if (sysAdminRequestHandler.auditingHub->checkPermissionAndUnqueue(sysAdminRequestHandler.remoteHost)) {
-            std::string response = Messages::OK;
+            command = string(buffer);
+            vector<string> commandSplit = General::splitString(command);
             bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
-            if (DebugFlags::debugAuditingHub)
-                cout << "Wrote: " << buffer << " to client\n";
+
+            if (commandSplit[0].find(Messages::MANAGE) == string::npos) {
+                std::string response = Messages::NOT_OK;
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugAuditingHub)
+                    cout << "Wrote: " << buffer << " to client\n";
+                return;
+            }
+
+            sysAdminRequestHandler.adminUsername = commandSplit[1];
+            sysAdminRequestHandler.remoteHost = commandSplit[2];
+
+            bool launchManagementSessionResult = false;
+            if (sysAdminRequestHandler.auditingHub->checkPermissionAndUnqueue(sysAdminRequestHandler.remoteHost)) {
+                std::string response = Messages::OK;
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugAuditingHub)
+                    cout << "Wrote: " << buffer << " to client\n";
+            }
+
+            launchManagementSessionResult = sysAdminRequestHandler.launchManagementSession();
+            if (launchManagementSessionResult){
+                std::string response = Messages::OK;
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugAuditingHub)
+                    cout << "Wrote: " << buffer << " to client\n";
+                break;
+            } else {
+                std::string response = Messages::NOT_OK;
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugAuditingHub)
+                    cout << "Wrote: " << buffer << " to client\n";
+                break;
+            }
+            close(adminToHubSocket);
+        } catch (int i){
+            // close(adminToHubSocket);
+            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
         }
-
-        launchManagementSessionResult = sysAdminRequestHandler.launchManagementSession();
-        if (launchManagementSessionResult){
-            std::string response = Messages::OK;
-            bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
-            if (DebugFlags::debugAuditingHub)
-                cout << "Wrote: " << buffer << " to client\n";
-            break;
-        } else {
-            std::string response = Messages::NOT_OK;
-            bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
-            if (DebugFlags::debugAuditingHub)
-                cout << "Wrote: " << buffer << " to client\n";
-            break;
-        }
-        close(adminToHubSocket);
     }
 }
 

@@ -49,20 +49,25 @@ void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler aud
 
     int clientSocket;
     while(true){
-        clientSocket = SocketUtils::acceptClientSocket(serverSocket);
-        cout << "Got connection from client\n";
+        try {
+            clientSocket = SocketUtils::acceptClientSocket(serverSocket);
+            cout << "Got connection from client\n";
 
-        char buffer[SocketUtils::MESSAGE_BYTES];
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::receiveBuffer(clientSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Recieved: " << buffer << "\n";
-        // cout << buffer;
-        string command(buffer);
-        vector<string> commandSplit = General::splitString(command);
-        
-        if (commandSplit[0] == Messages::ATTEST){
-            auditorRequestHandler.processAttestation(clientSocket, AttestationConstants::QUOTE, *(auditorRequestHandler.monitor));
+            char buffer[SocketUtils::MESSAGE_BYTES];
+            bzero(buffer, SocketUtils::MESSAGE_BYTES);
+            SocketUtils::receiveBuffer(clientSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+            if (DebugFlags::debugMonitor)
+                cout << "Recieved: " << buffer << "\n";
+            // cout << buffer;
+            string command(buffer);
+            vector<string> commandSplit = General::splitString(command);
+            
+            if (commandSplit[0] == Messages::ATTEST){
+                auditorRequestHandler.processAttestation(clientSocket, AttestationConstants::QUOTE, *(auditorRequestHandler.monitor));
+            }
+        } catch (int i){
+            close(clientSocket);
+            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
         }
     }
     // printf("Here is the message: %s\n", buffer);

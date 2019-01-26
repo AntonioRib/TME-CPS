@@ -138,47 +138,53 @@ void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitor
 
     int monitorSocket;
     while (true) {
-        if (DebugFlags::debugMinion)
-            cout << "MinionMonitorRequestHandler Waiting for connection\n";
-        monitorSocket = SocketUtils::acceptClientSocket(minionSocket);
-        cout << "Got connection from Monitor\n";
-
-        char buffer[SocketUtils::MESSAGE_BYTES];
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-        if (DebugFlags::debugMinion)
-            cout << "Recieved: " << buffer << "\n";
-        // cout << buffer;
-        string command(buffer);
-        vector<string> commandSplit = General::splitString(command);
-
-        bool requestResult = false;
-        if (commandSplit[0] == Messages::DEPLOY) {
+        try {
+         
             if (DebugFlags::debugMinion)
-                cout << "Deploying " << commandSplit[1] << "\n";
-            requestResult = minionMonitorRequestHandler->deployApp(commandSplit[1]);
-        } else if (commandSplit[0] == Messages::DELETE_APP) {
-            if (DebugFlags::debugMinion)
-                cout << "Deleting " << commandSplit[1] << "\n";
-            requestResult = minionMonitorRequestHandler->deleteApp(commandSplit[1]);
-        } else if (commandSplit[0] == Messages::ATTEST) {
-            requestResult = minionMonitorRequestHandler->processAttestation(monitorSocket, commandSplit[1]);
-        }
+                cout << "MinionMonitorRequestHandler Waiting for connection\n";
+            monitorSocket = SocketUtils::acceptClientSocket(minionSocket);
+            cout << "Got connection from Monitor\n";
 
-        if (requestResult) {
+            char buffer[SocketUtils::MESSAGE_BYTES];
             bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            std::string result = Messages::OK;
-            General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
+            SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
             if (DebugFlags::debugMinion)
-                cout << "Success \n";
-        } else {
-            bzero(buffer, SocketUtils::MESSAGE_BYTES);
-            std::string result = Messages::NOT_OK;
-            General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
-            SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-            if (DebugFlags::debugMinion)
-                cout << "Failed \n";
+                cout << "Recieved: " << buffer << "\n";
+            // cout << buffer;
+            string command(buffer);
+            vector<string> commandSplit = General::splitString(command);
+
+            bool requestResult = false;
+            if (commandSplit[0] == Messages::DEPLOY) {
+                if (DebugFlags::debugMinion)
+                    cout << "Deploying " << commandSplit[1] << "\n";
+                requestResult = minionMonitorRequestHandler->deployApp(commandSplit[1]);
+            } else if (commandSplit[0] == Messages::DELETE_APP) {
+                if (DebugFlags::debugMinion)
+                    cout << "Deleting " << commandSplit[1] << "\n";
+                requestResult = minionMonitorRequestHandler->deleteApp(commandSplit[1]);
+            } else if (commandSplit[0] == Messages::ATTEST) {
+                requestResult = minionMonitorRequestHandler->processAttestation(monitorSocket, commandSplit[1]);
+            }
+
+            if (requestResult) {
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                std::string result = Messages::OK;
+                General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugMinion)
+                    cout << "Success \n";
+            } else {
+                bzero(buffer, SocketUtils::MESSAGE_BYTES);
+                std::string result = Messages::NOT_OK;
+                General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
+                SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
+                if (DebugFlags::debugMinion)
+                    cout << "Failed \n";
+            }
+        } catch (int i){
+            close(monitorSocket);
+            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
         }
     }
 }
