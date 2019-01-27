@@ -10,14 +10,24 @@ MinionAHubRequestHandler::MinionAHubRequestHandler(Minion* minion) : minion{mini
 
 bool MinionAHubRequestHandler::purgeMinion() {
     char* purgeArgsStream;
-    int size = asprintf(&purgeArgsStream, "sudo ../%s", Scripts::PURGE_MINION.c_str());
+    int size = asprintf(&purgeArgsStream, "sudo ./%s", Scripts::PURGE_MINION.c_str());
+    string purgeArgsStreamStr(purgeArgsStream);
+    std::vector<std::string> purgeArgsStreamVec = General::splitString(purgeArgsStreamStr);
+    char* purgeArgsStreamCharVec[purgeArgsStreamVec.size()];
+    int i = 0;
+    for (const std::string& str : purgeArgsStreamVec) {
+        purgeArgsStreamCharVec[i] = const_cast<char*>(str.c_str());
+        i++;
+    }
+    purgeArgsStreamCharVec[i] = NULL;
+
 
     if (DebugFlags::debugMonitor)
         cout << "Executing command: " << purgeArgsStream << "\n";
     fflush(NULL);
     pid_t pid = fork();
     if (pid == 0) {
-        int result = execlp(purgeArgsStream, purgeArgsStream);
+        int result = execvp(purgeArgsStreamCharVec[0], purgeArgsStreamCharVec);
         if (result == -1) {
             if (DebugFlags::debugMinion){
                 cout << "Command failed\n";
@@ -52,6 +62,7 @@ void MinionAHubRequestHandler::startMinionAHubRequestHandler(MinionAHubRequestHa
 
     int aHubSocket;
     while (true) {
+        cout << "Waiting for connections...\n";
         try {
             if (DebugFlags::debugMinion)
                 cout << "MinionAHubRequestHandler Waiting for connection\n";
@@ -87,9 +98,9 @@ void MinionAHubRequestHandler::startMinionAHubRequestHandler(MinionAHubRequestHa
                 if (DebugFlags::debugMonitor)
                     cout << "Failed \n";
             }
-        } catch (int i){
-            close(aHubSocket);             
-            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
+        } catch (const exception& e){
+            close(aHubSocket);
+            cout << e.what() << '\n';
         }
     }
 }

@@ -108,7 +108,7 @@ Minion* Monitor::pickTrustedMinion(){
 
 vector<Minion*> Monitor::pickNTrustedMinions(int numberOfMinions){
     if (Monitor::trustedMinions.size() < numberOfMinions) {
-        throw 10; //TODO check if it makes sense to send an exception or return something;
+         throw runtime_error("Not enough minions"); 
     }
 
     vector<Minion*> result;
@@ -127,7 +127,7 @@ void Monitor::addApplication(string appID, vector<Minion*> hosts){
     map<string, Application*>::iterator contains = Monitor::applications.find(appID);
     //If contains != Monitor::applications.end it means element found
     if (contains != Monitor::applications.end()){
-        throw 10;  //TODO check if it makes sense to send an exception or return something;
+         throw runtime_error("Application already exists"); 
     }
 
     Application* app = new Application(appID);
@@ -149,7 +149,7 @@ void Monitor::deleteApplication(string appID) {
     map<string, Application*>::iterator contains = Monitor::applications.find(appID);
     //If contains == Monitor::applications.end it means element not found
     if (contains == Monitor::applications.end()) {
-        throw 10;  //TODO check if it makes sense to send an exception or return something;
+        throw runtime_error("Application doesnt exist");
     }
 
     vector<Minion*> toDelete = Monitor::appsHosts[appID];
@@ -171,7 +171,7 @@ void Monitor::removeMinion(string minionAddress) {
     map<string, Minion*>::iterator untrustedContains = Monitor::untrustedMinions.find(minionAddress);
     //If contains == Monitor::applications.end it means element not found
     if (trustedContains == Monitor::trustedMinions.end() && untrustedContains == Monitor::untrustedMinions.end()) {
-        throw 10;  //TODO check if it makes sense to send an exception or return something;
+        throw runtime_error("Minion doesn't exist");
     }
 
     Monitor::trustedMinions.erase(minionAddress);
@@ -185,9 +185,14 @@ void Monitor::removeMinion(string minionAddress) {
 
 void Monitor::setMinionUntrusted(string minionAddress){
     map<string, Minion*>::iterator trustedContains = Monitor::trustedMinions.find(minionAddress);
+    
     //If contains == Monitor::applications.end it means element not found
     if (trustedContains == Monitor::trustedMinions.end())
-        throw 10;  //TODO check if it makes sense to send an exception or return something;
+            throw runtime_error("Minion doesnt exist or isn't trusted already");
+
+    map<string, Application*> apps = trustedContains->second->getApplications();
+    for (std::map<string, Application*>::iterator it = apps.begin(); it != apps.end(); ++it)
+        trustedContains->second->removeApp(it->second->getAppID());
 
     Monitor::untrustedMinions[trustedContains->first] = trustedContains->second;
     Monitor::trustedMinions.erase(trustedContains->first);
@@ -202,7 +207,7 @@ void Monitor::setMinionTrusted(string minionAddress) {
     map<string, Minion*>::iterator untrustedContains = Monitor::untrustedMinions.find(minionAddress);
     //If contains == Monitor::applications.end it means element not found
     if (untrustedContains == Monitor::untrustedMinions.end())
-        throw 10;  //TODO check if it makes sense to send an exception or return something;
+        throw runtime_error("Minion doesn't exist or is trusted already");
 
     Minion* minion = untrustedContains->second;
     Monitor::untrustedMinions.erase(minionAddress);
@@ -220,7 +225,7 @@ int main(int argc, char* argv[]) {
         cout << "Usage: Monitor -u username -j sshKey -h host\n";
         return 0;
     }
-
+    cout << argv[0] << "\n";
     string username(argv[USERNAME_FLAG_INDEX + 1]);
     string sshKey(argv[KEY_FLAG_INDEX + 1]);
     string hostname(argv[HOSTNAME_FLAG_INDEX + 1]);
@@ -234,7 +239,6 @@ int main(int argc, char* argv[]) {
     std::thread auditorRequestHandlerThread(AuditorRequestHandler::startAuditorRequestHandler, auditorRequestHandler);
 
     while (monitor->getApprovedConfiguration() == (unsigned char*)General::NULL_VALUE) {
-        std::cout << "Im in the loop \n";
         std::cout << "Waiting for approved config. Current Config -> " << +monitor->getApprovedConfiguration() << "\n";
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }

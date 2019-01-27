@@ -260,7 +260,7 @@ void SysAdminRequestHandler::processAttestation(int adminSocket) {
         if (DebugFlags::debugAuditingHub)
             cout << "Wrote: " << buffer << " to client\n";
     } else 
-        throw 10; //TODO
+        throw runtime_error("Recieved something unknown"); //TODO
 
     // bzero(buffer, SocketUtils::MESSAGE_BYTES);
     // SocketUtils::receiveBuffer(adminSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
@@ -287,6 +287,7 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
 
     // int clientSocket;
     while (true) {
+        cout << "Waiting for messages...";
         // clientSocket = SocketUtils::acceptClientSocket(serverSocket);
         // cout << "Got connection from client\n";
         try {
@@ -351,9 +352,8 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
                 break;
             }
             close(adminToHubSocket);
-        } catch (int i){
-            // close(adminToHubSocket);
-            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
+        } catch (const exception& e){
+            cout << e.what() << '\n';
         }
     }
 }

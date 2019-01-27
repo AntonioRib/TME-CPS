@@ -94,14 +94,23 @@ bool MinionMonitorRequestHandler::deployApp(string appId) {
 
 bool MinionMonitorRequestHandler::deleteApp(string appId) {
     char* deleteArgsStream;
-    int size = asprintf(&deleteArgsStream, "sudo ../%s", Scripts::DELETE_APP.c_str());
+    int size = asprintf(&deleteArgsStream, "sudo ./%s", Scripts::DELETE_APP.c_str());
+    string deleteArgsStreamStr(deleteArgsStream);
+    std::vector<std::string> deleteArgsStreamVec = General::splitString(deleteArgsStreamStr);
+    char* deleteArgsStreamCharVec[deleteArgsStreamVec.size()];
+    int i = 0;
+    for (const std::string& str : deleteArgsStreamVec) {
+        deleteArgsStreamCharVec[i] = const_cast<char*>(str.c_str());
+        i++;
+    }
+    deleteArgsStreamCharVec[i] = NULL;
 
     if (DebugFlags::debugMonitor)
         cout << "Executing command: " << deleteArgsStream << "\n";
     fflush(NULL);
     pid_t pid = fork();
     if (pid == 0) {
-        int result = execlp(deleteArgsStream, deleteArgsStream);
+        int result = execvp(deleteArgsStreamCharVec[0], deleteArgsStreamCharVec);
         if (result == -1) {
             if (DebugFlags::debugMinion){
                 cout << "Command failed\n";
@@ -163,6 +172,7 @@ void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitor
 
     int monitorSocket;
     while (true) {
+        cout << "Waiting for connections...\n";
         try {
          
             if (DebugFlags::debugMinion)
@@ -207,9 +217,9 @@ void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitor
                 if (DebugFlags::debugMinion)
                     cout << "Failed \n";
             }
-        } catch (int i){
+        } catch (const exception& e){
             close(monitorSocket);
-            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
+            cout << e.what() << '\n';
         }
     }
 }

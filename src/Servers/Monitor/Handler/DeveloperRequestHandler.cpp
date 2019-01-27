@@ -199,6 +199,7 @@ void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandl
 
     int developerSocket;
     while (true) {
+        cout << "Waiting for connections...\n";
         try{
             developerSocket = SocketUtils::acceptClientSocket(serverSocket);
             cout << "Got connection from Developer\n";
@@ -240,9 +241,9 @@ void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandl
                 if (DebugFlags::debugMonitor)
                     cout << "Failed \n";
             }
-        } catch (int i){
+        } catch (const exception& e){
             close(developerSocket);
-            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
+            cout << e.what() << '\n';
         }
     }
 

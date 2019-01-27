@@ -10,7 +10,7 @@ AHubRequestHandler::AHubRequestHandler() {
 
 bool AHubRequestHandler::sendApp(Minion* minion, std::string appDir){
     char* scpArgsStream;
-    int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no ../../%s%s %s@%s:%s%s",
+    int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no ./%s%s %s@%s:%s%s",
                         ProcessBinaries::SCP.c_str(), sshKey.c_str(), Directories::APPS_DIR_MONITOR.c_str(), appDir.c_str(),
                         username.c_str(), minion->getIpAddress().c_str(), Directories::APPS_DIR_MINION.c_str(), appDir.c_str());
     string scpArgsStreamStr(scpArgsStream);
@@ -107,7 +107,7 @@ bool AHubRequestHandler::spawnReplacementInstances(Minion* untrustedMinion){
             if (positionToErase != tempTrustedSet.end())
                 tempTrustedSet.erase(positionToErase);
             if (tempTrustedSet.size() == 0)
-                throw 10; //TODO
+                 throw runtime_error("No minions to spawn applications");
         }
         spawnResult &= this->deployAppOnMinion(trustedMinions.find(tempTrustedSet[0])->second, entry.first);
         if (!spawnResult)
@@ -172,7 +172,7 @@ void AHubRequestHandler::setMinionUntrustedOnMonitor(string untrustedMinion) {
 
 void AHubRequestHandler::setMinionTrustedOnMonitor(string trustedMinion) {
     if (DebugFlags::debugMonitor)
-        cout << "Setting Minion with IP " + trustedMinion + " untrusted\n";
+        cout << "Setting Minion with IP " + trustedMinion + " trusted\n";
     monitor->setMinionTrusted(trustedMinion);
 }
 
@@ -191,6 +191,7 @@ void AHubRequestHandler::startAHubRequestHandler(AHubRequestHandler aHubRequestH
 
     int hubSocket;
     while (true) {
+        cout << "Waiting for connections...\n";
         try{
             
             hubSocket = SocketUtils::acceptClientSocket(serverSocket);
@@ -229,9 +230,9 @@ void AHubRequestHandler::startAHubRequestHandler(AHubRequestHandler aHubRequestH
                 if (DebugFlags::debugMonitor)
                     cout << "Failed \n";
             }
-        } catch (int i){
+        } catch (const exception& e){
             close(hubSocket);
-            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
+            cout << e.what() << '\n';
         }
     }
 

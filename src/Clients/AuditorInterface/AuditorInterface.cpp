@@ -18,9 +18,9 @@ AuditorInterface::AuditorInterface(string monitorHost, string hostname) : monito
     std::cout << "AuditorInterface created\n";
 }
 
-bool AuditorInterface::setTrusted(string hostname) {
+bool AuditorInterface::setTrusted(string monitorHost) {
     struct hostent* serverHost;
-    serverHost = SocketUtils::getHostByName(hostname);
+    serverHost = SocketUtils::getHostByName(monitorHost);
 
     sockaddr_in serverAddress;
     serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT);
@@ -32,11 +32,11 @@ bool AuditorInterface::setTrusted(string hostname) {
         cout << "Connected to the server\n";
 
     char buffer[SocketUtils::MESSAGE_BYTES];
-    struct in_addr addr;
-     memcpy(&addr, serverHost->h_addr_list[0], sizeof(struct in_addr));
-     string host = inet_ntoa(addr);
+    // struct in_addr addr;
+    //  memcpy(&addr, serverHost->h_addr_list[0], sizeof(struct in_addr));
+    //  string host = inet_ntoa(addr);
 
-    string requestString = Messages::SET_TRUSTED + " " + host;
+    string requestString = Messages::SET_TRUSTED + " " + AuditorInterface::hostname;
     General::stringToCharArray(requestString, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
 
@@ -173,10 +173,9 @@ int main(int argc, char* argv[]) {
                 readFile.close();
                     //SET NODE TRUSTED
             
-                std::string delimiter = ".";
-                std::string hostname = lineSeparated[1].substr(0, lineSeparated[1].find(delimiter));
-
-                if (!auditorInterface->setTrusted(hostname))
+                std::string delimiter = "-";
+                // std::string hostname = lineSeparated[1].substr(0, lineSeparated[1].find(delimiter));
+                if (!auditorInterface->setTrusted(monitorhost))
                     cout << "Failed to set not to trusted";
                 else {
                     ifstream ifs(oldName, ios::in | ios::binary);

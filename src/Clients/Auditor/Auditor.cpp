@@ -166,8 +166,8 @@ int main(int argc, char* argv[]) {
                 std::cout << "Unknown command \n";
             }
             // auditor->saySomething(line);
-        } catch (int i){
-                std::cout << "Unknown command \n";
+        } catch (const exception& e){
+                cout << e.what() << '\n';
         }
     }
     return 0;

@@ -121,7 +121,6 @@ const int MESSAGE_BYTES = 2048;
     inline void connectToServerSocket(int clientSocket, sockaddr_in serverAddress) {
         if (connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0){
             error("ERROR connecting");
-            throw 10;
         }
     }
 

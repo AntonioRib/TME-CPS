@@ -52,6 +52,7 @@ void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minion
 
     int minionSocket;
     while (true) {
+        cout << "Waiting for connections...\n";
         try{
             minionSocket = SocketUtils::acceptClientSocket(serverSocket);
             cout << "Got connection from Minion\n";
@@ -93,9 +94,9 @@ void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minion
                 if (DebugFlags::debugMinion)
                     cout << "Failed \n";
             }
-        } catch (int i){
+        } catch (const exception& e){
             close(minionSocket);
-            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
+            cout << e.what() << '\n';
         }
     }
     // printf("Here is the message: %s\n", buffer);

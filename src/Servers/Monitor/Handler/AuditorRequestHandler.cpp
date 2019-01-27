@@ -49,6 +49,7 @@ void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler aud
 
     int clientSocket;
     while(true){
+        cout << "Waiting for connections...\n";
         try {
             clientSocket = SocketUtils::acceptClientSocket(serverSocket);
             cout << "Got connection from client\n";
@@ -65,9 +66,9 @@ void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler aud
             if (commandSplit[0] == Messages::ATTEST){
                 auditorRequestHandler.processAttestation(clientSocket, AttestationConstants::QUOTE, *(auditorRequestHandler.monitor));
             }
-        } catch (int i){
+        } catch (const exception& e){
             close(clientSocket);
-            cout << "Exception appeared number " << i << " Going back to the main loop. \n";
+            cout << e.what() << '\n';
         }
     }
     // printf("Here is the message: %s\n", buffer);

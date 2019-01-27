@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <iterator>
 #include <sstream>
 #include <string>
