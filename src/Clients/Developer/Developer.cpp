@@ -1,4 +1,12 @@
 #include "Developer.h"
+#include <tss2/tss2_esys.h>
+#define SUPPORTED_ABI_VERSION \
+{ \
+    .tssCreator = 1, \
+    .tssFamily = 2, \
+    .tssLevel = 1, \
+    .tssVersion = 108, \
+}
 using namespace std;
 
 const int REQUEST_FLAG_INDEX = 1;
@@ -180,7 +188,47 @@ void printHelp() {
     std::cout << "Usage to Delete App: Developer -delete -m monitorHost -u username -k key -a appDir \n";
 }
 
+static ESYS_CONTEXT* ctx_init(TSS2_TCTI_CONTEXT *tcti_ctx) {
+
+	TSS2_ABI_VERSION abi_version = SUPPORTED_ABI_VERSION;
+	ESYS_CONTEXT *esys_ctx;
+
+	TSS2_RC rval = Esys_Initialize(&esys_ctx, tcti_ctx, &abi_version);
+	if (rval != TPM2_RC_SUCCESS) {
+		return NULL;
+	}
+
+	return esys_ctx;
+}
+
+typedef struct tpm_random_ctx tpm_random_ctx;
+struct tpm_random_ctx {
+	bool output_file_specified;
+	char *output_file;
+	UINT16 num_of_bytes;
+};
+
+static tpm_random_ctx ctx;
+
 int main(int argc, char* argv[]) {
+	TSS2_TCTI_CONTEXT *tcti = NULL;
+	ESYS_CONTEXT *ectx = NULL;
+	ectx  = ctx_init(tcti);
+	ctx.num_of_bytes = 5;
+	TPM2B_DIGEST *random_bytes;
+
+	TSS2_RC rval = Esys_GetRandom(ectx,
+		ESYS_TR_NONE, ESYS_TR_NONE, ESYS_TR_NONE,
+		ctx.num_of_bytes, &random_bytes);
+
+	cout << "Something rval -> " << rval << " TPM SUCCESS -> " << TPM2_RC_SUCCESS <<"\n";
+	UINT16 i;
+	for (i = 0; i < random_bytes->size; i++) {
+		printf("%d", random_bytes->buffer[i]);
+		cout << "\n";
+	}
+	printf("Something after");
+	//--//
     string monitorHost;
     string username;
     string key;

@@ -1,5 +1,5 @@
 CXXFLAGS= -Wall -g -std=c++11 
-LDFLAGS= -Wall -g -pthread -std=c++11 
+LDFLAGS= -Wall -g -pthread -std=c++11
 
 COMPILE=g++ $(CXXFLAGS) -c
 LINK=g++ $(LDFLAGS) -o
@@ -17,7 +17,7 @@ BIN=$(BINDIR)/Developer
 all: $(BIN) 
 
 $(BIN): $(OBJ)
-	$(LINK) $(BIN) $(OBJ)
+	$(LINK) $(BIN) $(OBJ) -ltss2-esys -L/usr/local/lib/ 
 
 $(OBJDIR)/%.o:	$(SRCDIR)/%.cpp
 	$(COMPILE) $< -o $@

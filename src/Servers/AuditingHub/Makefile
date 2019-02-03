@@ -1,5 +1,5 @@
 CXXFLAGS= -Wall -g -std=c++11 
-LDFLAGS= -Wall -g -pthread -std=c++11 
+LDFLAGS= -Wall -g -pthread -std=c++11
 
 COMPILE=g++ $(CXXFLAGS) -c
 LINK=g++ $(LDFLAGS) -o
@@ -21,8 +21,7 @@ $(BIN): $(OBJ)
 	$(LINK) $(BIN) $(OBJ)
 
 $(OBJDIR)/%.o:	$(SRCDIR)/%.cpp
-	$(COMPILE) $< -o $@
-
+	$(COMPILE) $< -o $@ 
 clean:
 	rm -f $(OBJ) $(BIN)
 

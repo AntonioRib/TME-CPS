@@ -130,7 +130,7 @@ void Monitor::addApplication(string appID, vector<Minion*> hosts){
          throw runtime_error("Application already exists"); 
     }
 
-    Application* app = new Application(appID);
+	Application* app = new Application(appID);
     Monitor::applications.insert(pair<string, Application*>(appID, app)); 
 
     vector<Minion*> minionsList;
