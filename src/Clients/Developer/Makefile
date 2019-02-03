@@ -1,4 +1,4 @@
-CXXFLAGS= -Wall -g -std=c++11 
+CXXFLAGS= -Wall -g -std=c++11 -I../../../lib/tpm2
 LDFLAGS= -Wall -g -pthread -std=c++11
 
 COMPILE=g++ $(CXXFLAGS) -c
@@ -17,7 +17,7 @@ BIN=$(BINDIR)/Developer
 all: $(BIN) 
 
 $(BIN): $(OBJ)
-	$(LINK) $(BIN) $(OBJ) -ltss2-esys -L/usr/local/lib/ 
+	$(LINK) $(BIN) $(OBJ) -ltss2-esys -ltss2-sys -ltss2-mu -L/usr/local/lib/ 
 
 $(OBJDIR)/%.o:	$(SRCDIR)/%.cpp
 	$(COMPILE) $< -o $@

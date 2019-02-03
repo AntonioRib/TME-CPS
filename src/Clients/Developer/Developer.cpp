@@ -1,5 +1,10 @@
 #include "Developer.h"
 #include <tss2/tss2_esys.h>
+#include "tpm2_options.h"
+#include "log.h"
+#include "files.h"
+#include "tpm2_tool.h"
+#include "tpm2_util.h"
 #define SUPPORTED_ABI_VERSION \
 { \
     .tssCreator = 1, \
@@ -209,6 +214,7 @@ struct tpm_random_ctx {
 };
 
 static tpm_random_ctx ctx;
+extern bool output_enabled = true;
 
 int main(int argc, char* argv[]) {
 	TSS2_TCTI_CONTEXT *tcti = NULL;
@@ -217,17 +223,25 @@ int main(int argc, char* argv[]) {
 	ctx.num_of_bytes = 5;
 	TPM2B_DIGEST *random_bytes;
 
+
 	TSS2_RC rval = Esys_GetRandom(ectx,
 		ESYS_TR_NONE, ESYS_TR_NONE, ESYS_TR_NONE,
 		ctx.num_of_bytes, &random_bytes);
-
 	cout << "Something rval -> " << rval << " TPM SUCCESS -> " << TPM2_RC_SUCCESS <<"\n";
-	UINT16 i;
-	for (i = 0; i < random_bytes->size; i++) {
-		printf("%d", random_bytes->buffer[i]);
-		cout << "\n";
+	if (rval != TPM2_RC_SUCCESS) {
+		//LOG_PERR(Esys_GetRandom, rval);
+		//return false;
 	}
-	printf("Something after");
+
+	if (!ctx.output_file_specified) {
+		UINT16 i;
+		for (i = 0; i < random_bytes->size; i++) {
+			tpm2_tool_output("%s0x%2.2X", i ? " " : "", random_bytes->buffer[i]);
+		}
+		tpm2_tool_output("\n");
+		free(random_bytes);;
+		//return true;
+	}
 	//--//
     string monitorHost;
     string username;
