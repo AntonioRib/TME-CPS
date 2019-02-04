@@ -17,8 +17,7 @@ BIN=$(BINDIR)/Developer
 all: $(BIN) 
 
 $(BIN): $(OBJ)
-	$(LINK) $(BIN) $(OBJ) -ltss2-esys -ltss2-sys -ltss2-mu -L/usr/local/lib/ 
-
+	$(LINK) $(BIN) $(OBJ) -ltss2-esys -ltss2-sys -ltss2-mu -L/usr/bin/
 $(OBJDIR)/%.o:	$(SRCDIR)/%.cpp
 	$(COMPILE) $< -o $@
 

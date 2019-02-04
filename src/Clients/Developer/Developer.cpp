@@ -1,8 +1,13 @@
 #include "Developer.h"
 #include <tss2/tss2_esys.h>
-#include "tpm2_options.h"
-#include "log.h"
+
+#include "tpm2_convert.h"
 #include "files.h"
+#include "log.h"
+#include "pcr.h"
+#include "tpm2_alg_util.h"
+#include "tpm2_auth_util.h"
+#include "tpm2_session.h"
 #include "tpm2_tool.h"
 #include "tpm2_util.h"
 #define SUPPORTED_ABI_VERSION \
@@ -206,42 +211,103 @@ static ESYS_CONTEXT* ctx_init(TSS2_TCTI_CONTEXT *tcti_ctx) {
 	return esys_ctx;
 }
 
-typedef struct tpm_random_ctx tpm_random_ctx;
-struct tpm_random_ctx {
-	bool output_file_specified;
-	char *output_file;
-	UINT16 num_of_bytes;
+typedef struct tpm_quote_ctx tpm_quote_ctx;
+struct tpm_quote_ctx {
+	struct {
+		TPMS_AUTH_COMMAND session_data;
+		tpm2_session *session;
+	} auth;
+	char *outFilePath;
+	char *signature_path;
+	char *message_path;
+	tpm2_convert_sig_fmt sig_format;
+	TPMI_ALG_HASH sig_hash_algorithm;
+	TPM2B_DATA qualifyingData;
+	TPML_PCR_SELECTION pcrSelections;
+	char *ak_auth_str;
+	const char *context_arg;
+	tpm2_loaded_object context_object;
+	struct {
+		UINT16 l : 1;
+		UINT16 L : 1;
+		UINT16 o : 1;
+		UINT16 G : 1;
+		UINT16 P : 1;
+	} flags;
 };
 
-static tpm_random_ctx ctx;
+static tpm_quote_ctx ctx;
 extern bool output_enabled = true;
+
+static bool write_output_files(TPM2B_ATTEST *quoted, TPMT_SIGNATURE *signature) {
+
+	bool res = true;
+	if (ctx.signature_path) {
+		res &= tpm2_convert_sig_save(signature, ctx.sig_format, ctx.signature_path);
+	}
+
+	if (ctx.message_path) {
+		res &= files_save_bytes_to_file(ctx.message_path,
+			(UINT8*)quoted->attestationData,
+			quoted->size);
+	}
+
+	return res;
+}
 
 int main(int argc, char* argv[]) {
 	TSS2_TCTI_CONTEXT *tcti = NULL;
 	ESYS_CONTEXT *ectx = NULL;
 	ectx  = ctx_init(tcti);
-	ctx.num_of_bytes = 5;
+	ctx.auth.session_data = TPMS_AUTH_COMMAND_INIT(TPM2_RS_PW);
+	ctx.qualifyingData = TPM2B_EMPTY_INIT;
 	TPM2B_DIGEST *random_bytes;
 
 
-	TSS2_RC rval = Esys_GetRandom(ectx,
-		ESYS_TR_NONE, ESYS_TR_NONE, ESYS_TR_NONE,
-		ctx.num_of_bytes, &random_bytes);
-	cout << "Something rval -> " << rval << " TPM SUCCESS -> " << TPM2_RC_SUCCESS <<"\n";
-	if (rval != TPM2_RC_SUCCESS) {
-		//LOG_PERR(Esys_GetRandom, rval);
-		//return false;
+	TPM2_RC rval;
+	TPMT_SIG_SCHEME inScheme;
+	TPM2B_ATTEST *quoted = NULL;
+	TPMT_SIGNATURE *signature = NULL;
+
+	if (!ctx.flags.G || !get_signature_scheme(ectx, ctx.context_object.tr_handle,
+		ctx.sig_hash_algorithm, &inScheme)) {
+		inScheme.scheme = TPM2_ALG_NULL;
 	}
 
-	if (!ctx.output_file_specified) {
-		UINT16 i;
-		for (i = 0; i < random_bytes->size; i++) {
-			tpm2_tool_output("%s0x%2.2X", i ? " " : "", random_bytes->buffer[i]);
-		}
-		tpm2_tool_output("\n");
-		free(random_bytes);;
-		//return true;
+	ESYS_TR shandle1 = tpm2_auth_util_get_shandle(ectx,
+		ctx.context_object.tr_handle,
+		&ctx.auth.session_data, ctx.auth.session);
+	if (shandle1 == ESYS_TR_NONE) {
+		LOG_ERR("Failed to get shandle");
+		return -1;
 	}
+
+	rval = Esys_Quote(ectx, ctx.context_object.tr_handle,
+		shandle1, ESYS_TR_NONE, ESYS_TR_NONE,
+		&ctx.qualifyingData, &inScheme, &ctx.pcrSelections,
+		&quoted, &signature);
+	if (rval != TPM2_RC_SUCCESS)
+	{
+		LOG_PERR(Esys_Quote, rval);
+		return -1;
+	}
+
+	tpm2_tool_output("quoted: ");
+	tpm2_util_print_tpm2b((TPM2B *)quoted);
+	tpm2_tool_output("\nsignature:\n");
+	tpm2_tool_output("  alg: %s\n", tpm2_alg_util_algtostr(signature->sigAlg, tpm2_alg_util_flags_sig));
+
+	UINT16 size;
+	BYTE *sig = tpm2_convert_sig(&size, signature);
+	tpm2_tool_output("  sig: ");
+	tpm2_util_hexdump(sig, size);
+	tpm2_tool_output("\n");
+	free(sig);
+
+	bool res = write_output_files(quoted, signature);
+
+	free(quoted);
+	free(signature);
 	//--//
     string monitorHost;
     string username;
