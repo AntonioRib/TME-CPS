@@ -33,7 +33,7 @@
 
 #include <tss2/tss2_sys.h>
 
-typedef enum tpm2_convert_pubkey_fmt tpm2_convert_pubkey_fmt;
+//typedef enum tpm2_convert_pubkey_fmt tpm2_convert_pubkey_fmt;
 enum tpm2_convert_pubkey_fmt {
     pubkey_format_tss,
     pubkey_format_pem,
@@ -41,7 +41,7 @@ enum tpm2_convert_pubkey_fmt {
     pubkey_format_err
 };
 
-typedef enum tpm2_convert_sig_fmt tpm2_convert_sig_fmt;
+//typedef enum tpm2_convert_sig_fmt tpm2_convert_sig_fmt;
 enum tpm2_convert_sig_fmt {
     signature_format_tss,
     signature_format_plain,
@@ -65,7 +65,7 @@ tpm2_convert_pubkey_fmt tpm2_convert_pubkey_fmt_from_optarg(const char *label);
  *
  * LOG_ERR is used to communicate errors.
  */
-bool tpm2_convert_pubkey_save(TPM2B_PUBLIC *public, tpm2_convert_pubkey_fmt format, const char *path);
+bool tpm2_convert_pubkey_save(TPM2B_PUBLIC *pub, tpm2_convert_pubkey_fmt format, const char *path);
 
 /**
  * Parses the given command line signature format option string and returns

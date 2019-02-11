@@ -35,7 +35,7 @@
 
 #include <tss2/tss2_esys.h>
 
-typedef enum tpm2_alg_util_flags tpm2_alg_util_flags;
+//typedef enum tpm2_alg_util_flags tpm2_alg_util_flags;
 enum tpm2_alg_util_flags {
     tpm2_alg_util_flags_none        = 0,
     tpm2_alg_util_flags_hash        = 1 << 0,
@@ -180,7 +180,7 @@ bool get_signature_scheme(ESYS_CONTEXT *context,
  * @return
  */
 bool tpm2_alg_util_public_init(char *alg_details, char *name_halg, char *attrs, char *auth_policy, TPMA_OBJECT def_attrs,
-       TPM2B_PUBLIC *public);
+       TPM2B_PUBLIC *pub);
 
 /**
  * Returns an ECC curve as a friendly name.

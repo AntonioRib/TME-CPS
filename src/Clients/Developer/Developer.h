@@ -19,6 +19,7 @@
 #include "../../Utilities/General.h"
 #include "../../Utilities/Messages.h"
 #include "../../Utilities/Ports.h"
+#include "../../Utilities/TPM.h"
 using namespace std;
 
 class Developer {
