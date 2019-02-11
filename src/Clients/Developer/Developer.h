@@ -20,6 +20,9 @@
 #include "../../Utilities/Messages.h"
 #include "../../Utilities/Ports.h"
 #include "../../Utilities/TPM.h"
+#include "Enclave_u.h"
+#include "sgx_urts.h"
+#include "../../Utilities/SGX_Utils/sgx_utils.h"
 using namespace std;
 
 class Developer {
