@@ -103,7 +103,7 @@ endif
 
 App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
 
-App_Name := ../../../bin/Developer
+App_Name := Developer
 
 ######## Enclave Settings ########
 
@@ -117,7 +117,7 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 # Enclave_Cpp_Files := Enclave/Enclave.cpp $(wildcard Enclave/Edger8rSyntax/*.cpp) $(wildcard Enclave/TrustedLibrary/*.cpp)
-Enclave_Cpp_Files := ../../../bin/DeveloperEnclave/Enclave.cpp ../../../bin/DeveloperEnclave/Sealing/Sealing.cpp
+Enclave_Cpp_Files := Enclave/Enclave.cpp Enclave/Sealing/Sealing.cpp
 # Enclave_Include_Paths := -IInclude -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport
 Enclave_Include_Paths := -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport
 
@@ -135,7 +135,7 @@ Enclave_Cpp_Objects := $(Enclave_Cpp_Files:.cpp=.o)
 
 Enclave_Name := enclave.so
 Signed_Enclave_Name := enclave.signed.so
-Enclave_Config_File := ../../../bin/DeveloperEnclave/Enclave.config.xml
+Enclave_Config_File := Enclave/Enclave.config.xml
 
 ifeq ($(SGX_MODE), HW)
 ifneq ($(SGX_DEBUG), 1)
@@ -169,7 +169,7 @@ endif
 ######## App Objects ########
 
 ./Enclave_u.c: $(SGX_EDGER8R) Enclave/Enclave.edl
-	$(SGX_EDGER8R) --untrusted ../../../bin/DeveloperEnclave/Enclave.edl --search-path ../../../bin/DeveloperEnclave --search-path $(SGX_SDK)/include
+	$(SGX_EDGER8R) --untrusted ./Enclave/Enclave.edl --search-path ./Enclave --search-path $(SGX_SDK)/include
 	@echo "GEN  =>  $@"
 
 ./Enclave_u.o: ./Enclave_u.c
@@ -188,7 +188,7 @@ $(App_Name): ./Enclave_u.o $(App_Cpp_Objects)
 ######## Enclave Objects ########
 
 Enclave/Enclave_t.c: $(SGX_EDGER8R) Enclave/Enclave.edl
-	@cd Enclave && $(SGX_EDGER8R) --trusted ../../../bin/DeveloperEnclave/Enclave.edl --search-path ../../../bin/DeveloperEnclave --search-path $(SGX_SDK)/include
+	@cd Enclave && $(SGX_EDGER8R) --trusted ./Enclave.edl --search-path ./ --search-path $(SGX_SDK)/include
 	@echo "GEN  =>  $@"
 
 Enclave/Enclave_t.o: Enclave/Enclave_t.c
@@ -204,106 +204,10 @@ $(Enclave_Name): Enclave/Enclave_t.o $(Enclave_Cpp_Objects)
 	@echo "LINK =>  $@"
 
 $(Signed_Enclave_Name): $(Enclave_Name)
-	@$(SGX_ENCLAVE_SIGNER) sign -key ../../../bin/DeveloperEnclave/Enclave_private.pem -enclave $(Enclave_Name) -out $@ -config $(Enclave_Config_File)
+	@$(SGX_ENCLAVE_SIGNER) sign -key ./Enclave/Enclave_private.pem -enclave $(Enclave_Name) -out $@ -config $(Enclave_Config_File)
 	@echo "SIGN =>  $@"
 
 .PHONY: clean
 
 clean:
-	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) ./Enclave_u.* $(Enclave_Cpp_Objects) ../../../bin/DeveloperEnclave/Enclave_t.*
-
-
-# SGX_SDK ?= /opt/intel/sgxsdk
-# SGX_MODE ?= SIM
-# SGX_ARCH ?= x64
-
-# ifeq ($(shell getconf LONG_BIT), 32)
-# 	SGX_ARCH := x86
-# else ifeq ($(findstring -m32, $(CXXFLAGS)), -m32)
-# 	SGX_ARCH := x86
-# endif
-
-# ifeq ($(SGX_ARCH), x86)
-# 	SGX_COMMON_CFLAGS := -m32
-# 	SGX_LIBRARY_PATH := $(SGX_SDK)/lib
-# 	SGX_ENCLAVE_SIGNER := $(SGX_SDK)/bin/x86/sgx_sign
-# 	SGX_EDGER8R := $(SGX_SDK)/bin/x86/sgx_edger8r
-# else
-# 	SGX_COMMON_CFLAGS := -m64
-# 	SGX_LIBRARY_PATH := $(SGX_SDK)/lib64
-# 	SGX_ENCLAVE_SIGNER := $(SGX_SDK)/bin/x64/sgx_sign
-# 	SGX_EDGER8R := $(SGX_SDK)/bin/x64/sgx_edger8r
-# endif
-
-# App_Cpp_Files := Developer.cpp ../../Utilities/SGX_Utils/sgx_utils.cpp
-# App_Include_Paths := -IApp -I$(SGX_SDK)/include
-# App_Link_Flags := $(SGX_COMMON_CFLAGS) -L$(SGX_LIBRARY_PATH) -lsgx_urts_si -lpthread -lsgx_uae_service_sim
-# App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths)
-
-# Crypto_Library_Name := sgx_tcrypto
-# Enclave_Cpp_Files := ./Enclave/Enclave.cpp ./Enclave/Sealing/Sealing.cpp
-# Enclave_Include_Paths := -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport
-
-# Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
-# Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++03 -nostdinc++
-# Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
-# 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
-# 	-Wl,--start-group -lsgx_tstdc -lsgx_tstdcxx -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
-# 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
-# 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
-# 	-Wl,--defsym,__ImageBase=0
-
-# Enclave_Cpp_Objects := $(Enclave_Cpp_Files:.cpp=.o)
-
-# Enclave_Name := enclave.so
-# Signed_Enclave_Name := enclave.signed.so
-# Enclave_Config_File := Enclave/Enclave.config.xml
-
-# CXXFLAGS= -Wall -g -std=c++11 -I../../../lib/tpm2
-# LDFLAGS= -Wall -g -pthread $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths) -std=c++11
-
-# COMPILE=g++ $(CXXFLAGS) -c
-# LINK=g++ $(LDFLAGS) -o
-
-# SRCDIR= $(wildcard *.cpp) \
-# 	../../Utilities/SGX_Utils/sgx_utils.cpp
-
-# OBJ = $(SRCDIR:.cpp=.o)
-# # OBJDIR = $(SRCDIR:.cpp=.o)
-
-
-# BINDIR=../../../bin
-# BIN=$(BINDIR)/Developer
-
-# Enclave_u.c: $(SGX_EDGER8R) Enclave/Enclave.edl
-# 	$(SGX_EDGER8R) --untrusted ./Enclave/Enclave.edl --search-path ./Enclave --search-path $(SGX_SDK)/include
-
-# Enclave_u.o: App/Enclave_u.c
-# 	@$(CC) $(App_C_Flags) -c $< -o $@
-
-# EnclaveEnclave_t.c: $(SGX_EDGER8R) Enclave/Enclave.edl
-# 	@cd Enclave && $(SGX_EDGER8R) --trusted ../Enclave/Enclave.edl --search-path ../Enclave --search-path $(SGX_SDK)/include
-
-# Enclave_t.o: Enclave/Enclave_t.c
-# 	@$(CC) $(Enclave_C_Flags) -c $< -o $@
-
-# Enclave/%.o: Enclave/%.cpp
-# 	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
-
-# $(Enclave_Name): Enclave/Enclave_t.o $(Enclave_Cpp_Objects)
-# 	@$(CXX) $^ -o $@ $(Enclave_Link_Flags)
-
-# $(Signed_Enclave_Name): $(Enclave_Name)
-# 	@$(SGX_ENCLAVE_SIGNER) sign -key Enclave/Enclave_private.pem -enclave $(Enclave_Name) -out $@ -config $(Enclave_Config_File)
-
-# all: $(BIN) 
-
-# $(BIN): $(OBJ)
-# 	$(LINK) $(BIN) $(OBJ) -ltss2-mu  -ltss2-sys -ltss2-esys -ltss2-tcti-device -ltss2-tcti-mssim -L/usr/local/lib/ 
-
-# $(OBJDIR)/%.o:	$(SRCDIR)/%.cpp
-# 	$(COMPILE) $< -o $@
-
-# clean:
-# 	rm -f $(OBJ) $(BIN)
-
+	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) ./Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.*
