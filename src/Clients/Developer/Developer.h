@@ -33,7 +33,7 @@ class Developer {
     string appDir;
     int instances;
 
-    void attestMonitor(int monitorSocket); //TODO
+    // void attestMonitor(int monitorSocket); //TODO
     bool sendSyncMessageAndGetResponse(string message);
     bool sendApp();
 

@@ -35,36 +35,36 @@ Developer::Developer(string monitorHost, string username, string key, string app
     std::cout << "Developer created\n";
 }
 
-void Developer::attestMonitor(int monitorSocket){
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
-    General::stringToCharArray(attestationRequestString, buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-    if (DebugFlags::debugDeveloper)
-        cout << "Wrote: " << buffer << " to server\n";
+// void Developer::attestMonitor(int monitorSocket){
+//     char buffer[SocketUtils::MESSAGE_BYTES];
+//     bzero(buffer, SocketUtils::MESSAGE_BYTES);
+//     string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
+//     General::stringToCharArray(attestationRequestString, buffer, SocketUtils::MESSAGE_BYTES);
+//     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
+//     if (DebugFlags::debugDeveloper)
+//         cout << "Wrote: " << buffer << " to server\n";
 
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugDeveloper)
-        cout << "Recieved from server: " << buffer << "\n";
+//     bzero(buffer, SocketUtils::MESSAGE_BYTES);
+//     SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+//     if (DebugFlags::debugDeveloper)
+//         cout << "Recieved from server: " << buffer << "\n";
 
-    string quote(buffer);
-    vector<string> splittedQuote = General::splitString(quote);
+//     string quote(buffer);
+//     vector<string> splittedQuote = General::splitString(quote);
 
-    if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE && splittedQuote[2] == AttestationConstants::PCR_SHA1 && splittedQuote[3] == AttestationConstants::PCR_SHA1) {
-        string approvedMessage = Messages::OK_APPROVED;
-        General::stringToCharArray(approvedMessage, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugDeveloper)
-            cout << "Wrote: " << buffer << " to server\n";
-    } else {
-        General::stringToCharArray(Messages::NOT_APPROVED, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugDeveloper)
-            cout << "Wrote: " << buffer << " to server\n";
-    }
-}
+//     if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE && splittedQuote[2] == AttestationConstants::PCR_SHA1 && splittedQuote[3] == AttestationConstants::PCR_SHA1) {
+//         string approvedMessage = Messages::OK_APPROVED;
+//         General::stringToCharArray(approvedMessage, buffer, SocketUtils::MESSAGE_BYTES);
+//         SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
+//         if (DebugFlags::debugDeveloper)
+//             cout << "Wrote: " << buffer << " to server\n";
+//     } else {
+//         General::stringToCharArray(Messages::NOT_APPROVED, buffer, SocketUtils::MESSAGE_BYTES);
+//         SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
+//         if (DebugFlags::debugDeveloper)
+//             cout << "Wrote: " << buffer << " to server\n";
+//     }
+// }
 
 bool Developer::sendSyncMessageAndGetResponse(string message){
     struct hostent* serverHost;
@@ -78,7 +78,19 @@ bool Developer::sendSyncMessageAndGetResponse(string message){
     if (DebugFlags::debugDeveloper)
         cout << "Connected to the server\n";
 
-    attestMonitor(monitorSocket);
+    if (initialize_enclave(&global_eid, "enclave.token", "enclave.signed.so") < 0) {
+        std::cout << "Fail to initialize enclave." << std::endl;
+        return false;
+    }
+    
+    sgx_status_t status = attestMonitor(global_eid, monitorSocket);;
+    std::cout << status << std::endl;
+    if (status != SGX_SUCCESS) {
+        std::cout << "Failed" << std::endl;
+    }
+    std::cout << "Success" << std::endl;
+
+    
 
     bool sendResult = true;
     vector<string> splittedMessage = General::splitString(message);
@@ -189,43 +201,7 @@ void printHelp() {
     std::cout << "Usage to Delete App: Developer -delete -m monitorHost -u username -k key -a appDir \n";
 }
 
-int main(int argc, char* argv[]) {
-    if (initialize_enclave(&global_eid, "enclave.token", "enclave.signed.so") < 0) {
-        std::cout << "Fail to initialize enclave." << std::endl;
-        return 1;
-    }
-    int ptr;
-    sgx_status_t status = generate_random_number(global_eid, &ptr);
-    std::cout << status << std::endl;
-    if (status != SGX_SUCCESS) {
-        std::cout << "noob" << std::endl;
-    }
-    printf("Random number: %d\n", ptr);
-
-    // Seal the random number
-    size_t sealed_size = sizeof(sgx_sealed_data_t) + sizeof(ptr);
-    uint8_t* sealed_data = (uint8_t*)malloc(sealed_size);
-
-    sgx_status_t ecall_status;
-    status = seal(global_eid, &ecall_status,
-            (uint8_t*)&ptr, sizeof(ptr),
-            (sgx_sealed_data_t*)sealed_data, sealed_size);
-
-    if (!is_ecall_successful(status, "Sealing failed :(", ecall_status)) {
-        return 1;
-    }
-
-    int unsealed;
-    status = unseal(global_eid, &ecall_status,
-            (sgx_sealed_data_t*)sealed_data, sealed_size,
-            (uint8_t*)&unsealed, sizeof(unsealed));
-
-    if (!is_ecall_successful(status, "Unsealing failed :(", ecall_status)) {
-        return 1;
-    }
-
-    std::cout << "Seal round trip success! Receive back " << unsealed << std::endl;
-    
+int main(int argc, char* argv[]) {    
     //--//
     //---TPM
     // TPM2B_ATTEST *quoted = NULL;
