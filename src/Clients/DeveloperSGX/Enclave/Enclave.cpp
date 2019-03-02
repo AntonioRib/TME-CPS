@@ -1,60 +1,121 @@
 #include "Enclave_t.h"
-// #include <netdb.h>
-// #include <netinet/in.h>
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <string.h>
-// #include <sys/socket.h>
-// #include <sys/types.h>
-// #include <sys/wait.h>  // for wait()
-// #include <unistd.h>  // for fork()
-// #include <iostream>
-// #include <iterator>
-// #include <sstream>
-// #include <string>
-// #include <vector>
-// #include "../../../Utilities/AttestationConstants.h"
-// #include "../../../Utilities/General.h"
-// #include "../../../Utilities/Messages.h"
-// #include "../../../Utilities/Ports.h"
-// #include "../../../Utilities/TPM.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "../../../Utilities/SGX_Utils/AttestationConstantsSGX.h"
+#include "../../../Utilities/SGX_Utils/MessagesSGX.h"
+#include "../../../Utilities/SGX_Utils/PortsSGX.h"
 
 int generate_random_number() {
     ocall_print("Processing random number generation...");
     return 42;
 }
 
-void attestMonitor(int monitorSocket){
-        ocall_print("Attested");
-    // char buffer[SocketUtils::MESSAGE_BYTES];
-    // bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    // string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
-    // General::stringToCharArray(attestationRequestString, buffer, SocketUtils::MESSAGE_BYTES);
-    // SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-    // // if (DebugFlags::debugDeveloper)
-    // //     ocal_print("Wrote" + buffer + "to server\n");
-    //     // cout << "Wrote: " << buffer << " to server\n";
+char* concatCharVec(const char* c1, const char* c2){
+    // char result[strlen(c1)+strlen(c2)+1];
+    char* result = (char*) malloc(sizeof(char) * strlen(c1)+strlen(c2)+1); /* make space for the new string (should check the return value ...) */
+    strlcpy(result, c1, strlen(c1)+1); 
+    strncat(result, c2, strlen(c2)+1);
+    return result;
+}
 
-    // bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    // SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    // // if (DebugFlags::debugDeveloper)
-    // //     ocal_print("Recieved from server: " + buffer + "\n");
-    //     // cout << "Recieved from server: " << buffer << "\n";
+char** splitString(char* str){
+    ocall_print("Inside splitString");
+    int count = 0;
+    char* p = strtok (str," ");
+    // char* pch[10];
+    char** pch = (char**) malloc(sizeof(char*) * 10); 
+    count++;
+    while (p != NULL)
+    {
+        ocall_print("ENCLAVE: p: ");
+        ocall_print(p);
+        pch[count++] = p;
+        p = strtok (NULL, " ");
+    }
+    ocall_print("Done");
 
-    // string quote(buffer);
-    // vector<string> splittedQuote = General::splitString(quote);
+            int i = 0;
+            int size = (int)(sizeof(pch) / sizeof(pch[0]));
+            for(i = 0; i < size; i++){
+                ocall_print("ENCLAVE: splittedQuote: ");
+                ocall_print(pch[i]);
+                ocall_print("\n");
+            }
 
-    // if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE && splittedQuote[2] == AttestationConstants::PCR_SHA1 && splittedQuote[3] == AttestationConstants::PCR_SHA1) {
-    //     string approvedMessage = Messages::OK_APPROVED;
-    //     General::stringToCharArray(approvedMessage, buffer, SocketUtils::MESSAGE_BYTES);
-    //     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-    //     // if (DebugFlags::debugDeveloper)
-    //     //     ocal_print("Wrote: " + buffer + " to server\n");
-    //         // cout << "Wrote: " << buffer << " to server\n";
-    // } else {
-    //     General::stringToCharArray(Messages::NOT_APPROVED, buffer, SocketUtils::MESSAGE_BYTES);
-    //     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-    //     // if (DebugFlags::debugDeveloper)
-    //     //     ocal_print("Wrote: " + buffer + " to server\n");
-    // }
+    return pch;
+}
+
+#define MAX_BUF_LEN 256
+
+bool debug = true;
+
+void trustedAttestMonitor(int monitorSocket, int messageLength){
+    ocall_print("Attesting");
+    char* attestationRequestString;
+    attestationRequestString = concatCharVec(MessagesSGX::ATTEST, " "); //MessagesSGX::ATTEST + " " + AttestationConstantsSGX::NONCE;
+    if (debug){
+        ocall_print("ENCLAVE: 1st attestationRequestString: ");
+        ocall_print(attestationRequestString);
+    }
+    attestationRequestString = concatCharVec(attestationRequestString, AttestationConstantsSGX::NONCE);
+    if (debug){
+        ocall_print("ENCLAVE: 2nd attestationRequestString: ");
+        ocall_print(attestationRequestString);
+    }
+
+    ocall_socketSendBuffer(monitorSocket, attestationRequestString);
+    // debugStr = string("Wrote: ") + attestationRequestString + string(" to server\n")
+    if (debug){
+        ocall_print("ENCLAVE: Wrote to server: ");
+        ocall_print(attestationRequestString);
+        ocall_print("\n");
+    }
+
+    char buffer[messageLength];
+    ocall_socketReceiveBuffer(monitorSocket, buffer, messageLength);
+    // debugStr = string("Recieved from server: ") + buffer + string("\n");
+    if (debug){
+        ocall_print("ENCLAVE: Recieved from server: ");
+        ocall_print(buffer);
+        ocall_print("\n");
+    }
+
+    // char* quote = string(buffer);
+    char** splittedQuote = splitString(buffer);
+        if (debug){
+            int i = 0;
+            int size = (int)(sizeof(splittedQuote) / sizeof(splittedQuote[0]));
+            for(i = 0; i < size; i++){
+                ocall_print("ENCLAVE: splittedQuote: ");
+                ocall_print(splittedQuote[i]);
+                ocall_print("\n");
+            }
+        }
+    // if (splittedQuote[0] == MessagesSGX::QUOTE && splittedQuote[1] == AttestationConstantsSGX::QUOTE && splittedQuote[2] == AttestationConstantsSGX::PCR_SHA1 && splittedQuote[3] == AttestationConstantsSGX::PCR_SHA1) {
+    if (strcmp(splittedQuote[0], MessagesSGX::QUOTE) == 0 && strcmp(splittedQuote[1], AttestationConstantsSGX::QUOTE) == 0 
+        && strcmp(splittedQuote[2], AttestationConstantsSGX::PCR_SHA1) == 0 && strcmp(splittedQuote[3], AttestationConstantsSGX::PCR_SHA1) == 0) {
+        // char* approvedMessage = ;
+        // General::stringToCharArray(approvedMessage, buffer, messageLength);
+        char* approvedMessage;
+        approvedMessage = concatCharVec(MessagesSGX::OK_APPROVED, "");
+        ocall_socketSendBuffer(monitorSocket, approvedMessage);
+        if (debug){
+            ocall_print("ENCLAVE: Wrote to server: ");
+            ocall_print(buffer);
+            ocall_print("\n");
+        }
+    } else {
+        // General::stringToCharArray(, buffer, messageLength);
+        char* notAapprovedMessage;
+        notAapprovedMessage = concatCharVec(MessagesSGX::NOT_APPROVED, "");
+        ocall_socketSendBuffer(monitorSocket, notAapprovedMessage);
+        if (debug){
+            ocall_print("ENCLAVE: Wrote to server: ");
+            ocall_print(buffer);
+            ocall_print("\n");
+        }
+    }
+    ocall_print("Attested");
 }
