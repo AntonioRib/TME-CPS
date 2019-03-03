@@ -25,16 +25,16 @@ void ocall_print(const char* str) {
 
 void ocall_socketSendBuffer(int monitorSocket, char* buffer){
     if (DebugFlags::debugDeveloper)
-        cout << "Will write: " << buffer << " to server\n";
+        cout << "OCAL: Will write: " << buffer << " to server\n";
     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
         if (DebugFlags::debugDeveloper)
-        cout << "Wrote: " << buffer << " to server\n";
+        cout << "OCAL: Wrote: " << buffer << " to server\n";
 }
 
 void ocall_socketReceiveBuffer(int monitorSocket, char* buffer, size_t bufferLength){
     SocketUtils::receiveBuffer(monitorSocket, buffer, bufferLength - 1, 0);
         if (DebugFlags::debugDeveloper)
-        cout << "Recieved from server: " << buffer << "\n";
+        cout << "OCAL: Recieved from server: " << buffer << "\n";
 }
 
 // void ocall_socketReadTPM(char* tpmOut, size_t tpmOutLength){
