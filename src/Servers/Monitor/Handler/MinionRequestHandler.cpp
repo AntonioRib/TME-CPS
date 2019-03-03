@@ -10,35 +10,78 @@ MinionRequestHandler::MinionRequestHandler(Monitor* monitor) : monitor{monitor} 
     std::cout << "MinionRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
 
-void MinionRequestHandler::attestMinion(int minionSocket) {
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string request = Messages::ATTEST + " " + AttestationConstants::NONCE;
-    General::stringToCharArray(request, buffer, SocketUtils::MESSAGE_BYTES);
+// void MinionRequestHandler::attestMinion(int minionSocket) {
+//     char buffer[SocketUtils::MESSAGE_BYTES];
+//     std::string request = Messages::ATTEST + " " + AttestationConstants::NONCE;
+//     General::stringToCharArray(request, buffer, SocketUtils::MESSAGE_BYTES);
+//     SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+//     if (DebugFlags::debugMonitor)
+//         cout << "Wrote: " << buffer << " to Minion\n";
+
+//     bzero(buffer, SocketUtils::MESSAGE_BYTES);
+//     SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+//     if (DebugFlags::debugMonitor)
+//         cout << "Recieved: " << buffer << "\n";
+
+//     string response(buffer);
+//     vector<string> responseSplit = General::splitString(response);
+//     if (responseSplit[0] == Messages::QUOTE && responseSplit[1] == AttestationConstants::QUOTE) {
+//         std::string confirmation = Messages::OK;
+//         General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
+//         SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+//         if (DebugFlags::debugMonitor)
+//             cout << "Wrote: " << buffer << " to Minion\n";
+//     } else {
+//         std::string confirmation = Messages::NOT_OK;
+//         General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
+//         SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+//         if (DebugFlags::debugMonitor)
+//             cout << "Wrote: " << buffer << " to Minion\n";
+//         cout << "Not approved!\n";
+//     }
+// }
+
+sgx_enclave_id_t global_eid = 0;
+
+// OCall implementations
+void ocall_print(const char* str) {
+    printf("%s\n", str);
+}
+
+void ocall_socketSendBuffer(int minionSocket, char* buffer){
+    if (DebugFlags::debugDeveloper)
+        cout << "OCAL: Will write: " << buffer << " to minion\n";
     SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Wrote: " << buffer << " to Minion\n";
+        if (DebugFlags::debugDeveloper)
+        cout << "OCAL: Wrote: " << buffer << " to minion\n";
+}
 
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Recieved: " << buffer << "\n";
+void ocall_socketReceiveBuffer(int minionSocket, char* buffer, size_t bufferLength){
+    SocketUtils::receiveBuffer(minionSocket, buffer, bufferLength - 1, 0);
+        if (DebugFlags::debugDeveloper)
+        cout << "OCAL: Recieved from minion: " << buffer << "\n";
+}
 
-    string response(buffer);
-    vector<string> responseSplit = General::splitString(response);
-    if (responseSplit[0] == Messages::QUOTE && responseSplit[1] == AttestationConstants::QUOTE) {
-        std::string confirmation = Messages::OK;
-        General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Wrote: " << buffer << " to Minion\n";
-    } else {
-        std::string confirmation = Messages::NOT_OK;
-        General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Wrote: " << buffer << " to Minion\n";
-        cout << "Not approved!\n";
+// void ocall_socketReadTPM(char* tpmOut, size_t tpmOutLength){
+//     char *C = new char[AttestationConstants::QUOTE.size()+1];
+//     strcpy(C, AttestationConstants::QUOTE.c_str());
+//     tpmOut = C; 
+// }
+
+void MinionRequestHandler::attestMinion(int minionSocket) { 
+
+    if (initialize_enclave(&global_eid, "MinionRequestHandlerEnclave.token", "enclave.signed.so") < 0) {
+        std::cout << "Fail to initialize enclave." << std::endl;
+        return ;
     }
+    
+    sgx_status_t status = trustedAttestMinion(global_eid, minionSocket, SocketUtils::MESSAGE_BYTES);
+    std::cout << status << std::endl;
+    if (status != SGX_SUCCESS) {
+        std::cout << "Failed" << std::endl;
+    }
+    std::cout << "Success" << std::endl;
+    
 }
 
 void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minionRequestHandler) {
