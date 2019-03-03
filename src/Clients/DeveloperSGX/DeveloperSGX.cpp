@@ -68,36 +68,7 @@ void Developer::attestMonitor(int monitorSocket){
         std::cout << "Failed" << std::endl;
     }
     std::cout << "Success" << std::endl;
-
-
-    // char buffer[SocketUtils::MESSAGE_BYTES];
-    // bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    // string attestationRequestString = Messages::ATTEST + " " + AttestationConstants::NONCE;
-    // General::stringToCharArray(attestationRequestString, buffer, SocketUtils::MESSAGE_BYTES);
-    // SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-    // if (DebugFlags::debugDeveloper)
-    //     cout << "Wrote: " << buffer << " to server\n";
-
-    // bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    // SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    // if (DebugFlags::debugDeveloper)
-    //     cout << "Recieved from server: " << buffer << "\n";
-
-    // string quote(buffer);
-    // vector<string> splittedQuote = General::splitString(quote);
-
-    // if (splittedQuote[0] == Messages::QUOTE && splittedQuote[1] == AttestationConstants::QUOTE && splittedQuote[2] == AttestationConstants::PCR_SHA1 && splittedQuote[3] == AttestationConstants::PCR_SHA1) {
-    //     string approvedMessage = Messages::OK_APPROVED;
-    //     General::stringToCharArray(approvedMessage, buffer, SocketUtils::MESSAGE_BYTES);
-    //     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-    //     if (DebugFlags::debugDeveloper)
-    //         cout << "Wrote: " << buffer << " to server\n";
-    // } else {
-    //     General::stringToCharArray(Messages::NOT_APPROVED, buffer, SocketUtils::MESSAGE_BYTES);
-    //     SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-    //     if (DebugFlags::debugDeveloper)
-    //         cout << "Wrote: " << buffer << " to server\n";
-    // }
+    
 }
 
 bool Developer::sendSyncMessageAndGetResponse(string message){
