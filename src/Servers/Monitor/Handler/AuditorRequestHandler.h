@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <iostream>
+#include "../Enclave_u.h"
+#include "../../../Utilities/SGX_Utils/sgx_utils.h"
 #include "../Monitor.h"
 
 class AuditorRequestHandler {

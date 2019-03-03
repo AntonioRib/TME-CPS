@@ -32,6 +32,21 @@ typedef struct ms_trustedAttestMinion_t {
 	int ms_messageLength;
 } ms_trustedAttestMinion_t;
 
+typedef struct ms_trustedAttestMinionReturn_t {
+	int ms_retval;
+	int ms_minionSocket;
+	int ms_messageLength;
+} ms_trustedAttestMinionReturn_t;
+
+typedef struct ms_trustedProcessAttestation_t {
+	int ms_clientSocket;
+	char* ms_result;
+	size_t ms_resultLength;
+	char* ms_nonce;
+	size_t ms_nonce_len;
+	int ms_messageLength;
+} ms_trustedProcessAttestation_t;
+
 typedef struct ms_ocall_print_t {
 	const char* ms_str;
 } ms_ocall_print_t;
@@ -83,26 +98,112 @@ static sgx_status_t SGX_CDECL sgx_trustedAttestMinion(void* pms)
 	return status;
 }
 
+static sgx_status_t SGX_CDECL sgx_trustedAttestMinionReturn(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_trustedAttestMinionReturn_t));
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+	ms_trustedAttestMinionReturn_t* ms = SGX_CAST(ms_trustedAttestMinionReturn_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+
+
+
+	ms->ms_retval = trustedAttestMinionReturn(ms->ms_minionSocket, ms->ms_messageLength);
+
+
+	return status;
+}
+
+static sgx_status_t SGX_CDECL sgx_trustedProcessAttestation(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_trustedProcessAttestation_t));
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+	ms_trustedProcessAttestation_t* ms = SGX_CAST(ms_trustedProcessAttestation_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	char* _tmp_result = ms->ms_result;
+	size_t _tmp_resultLength = ms->ms_resultLength;
+	size_t _len_result = _tmp_resultLength;
+	char* _in_result = NULL;
+	char* _tmp_nonce = ms->ms_nonce;
+	size_t _len_nonce = ms->ms_nonce_len ;
+	char* _in_nonce = NULL;
+
+	CHECK_UNIQUE_POINTER(_tmp_result, _len_result);
+	CHECK_UNIQUE_POINTER(_tmp_nonce, _len_nonce);
+
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+
+	if (_tmp_result != NULL && _len_result != 0) {
+		if ((_in_result = (char*)malloc(_len_result)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_result, 0, _len_result);
+	}
+	if (_tmp_nonce != NULL && _len_nonce != 0) {
+		_in_nonce = (char*)malloc(_len_nonce);
+		if (_in_nonce == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		if (memcpy_s(_in_nonce, _len_nonce, _tmp_nonce, _len_nonce)) {
+			status = SGX_ERROR_UNEXPECTED;
+			goto err;
+		}
+
+		_in_nonce[_len_nonce - 1] = '\0';
+		if (_len_nonce != strlen(_in_nonce) + 1)
+		{
+			status = SGX_ERROR_UNEXPECTED;
+			goto err;
+		}
+	}
+
+	trustedProcessAttestation(ms->ms_clientSocket, _in_result, _tmp_resultLength, _in_nonce, ms->ms_messageLength);
+err:
+	if (_in_result) {
+		if (memcpy_s(_tmp_result, _len_result, _in_result, _len_result)) {
+			status = SGX_ERROR_UNEXPECTED;
+		}
+		free(_in_result);
+	}
+	if (_in_nonce) free(_in_nonce);
+
+	return status;
+}
+
 SGX_EXTERNC const struct {
 	size_t nr_ecall;
-	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[2];
+	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[4];
 } g_ecall_table = {
-	2,
+	4,
 	{
 		{(void*)(uintptr_t)sgx_generate_random_number, 0},
 		{(void*)(uintptr_t)sgx_trustedAttestMinion, 0},
+		{(void*)(uintptr_t)sgx_trustedAttestMinionReturn, 0},
+		{(void*)(uintptr_t)sgx_trustedProcessAttestation, 0},
 	}
 };
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[3][2];
+	uint8_t entry_table[3][4];
 } g_dyn_entry_table = {
 	3,
 	{
-		{0, 0, },
-		{0, 0, },
-		{0, 0, },
+		{0, 0, 0, 0, },
+		{0, 0, 0, 0, },
+		{0, 0, 0, 0, },
 	}
 };
 

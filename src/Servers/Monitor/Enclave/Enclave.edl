@@ -3,6 +3,8 @@ enclave {
         /* define ECALLs here. */
         public int generate_random_number(void);
         public void trustedAttestMinion(int minionSocket, int messageLength);
+        public int trustedAttestMinionReturn(int minionSocket, int messageLength);
+        public void trustedProcessAttestation(int clientSocket, [out, size=resultLength]char* result, size_t resultLength, [in, string]char* nonce, int messageLength);
     };
 
     untrusted {

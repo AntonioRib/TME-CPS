@@ -3,6 +3,7 @@ using namespace std;
 
 const int ERROR_CODE = 255;
 // const int MESSAGE_BYTES = 2048;
+sgx_enclave_id_t aHubRequestHandler_eid = 0;
 
 AHubRequestHandler::AHubRequestHandler() {
     std::cout << "AHubRequestHandler created\n";
@@ -132,36 +133,22 @@ bool AHubRequestHandler::attestMinion(std::string untrustedMinion) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string request = Messages::ATTEST + " " + AttestationConstants::NONCE;
-    General::stringToCharArray(request, buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Wrote: " << buffer << " to Minion\n";
-
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Recieved: " << buffer << "\n";
-
-    string response(buffer);
-    vector<string> responseSplit = General::splitString(response);
-    if (responseSplit[0] == Messages::QUOTE && responseSplit[1] == AttestationConstants::QUOTE) {
-        std::string confirmation = Messages::OK_APPROVED;
-        General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Wrote: " << buffer << " to Minion\n";
-            return true;
-    } else {
-        std::string confirmation = Messages::NOT_APPROVED;
-        General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Wrote: " << buffer << " to Minion\n";
-        cout << "Not approved!\n";
+    if (initialize_enclave(&aHubRequestHandler_eid, "AHubRequestHandler.token", "enclave.signed.so") < 0) {
+        std::cout << "Fail to initialize enclave." << std::endl;
         return false;
     }
+    
+    int* result;
+    sgx_status_t status = trustedAttestMinionReturn(aHubRequestHandler_eid, result, minionSocket, SocketUtils::MESSAGE_BYTES);
+    std::cout << status << std::endl;
+    if (status != SGX_SUCCESS) {
+        std::cout << "Failed" << std::endl;
+    }
+    std::cout << "Success" << std::endl;
+
+    if(*result == 1)
+        return true;
+    return false;
 }
 
 void AHubRequestHandler::setMinionUntrustedOnMonitor(string untrustedMinion) {

@@ -17,6 +17,8 @@ extern "C" {
 
 int generate_random_number(void);
 void trustedAttestMinion(int minionSocket, int messageLength);
+int trustedAttestMinionReturn(int minionSocket, int messageLength);
+void trustedProcessAttestation(int clientSocket, char* result, size_t resultLength, char* nonce, int messageLength);
 
 sgx_status_t SGX_CDECL ocall_print(const char* str);
 sgx_status_t SGX_CDECL ocall_socketSendBuffer(int monitorSocket, char* buffer);

@@ -36,7 +36,7 @@ char** splitString(char* str){
 bool debug = true;
 
 void trustedAttestMinion(int minionSocket, int messageLength){
-    ocall_print("Attesting");
+    ocall_print("ENCLAVE: Attesting");
     char* attestationRequestString;
     attestationRequestString = concatCharVec(MessagesSGX::ATTEST, " ");
     attestationRequestString = concatCharVec(attestationRequestString, AttestationConstantsSGX::NONCE);
@@ -78,33 +78,89 @@ void trustedAttestMinion(int minionSocket, int messageLength){
     ocall_print("ENCLAVE: Attested");
 }
 
-// void MinionRequestHandler::attestMinion(int minionSocket) {
-//     char buffer[SocketUtils::MESSAGE_BYTES];
-//     std::string request = Messages::ATTEST + " " + AttestationConstants::NONCE;
-//     General::stringToCharArray(request, buffer, SocketUtils::MESSAGE_BYTES);
-//     SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-//     if (DebugFlags::debugMonitor)
-//         cout << "Wrote: " << buffer << " to Minion\n";
+int trustedAttestMinionReturn(int minionSocket, int messageLength){
+    ocall_print("ENCLAVE: Attesting");
+    char* attestationRequestString;
+    attestationRequestString = concatCharVec(MessagesSGX::ATTEST, " ");
+    attestationRequestString = concatCharVec(attestationRequestString, AttestationConstantsSGX::NONCE);
+    ocall_socketSendBuffer(minionSocket, attestationRequestString);
+    if (debug){
+        ocall_print("ENCLAVE: Wrote to Minion: ");
+        ocall_print(attestationRequestString);
+    }
 
-//     bzero(buffer, SocketUtils::MESSAGE_BYTES);
-//     SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-//     if (DebugFlags::debugMonitor)
-//         cout << "Recieved: " << buffer << "\n";
+    char buffer[messageLength];
+    ocall_socketReceiveBuffer(minionSocket, buffer, messageLength);
+    if (debug){
+        ocall_print("ENCLAVE: Recieved from Minion: ");
+        ocall_print(buffer);
+    }
 
-//     string response(buffer);
-//     vector<string> responseSplit = General::splitString(response);
-//     if (responseSplit[0] == Messages::QUOTE && responseSplit[1] == AttestationConstants::QUOTE) {
-//         std::string confirmation = Messages::OK;
-//         General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
-//         SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-//         if (DebugFlags::debugMonitor)
-//             cout << "Wrote: " << buffer << " to Minion\n";
-//     } else {
-//         std::string confirmation = Messages::NOT_OK;
-//         General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
-//         SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-//         if (DebugFlags::debugMonitor)
-//             cout << "Wrote: " << buffer << " to Minion\n";
-//         cout << "Not approved!\n";
-//     }
-// }
+    char** splittedQuote = splitString(buffer); 
+    int result = 0;
+    if (strcmp(splittedQuote[0], MessagesSGX::QUOTE) == 0 && strcmp(splittedQuote[1], AttestationConstantsSGX::QUOTE) == 0) {
+        char* approvedMessage;
+        approvedMessage = concatCharVec(MessagesSGX::OK_APPROVED, "");
+        ocall_socketSendBuffer(minionSocket, approvedMessage);
+        if (debug){
+            ocall_print("ENCLAVE: Wrote to Minion: ");
+            ocall_print(approvedMessage);
+        }
+        result = 1;
+        free(approvedMessage);
+    } else {
+        char* notAapprovedMessage;
+        notAapprovedMessage = concatCharVec(MessagesSGX::NOT_APPROVED, "");
+        ocall_socketSendBuffer(minionSocket, notAapprovedMessage);
+        if (debug){
+            ocall_print("ENCLAVE: Wrote to Minion: ");
+            ocall_print(notAapprovedMessage);
+        }
+        result = 0;
+        free(notAapprovedMessage);
+    }
+    free(attestationRequestString);
+    free(splittedQuote);
+    ocall_print("ENCLAVE: Attested");
+    return result;
+}
+
+void trustedProcessAttestation(int clientSocket, char* result, size_t resultLength, char* nonce, int messageLength){
+    ocall_print("ENCLAVE: Attesting");
+    char* attestationRequestString;
+    attestationRequestString = concatCharVec(MessagesSGX::QUOTE, " ");
+    attestationRequestString = concatCharVec(attestationRequestString, AttestationConstantsSGX::QUOTE);
+    ocall_socketSendBuffer(clientSocket, attestationRequestString);
+    if (debug){
+        ocall_print("ENCLAVE: Wrote to Server: ");
+        ocall_print(attestationRequestString);
+    }
+
+    char buffer[messageLength];
+    ocall_socketReceiveBuffer(clientSocket, buffer, messageLength);
+    if (debug){
+        ocall_print("ENCLAVE: Recieved from Server: ");
+        ocall_print(buffer);
+    }
+
+    strlcpy(result, buffer, resultLength); 
+    char** splittedQuote = splitString(buffer); 
+    // char* result = "";
+    if (strcmp(splittedQuote[0], MessagesSGX::NOT_APPROVED) == 0) {
+        if (debug){
+            ocall_print("ENCLAVE: Not approved ");
+        }
+        result = "";
+        // resultLength = strlen(result);
+    } else if(strcmp(splittedQuote[0], MessagesSGX::OK_APPROVED) == 0) {
+        if (debug){
+            ocall_print("ENCLAVE: Approved! ");
+            ocall_print("ENCLAVE: result: ");
+            ocall_print(result);
+        }
+    }
+
+    free(attestationRequestString);
+    free(splittedQuote);
+    return;
+}
