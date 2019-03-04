@@ -25,6 +25,16 @@ typedef struct ms_trustedProcessAttestation_t {
 	int ms_messageLength;
 } ms_trustedProcessAttestation_t;
 
+typedef struct ms_developerTrustedProcessAttestation_t {
+	int ms_retval;
+	int ms_developerSocket;
+	char* ms_approvedSHA1;
+	size_t ms_approvedSHA1_len;
+	char* ms_approvedConfiguration;
+	size_t ms_approvedConfiguration_len;
+	int ms_messageLength;
+} ms_developerTrustedProcessAttestation_t;
+
 typedef struct ms_ocall_print_t {
 	const char* ms_str;
 } ms_ocall_print_t;
@@ -116,6 +126,21 @@ sgx_status_t trustedProcessAttestation(sgx_enclave_id_t eid, int clientSocket, c
 	ms.ms_nonce_len = nonce ? strlen(nonce) + 1 : 0;
 	ms.ms_messageLength = messageLength;
 	status = sgx_ecall(eid, 3, &ocall_table_Enclave, &ms);
+	return status;
+}
+
+sgx_status_t developerTrustedProcessAttestation(sgx_enclave_id_t eid, int* retval, int developerSocket, char* approvedSHA1, char* approvedConfiguration, int messageLength)
+{
+	sgx_status_t status;
+	ms_developerTrustedProcessAttestation_t ms;
+	ms.ms_developerSocket = developerSocket;
+	ms.ms_approvedSHA1 = approvedSHA1;
+	ms.ms_approvedSHA1_len = approvedSHA1 ? strlen(approvedSHA1) + 1 : 0;
+	ms.ms_approvedConfiguration = approvedConfiguration;
+	ms.ms_approvedConfiguration_len = approvedConfiguration ? strlen(approvedConfiguration) + 1 : 0;
+	ms.ms_messageLength = messageLength;
+	status = sgx_ecall(eid, 4, &ocall_table_Enclave, &ms);
+	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;
 }
 

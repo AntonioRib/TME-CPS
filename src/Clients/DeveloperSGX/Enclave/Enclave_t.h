@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include "sgx_edger8r.h" /* for sgx_ocall etc. */
 
+#include "sgx_tseal.h"
 
 #include <stdlib.h> /* for size_t */
 
@@ -16,10 +17,9 @@ extern "C" {
 #endif
 
 int generate_random_number(void);
-void trustedAttestMinion(int minionSocket, int messageLength);
-int trustedAttestMinionReturn(int minionSocket, int messageLength);
-void trustedProcessAttestation(int clientSocket, char* result, size_t resultLength, char* nonce, int messageLength);
-int developerTrustedProcessAttestation(int developerSocket, char* approvedSHA1, char* approvedConfiguration, int messageLength);
+void trustedAttestMonitor(int monitorSocket, int messageLength);
+sgx_status_t seal(uint8_t* plaintext, size_t plaintext_len, sgx_sealed_data_t* sealed_data, size_t sealed_size);
+sgx_status_t unseal(sgx_sealed_data_t* sealed_data, size_t sealed_size, uint8_t* plaintext, uint32_t plaintext_len);
 
 sgx_status_t SGX_CDECL ocall_print(const char* str);
 sgx_status_t SGX_CDECL ocall_socketSendBuffer(int monitorSocket, char* buffer);

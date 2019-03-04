@@ -164,3 +164,58 @@ void trustedProcessAttestation(int clientSocket, char* result, size_t resultLeng
     free(splittedQuote);
     return;
 }
+
+
+int developerTrustedProcessAttestation(int developerSocket, char* approvedSHA1, char* approvedConfiguration, int messageLength){
+    ocall_print("ENCLAVE: Attesting");
+    char buffer[messageLength];
+    ocall_socketReceiveBuffer(developerSocket, buffer, messageLength);
+    if (debug){
+        ocall_print("ENCLAVE: Recieved from Client: ");
+        ocall_print(buffer);
+    }
+
+    // strlcpy(result, buffer, resultLength); 
+    char** splittedRequest = splitString(buffer); 
+    // char* result = "";
+    if (strcmp(splittedRequest[0], MessagesSGX::ATTEST) == 0) {
+        char* configurationString;
+        configurationString = concatCharVec(MessagesSGX::QUOTE, " ");
+        configurationString = concatCharVec(configurationString, AttestationConstantsSGX::QUOTE);
+        configurationString = concatCharVec(configurationString, " ");
+        configurationString = concatCharVec(configurationString, approvedSHA1);
+        configurationString = concatCharVec(configurationString, " ");
+        configurationString = concatCharVec(configurationString, approvedConfiguration);
+    
+        ocall_socketSendBuffer(developerSocket, configurationString);
+        if (debug){
+            ocall_print("ENCLAVE: Wrote to Client: ");
+            ocall_print(configurationString);
+        }
+    } 
+   
+    char recieveBuffer[messageLength];
+    ocall_socketReceiveBuffer(developerSocket, recieveBuffer, messageLength);
+    if (debug){
+        ocall_print("ENCLAVE: Recieved from Client: ");
+        ocall_print(recieveBuffer);
+    }
+
+    // strlcpy(result, recieveBuffer, resultLength); 
+    // char* result = "";
+    int result = 0;
+    char** splittedResponse = splitString(recieveBuffer); 
+    if (strcmp(splittedResponse[0], MessagesSGX::NOT_APPROVED) == 0) {
+        if (debug){
+            ocall_print("ENCLAVE: Not approved ");
+        }
+        result = 0;
+    } else if(strcmp(splittedResponse[0], MessagesSGX::OK_APPROVED) == 0) {
+        if (debug){
+            ocall_print("ENCLAVE: Approved! ");
+        }
+        result = 1;
+    }
+    free(splittedResponse);
+    return result;
+}

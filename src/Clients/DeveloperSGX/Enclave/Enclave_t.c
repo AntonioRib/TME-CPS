@@ -27,35 +27,26 @@ typedef struct ms_generate_random_number_t {
 	int ms_retval;
 } ms_generate_random_number_t;
 
-typedef struct ms_trustedAttestMinion_t {
-	int ms_minionSocket;
+typedef struct ms_trustedAttestMonitor_t {
+	int ms_monitorSocket;
 	int ms_messageLength;
-} ms_trustedAttestMinion_t;
+} ms_trustedAttestMonitor_t;
 
-typedef struct ms_trustedAttestMinionReturn_t {
-	int ms_retval;
-	int ms_minionSocket;
-	int ms_messageLength;
-} ms_trustedAttestMinionReturn_t;
+typedef struct ms_seal_t {
+	sgx_status_t ms_retval;
+	uint8_t* ms_plaintext;
+	size_t ms_plaintext_len;
+	sgx_sealed_data_t* ms_sealed_data;
+	size_t ms_sealed_size;
+} ms_seal_t;
 
-typedef struct ms_trustedProcessAttestation_t {
-	int ms_clientSocket;
-	char* ms_result;
-	size_t ms_resultLength;
-	char* ms_nonce;
-	size_t ms_nonce_len;
-	int ms_messageLength;
-} ms_trustedProcessAttestation_t;
-
-typedef struct ms_developerTrustedProcessAttestation_t {
-	int ms_retval;
-	int ms_developerSocket;
-	char* ms_approvedSHA1;
-	size_t ms_approvedSHA1_len;
-	char* ms_approvedConfiguration;
-	size_t ms_approvedConfiguration_len;
-	int ms_messageLength;
-} ms_developerTrustedProcessAttestation_t;
+typedef struct ms_unseal_t {
+	sgx_status_t ms_retval;
+	sgx_sealed_data_t* ms_sealed_data;
+	size_t ms_sealed_size;
+	uint8_t* ms_plaintext;
+	uint32_t ms_plaintext_len;
+} ms_unseal_t;
 
 typedef struct ms_ocall_print_t {
 	const char* ms_str;
@@ -90,202 +81,168 @@ static sgx_status_t SGX_CDECL sgx_generate_random_number(void* pms)
 	return status;
 }
 
-static sgx_status_t SGX_CDECL sgx_trustedAttestMinion(void* pms)
+static sgx_status_t SGX_CDECL sgx_trustedAttestMonitor(void* pms)
 {
-	CHECK_REF_POINTER(pms, sizeof(ms_trustedAttestMinion_t));
+	CHECK_REF_POINTER(pms, sizeof(ms_trustedAttestMonitor_t));
 	//
 	// fence after pointer checks
 	//
 	sgx_lfence();
-	ms_trustedAttestMinion_t* ms = SGX_CAST(ms_trustedAttestMinion_t*, pms);
+	ms_trustedAttestMonitor_t* ms = SGX_CAST(ms_trustedAttestMonitor_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 
 
 
-	trustedAttestMinion(ms->ms_minionSocket, ms->ms_messageLength);
+	trustedAttestMonitor(ms->ms_monitorSocket, ms->ms_messageLength);
 
 
 	return status;
 }
 
-static sgx_status_t SGX_CDECL sgx_trustedAttestMinionReturn(void* pms)
+static sgx_status_t SGX_CDECL sgx_seal(void* pms)
 {
-	CHECK_REF_POINTER(pms, sizeof(ms_trustedAttestMinionReturn_t));
+	CHECK_REF_POINTER(pms, sizeof(ms_seal_t));
 	//
 	// fence after pointer checks
 	//
 	sgx_lfence();
-	ms_trustedAttestMinionReturn_t* ms = SGX_CAST(ms_trustedAttestMinionReturn_t*, pms);
+	ms_seal_t* ms = SGX_CAST(ms_seal_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
+	uint8_t* _tmp_plaintext = ms->ms_plaintext;
+	size_t _tmp_plaintext_len = ms->ms_plaintext_len;
+	size_t _len_plaintext = _tmp_plaintext_len;
+	uint8_t* _in_plaintext = NULL;
+	sgx_sealed_data_t* _tmp_sealed_data = ms->ms_sealed_data;
+	size_t _tmp_sealed_size = ms->ms_sealed_size;
+	size_t _len_sealed_data = _tmp_sealed_size;
+	sgx_sealed_data_t* _in_sealed_data = NULL;
 
-
-
-	ms->ms_retval = trustedAttestMinionReturn(ms->ms_minionSocket, ms->ms_messageLength);
-
-
-	return status;
-}
-
-static sgx_status_t SGX_CDECL sgx_trustedProcessAttestation(void* pms)
-{
-	CHECK_REF_POINTER(pms, sizeof(ms_trustedProcessAttestation_t));
-	//
-	// fence after pointer checks
-	//
-	sgx_lfence();
-	ms_trustedProcessAttestation_t* ms = SGX_CAST(ms_trustedProcessAttestation_t*, pms);
-	sgx_status_t status = SGX_SUCCESS;
-	char* _tmp_result = ms->ms_result;
-	size_t _tmp_resultLength = ms->ms_resultLength;
-	size_t _len_result = _tmp_resultLength;
-	char* _in_result = NULL;
-	char* _tmp_nonce = ms->ms_nonce;
-	size_t _len_nonce = ms->ms_nonce_len ;
-	char* _in_nonce = NULL;
-
-	CHECK_UNIQUE_POINTER(_tmp_result, _len_result);
-	CHECK_UNIQUE_POINTER(_tmp_nonce, _len_nonce);
+	CHECK_UNIQUE_POINTER(_tmp_plaintext, _len_plaintext);
+	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
 
 	//
 	// fence after pointer checks
 	//
 	sgx_lfence();
 
-	if (_tmp_result != NULL && _len_result != 0) {
-		if ((_in_result = (char*)malloc(_len_result)) == NULL) {
+	if (_tmp_plaintext != NULL && _len_plaintext != 0) {
+		_in_plaintext = (uint8_t*)malloc(_len_plaintext);
+		if (_in_plaintext == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
 		}
 
-		memset((void*)_in_result, 0, _len_result);
+		if (memcpy_s(_in_plaintext, _len_plaintext, _tmp_plaintext, _len_plaintext)) {
+			status = SGX_ERROR_UNEXPECTED;
+			goto err;
+		}
+
 	}
-	if (_tmp_nonce != NULL && _len_nonce != 0) {
-		_in_nonce = (char*)malloc(_len_nonce);
-		if (_in_nonce == NULL) {
+	if (_tmp_sealed_data != NULL && _len_sealed_data != 0) {
+		if ((_in_sealed_data = (sgx_sealed_data_t*)malloc(_len_sealed_data)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
 		}
 
-		if (memcpy_s(_in_nonce, _len_nonce, _tmp_nonce, _len_nonce)) {
-			status = SGX_ERROR_UNEXPECTED;
-			goto err;
-		}
-
-		_in_nonce[_len_nonce - 1] = '\0';
-		if (_len_nonce != strlen(_in_nonce) + 1)
-		{
-			status = SGX_ERROR_UNEXPECTED;
-			goto err;
-		}
+		memset((void*)_in_sealed_data, 0, _len_sealed_data);
 	}
 
-	trustedProcessAttestation(ms->ms_clientSocket, _in_result, _tmp_resultLength, _in_nonce, ms->ms_messageLength);
+	ms->ms_retval = seal(_in_plaintext, _tmp_plaintext_len, _in_sealed_data, _tmp_sealed_size);
 err:
-	if (_in_result) {
-		if (memcpy_s(_tmp_result, _len_result, _in_result, _len_result)) {
+	if (_in_plaintext) free(_in_plaintext);
+	if (_in_sealed_data) {
+		if (memcpy_s(_tmp_sealed_data, _len_sealed_data, _in_sealed_data, _len_sealed_data)) {
 			status = SGX_ERROR_UNEXPECTED;
 		}
-		free(_in_result);
+		free(_in_sealed_data);
 	}
-	if (_in_nonce) free(_in_nonce);
 
 	return status;
 }
 
-static sgx_status_t SGX_CDECL sgx_developerTrustedProcessAttestation(void* pms)
+static sgx_status_t SGX_CDECL sgx_unseal(void* pms)
 {
-	CHECK_REF_POINTER(pms, sizeof(ms_developerTrustedProcessAttestation_t));
+	CHECK_REF_POINTER(pms, sizeof(ms_unseal_t));
 	//
 	// fence after pointer checks
 	//
 	sgx_lfence();
-	ms_developerTrustedProcessAttestation_t* ms = SGX_CAST(ms_developerTrustedProcessAttestation_t*, pms);
+	ms_unseal_t* ms = SGX_CAST(ms_unseal_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
-	char* _tmp_approvedSHA1 = ms->ms_approvedSHA1;
-	size_t _len_approvedSHA1 = ms->ms_approvedSHA1_len ;
-	char* _in_approvedSHA1 = NULL;
-	char* _tmp_approvedConfiguration = ms->ms_approvedConfiguration;
-	size_t _len_approvedConfiguration = ms->ms_approvedConfiguration_len ;
-	char* _in_approvedConfiguration = NULL;
+	sgx_sealed_data_t* _tmp_sealed_data = ms->ms_sealed_data;
+	size_t _tmp_sealed_size = ms->ms_sealed_size;
+	size_t _len_sealed_data = _tmp_sealed_size;
+	sgx_sealed_data_t* _in_sealed_data = NULL;
+	uint8_t* _tmp_plaintext = ms->ms_plaintext;
+	uint32_t _tmp_plaintext_len = ms->ms_plaintext_len;
+	size_t _len_plaintext = _tmp_plaintext_len;
+	uint8_t* _in_plaintext = NULL;
 
-	CHECK_UNIQUE_POINTER(_tmp_approvedSHA1, _len_approvedSHA1);
-	CHECK_UNIQUE_POINTER(_tmp_approvedConfiguration, _len_approvedConfiguration);
+	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
+	CHECK_UNIQUE_POINTER(_tmp_plaintext, _len_plaintext);
 
 	//
 	// fence after pointer checks
 	//
 	sgx_lfence();
 
-	if (_tmp_approvedSHA1 != NULL && _len_approvedSHA1 != 0) {
-		_in_approvedSHA1 = (char*)malloc(_len_approvedSHA1);
-		if (_in_approvedSHA1 == NULL) {
+	if (_tmp_sealed_data != NULL && _len_sealed_data != 0) {
+		_in_sealed_data = (sgx_sealed_data_t*)malloc(_len_sealed_data);
+		if (_in_sealed_data == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
 		}
 
-		if (memcpy_s(_in_approvedSHA1, _len_approvedSHA1, _tmp_approvedSHA1, _len_approvedSHA1)) {
+		if (memcpy_s(_in_sealed_data, _len_sealed_data, _tmp_sealed_data, _len_sealed_data)) {
 			status = SGX_ERROR_UNEXPECTED;
 			goto err;
 		}
 
-		_in_approvedSHA1[_len_approvedSHA1 - 1] = '\0';
-		if (_len_approvedSHA1 != strlen(_in_approvedSHA1) + 1)
-		{
-			status = SGX_ERROR_UNEXPECTED;
-			goto err;
-		}
 	}
-	if (_tmp_approvedConfiguration != NULL && _len_approvedConfiguration != 0) {
-		_in_approvedConfiguration = (char*)malloc(_len_approvedConfiguration);
-		if (_in_approvedConfiguration == NULL) {
+	if (_tmp_plaintext != NULL && _len_plaintext != 0) {
+		if ((_in_plaintext = (uint8_t*)malloc(_len_plaintext)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
 		}
 
-		if (memcpy_s(_in_approvedConfiguration, _len_approvedConfiguration, _tmp_approvedConfiguration, _len_approvedConfiguration)) {
-			status = SGX_ERROR_UNEXPECTED;
-			goto err;
-		}
-
-		_in_approvedConfiguration[_len_approvedConfiguration - 1] = '\0';
-		if (_len_approvedConfiguration != strlen(_in_approvedConfiguration) + 1)
-		{
-			status = SGX_ERROR_UNEXPECTED;
-			goto err;
-		}
+		memset((void*)_in_plaintext, 0, _len_plaintext);
 	}
 
-	ms->ms_retval = developerTrustedProcessAttestation(ms->ms_developerSocket, _in_approvedSHA1, _in_approvedConfiguration, ms->ms_messageLength);
+	ms->ms_retval = unseal(_in_sealed_data, _tmp_sealed_size, _in_plaintext, _tmp_plaintext_len);
 err:
-	if (_in_approvedSHA1) free(_in_approvedSHA1);
-	if (_in_approvedConfiguration) free(_in_approvedConfiguration);
+	if (_in_sealed_data) free(_in_sealed_data);
+	if (_in_plaintext) {
+		if (memcpy_s(_tmp_plaintext, _len_plaintext, _in_plaintext, _len_plaintext)) {
+			status = SGX_ERROR_UNEXPECTED;
+		}
+		free(_in_plaintext);
+	}
 
 	return status;
 }
 
 SGX_EXTERNC const struct {
 	size_t nr_ecall;
-	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[5];
+	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[4];
 } g_ecall_table = {
-	5,
+	4,
 	{
 		{(void*)(uintptr_t)sgx_generate_random_number, 0},
-		{(void*)(uintptr_t)sgx_trustedAttestMinion, 0},
-		{(void*)(uintptr_t)sgx_trustedAttestMinionReturn, 0},
-		{(void*)(uintptr_t)sgx_trustedProcessAttestation, 0},
-		{(void*)(uintptr_t)sgx_developerTrustedProcessAttestation, 0},
+		{(void*)(uintptr_t)sgx_trustedAttestMonitor, 0},
+		{(void*)(uintptr_t)sgx_seal, 0},
+		{(void*)(uintptr_t)sgx_unseal, 0},
 	}
 };
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[3][5];
+	uint8_t entry_table[3][4];
 } g_dyn_entry_table = {
 	3,
 	{
-		{0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, },
+		{0, 0, 0, 0, },
+		{0, 0, 0, 0, },
 	}
 };
 

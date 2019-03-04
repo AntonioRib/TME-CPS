@@ -7,6 +7,7 @@
 #include <string.h>
 #include "sgx_edger8r.h" /* for sgx_satus_t etc. */
 
+#include "sgx_tseal.h"
 
 #include <stdlib.h> /* for size_t */
 
@@ -30,10 +31,9 @@ void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_socketReceiveBuffer, (int monitorSocket
 #endif
 
 sgx_status_t generate_random_number(sgx_enclave_id_t eid, int* retval);
-sgx_status_t trustedAttestMinion(sgx_enclave_id_t eid, int minionSocket, int messageLength);
-sgx_status_t trustedAttestMinionReturn(sgx_enclave_id_t eid, int* retval, int minionSocket, int messageLength);
-sgx_status_t trustedProcessAttestation(sgx_enclave_id_t eid, int clientSocket, char* result, size_t resultLength, char* nonce, int messageLength);
-sgx_status_t developerTrustedProcessAttestation(sgx_enclave_id_t eid, int* retval, int developerSocket, char* approvedSHA1, char* approvedConfiguration, int messageLength);
+sgx_status_t trustedAttestMonitor(sgx_enclave_id_t eid, int monitorSocket, int messageLength);
+sgx_status_t seal(sgx_enclave_id_t eid, sgx_status_t* retval, uint8_t* plaintext, size_t plaintext_len, sgx_sealed_data_t* sealed_data, size_t sealed_size);
+sgx_status_t unseal(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, uint8_t* plaintext, uint32_t plaintext_len);
 
 #ifdef __cplusplus
 }
