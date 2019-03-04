@@ -19,7 +19,7 @@ void AuditorRequestHandler::processAttestation(int clientSocket, std::string non
         return;
     }
     
-    char* result = (char*)malloc(sizeof(char)*SocketUtils::MESSAGE_BYTES);
+    char result[SocketUtils::MESSAGE_BYTES];// = (char*)malloc(sizeof(char)*SocketUtils::MESSAGE_BYTES);
     sgx_status_t status = trustedProcessAttestation(auditorRequestHandler_eid, clientSocket, result, SocketUtils::MESSAGE_BYTES, (char *)AttestationConstants::NONCE.c_str(), SocketUtils::MESSAGE_BYTES);
     if (status != SGX_SUCCESS) {
         std::cout << "Enclave call Failed" << std::endl;
@@ -39,7 +39,7 @@ void AuditorRequestHandler::processAttestation(int clientSocket, std::string non
         monitor.setApprovedConfigurationForMinions(approvedSplit[3]);
         cout << "Approved Configuration " << +monitor.getApprovedConfiguration();
     }
-    free(result);
+    // free(result);
 }
 
 void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler) {
