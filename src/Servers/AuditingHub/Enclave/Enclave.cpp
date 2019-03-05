@@ -35,96 +35,6 @@ char** splitString(char* str){
 
 bool debug = true;
 
-void trustedAttestMinion(int minionSocket, int messageLength){
-    ocall_print("ENCLAVE: Attesting");
-    char* attestationRequestString;
-    attestationRequestString = concatCharVec(MessagesSGX::ATTEST, " ");
-    attestationRequestString = concatCharVec(attestationRequestString, AttestationConstantsSGX::NONCE);
-    ocall_socketSendBuffer(minionSocket, attestationRequestString);
-    if (debug){
-        ocall_print("ENCLAVE: Wrote to Minion: ");
-        ocall_print(attestationRequestString);
-    }
-
-    char buffer[messageLength];
-    ocall_socketReceiveBuffer(minionSocket, buffer, messageLength);
-    if (debug){
-        ocall_print("ENCLAVE: Recieved from Minion: ");
-        ocall_print(buffer);
-    }
-
-    char** splittedQuote = splitString(buffer); 
-    if (strcmp(splittedQuote[0], MessagesSGX::QUOTE) == 0 && strcmp(splittedQuote[1], AttestationConstantsSGX::QUOTE) == 0) {
-        char* approvedMessage;
-        approvedMessage = concatCharVec(MessagesSGX::OK_APPROVED, "");
-        ocall_socketSendBuffer(minionSocket, approvedMessage);
-        if (debug){
-            ocall_print("ENCLAVE: Wrote to Minion: ");
-            ocall_print(approvedMessage);
-        }
-        free(approvedMessage);
-    } else {
-        char* notAapprovedMessage;
-        notAapprovedMessage = concatCharVec(MessagesSGX::NOT_APPROVED, "");
-        ocall_socketSendBuffer(minionSocket, notAapprovedMessage);
-        if (debug){
-            ocall_print("ENCLAVE: Wrote to Minion: ");
-            ocall_print(notAapprovedMessage);
-        }
-        free(notAapprovedMessage);
-    }
-    free(attestationRequestString);
-    free(splittedQuote);
-    ocall_print("ENCLAVE: Attested");
-}
-
-int trustedAttestMinionReturn(int minionSocket, int messageLength){
-    ocall_print("ENCLAVE: Attesting");
-    char* attestationRequestString;
-    attestationRequestString = concatCharVec(MessagesSGX::ATTEST, " ");
-    attestationRequestString = concatCharVec(attestationRequestString, AttestationConstantsSGX::NONCE);
-    ocall_socketSendBuffer(minionSocket, attestationRequestString);
-    if (debug){
-        ocall_print("ENCLAVE: Wrote to Minion: ");
-        ocall_print(attestationRequestString);
-    }
-
-    char buffer[messageLength];
-    ocall_socketReceiveBuffer(minionSocket, buffer, messageLength);
-    if (debug){
-        ocall_print("ENCLAVE: Recieved from Minion: ");
-        ocall_print(buffer);
-    }
-
-    char** splittedQuote = splitString(buffer); 
-    int result = 0;
-    if (strcmp(splittedQuote[0], MessagesSGX::QUOTE) == 0 && strcmp(splittedQuote[1], AttestationConstantsSGX::QUOTE) == 0) {
-        char* approvedMessage;
-        approvedMessage = concatCharVec(MessagesSGX::OK_APPROVED, "");
-        ocall_socketSendBuffer(minionSocket, approvedMessage);
-        if (debug){
-            ocall_print("ENCLAVE: Wrote to Minion: ");
-            ocall_print(approvedMessage);
-        }
-        result = 1;
-        free(approvedMessage);
-    } else {
-        char* notAapprovedMessage;
-        notAapprovedMessage = concatCharVec(MessagesSGX::NOT_APPROVED, "");
-        ocall_socketSendBuffer(minionSocket, notAapprovedMessage);
-        if (debug){
-            ocall_print("ENCLAVE: Wrote to Minion: ");
-            ocall_print(notAapprovedMessage);
-        }
-        result = 0;
-        free(notAapprovedMessage);
-    }
-    free(attestationRequestString);
-    free(splittedQuote);
-    ocall_print("ENCLAVE: Attested");
-    return result;
-}
-
 void trustedProcessAttestation(int clientSocket, char* result, size_t resultLength, char* nonce, int messageLength){
     ocall_print("ENCLAVE: Attesting");
     char* attestationRequestString;
@@ -166,12 +76,12 @@ void trustedProcessAttestation(int clientSocket, char* result, size_t resultLeng
 }
 
 
-int developerTrustedProcessAttestation(int developerSocket, char* approvedSHA1, char* approvedConfiguration, int messageLength){
+int sysAdminTrustedProcessAttestation(int adminSocket, char* approvedSHA1, char* approvedConfiguration, int messageLength){
     ocall_print("ENCLAVE: Attesting");
     char buffer[messageLength];
-    ocall_socketReceiveBuffer(developerSocket, buffer, messageLength);
+    ocall_socketReceiveBuffer(adminSocket, buffer, messageLength);
     if (debug){
-        ocall_print("ENCLAVE: Recieved from Client: ");
+        ocall_print("ENCLAVE: Recieved from SysAdmin: ");
         ocall_print(buffer);
     }
 
@@ -187,35 +97,35 @@ int developerTrustedProcessAttestation(int developerSocket, char* approvedSHA1, 
         configurationString = concatCharVec(configurationString, " ");
         configurationString = concatCharVec(configurationString, approvedConfiguration);
     
-        ocall_socketSendBuffer(developerSocket, configurationString);
+        ocall_socketSendBuffer(adminSocket, configurationString);
         if (debug){
-            ocall_print("ENCLAVE: Wrote to Client: ");
+            ocall_print("ENCLAVE: Wrote to SysAdmin: ");
             ocall_print(configurationString);
         }
     } 
    
-    char recieveBuffer[messageLength];
-    ocall_socketReceiveBuffer(developerSocket, recieveBuffer, messageLength);
-    if (debug){
-        ocall_print("ENCLAVE: Recieved from Client: ");
-        ocall_print(recieveBuffer);
-    }
+    // char recieveBuffer[messageLength];
+    // ocall_socketReceiveBuffer(adminSocket, recieveBuffer, messageLength);
+    // if (debug){
+    //     ocall_print("ENCLAVE: Recieved from SysAdmin: ");
+    //     ocall_print(recieveBuffer);
+    // }
 
     // strlcpy(result, recieveBuffer, resultLength); 
     // char* result = "";
-    int result = 0;
-    char** splittedResponse = splitString(recieveBuffer); 
-    if (strcmp(splittedResponse[0], MessagesSGX::NOT_APPROVED) == 0) {
-        if (debug){
-            ocall_print("ENCLAVE: Not approved ");
-        }
-        result = 0;
-    } else if(strcmp(splittedResponse[0], MessagesSGX::OK_APPROVED) == 0) {
-        if (debug){
-            ocall_print("ENCLAVE: Approved! ");
-        }
-        result = 1;
-    }
-    free(splittedResponse);
+    int result = 1;
+    // char** splittedResponse = splitString(recieveBuffer); 
+    // if (strcmp(splittedResponse[0], MessagesSGX::NOT_APPROVED) == 0) {
+    //     if (debug){
+    //         ocall_print("ENCLAVE: Not approved ");
+    //     }
+    //     result = 0;
+    // } else if(strcmp(splittedResponse[0], MessagesSGX::OK_APPROVED) == 0) {
+    //     if (debug){
+    //         ocall_print("ENCLAVE: Approved! ");
+    //     }
+    //     result = 1;
+    // }
+    // free(splittedResponse);
     return result;
 }

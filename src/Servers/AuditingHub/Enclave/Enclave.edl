@@ -2,10 +2,8 @@ enclave {
     trusted {
         /* define ECALLs here. */
         public int generate_random_number(void);
-        public void trustedAttestMinion(int minionSocket, int messageLength);
-        public int trustedAttestMinionReturn(int minionSocket, int messageLength);
+        public int sysAdminTrustedProcessAttestation(int adminSocket, [in, string]char* approvedSHA1, [in, string]char* approvedConfiguration, int messageLength);
         public void trustedProcessAttestation(int clientSocket, [out, size=resultLength]char* result, size_t resultLength, [in, string]char* nonce, int messageLength);
-        public int developerTrustedProcessAttestation(int developerSocket, [in, string]char* approvedSHA1, [in, string]char* approvedConfiguration, int messageLength);
     };
 
     untrusted {

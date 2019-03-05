@@ -10,32 +10,34 @@ AuditorRequestHandler::AuditorRequestHandler(AuditingHub* auditingHub) : auditin
     std::cout << "AuditorRequestHandler created with the name " << auditingHub->getHostname() << "\n";
 }
 
+sgx_enclave_id_t auditorRequestHandler_eid = 0;
+
 void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, AuditingHub& auditingHub) {
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
-    General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
-    // cout << "Buffer: " << buffer;
-    SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
-    if (DebugFlags::debugAuditingHub)
-        cout << "Wrote: " << buffer << " to client\n";
-
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(clientSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugAuditingHub)
-        cout << "Recieved: " << buffer << "\n";
-
-    string approved(buffer);
+    if (initialize_enclave(&auditorRequestHandler_eid, "AuditorRequestHandler.token", "enclave.signed.so") < 0) {
+        std::cout << "Fail to initialize enclave." << std::endl;
+        return;
+    }
+    
+    char result[SocketUtils::MESSAGE_BYTES];// = (char*)malloc(sizeof(char)*SocketUtils::MESSAGE_BYTES);
+    sgx_status_t status = trustedProcessAttestation(auditorRequestHandler_eid, clientSocket, result, SocketUtils::MESSAGE_BYTES, (char *)AttestationConstants::NONCE.c_str(), SocketUtils::MESSAGE_BYTES);
+    if (status != SGX_SUCCESS) {
+        std::cout << "Enclave call Failed" << std::endl;
+        return;
+    }
+    std::cout << "Enclave call Success" << std::endl;
+    string approved(result);
     vector<string> approvedSplit = General::splitString(approved);
 
     if (approvedSplit[0] == Messages::NOT_APPROVED) {
         cout << "Not approved!\n";
     } else if (approvedSplit[0] == Messages::OK_APPROVED) {
         cout << "Approved!\n";
-        cout << "Configuration approved. Auditor signature for AuditingHub: " + approvedSplit[1] + ". For minions:" + approvedSplit[3] + "\n";
+        cout << "Configuration approved. Auditor signature for monitor: " + approvedSplit[1] + ". For minions:" + approvedSplit[3] + "\n";
         unsigned char* approvedConfiguration = (unsigned char*)approvedSplit[1].c_str();
         auditingHub.setApprovedConfiguration(approvedConfiguration);
         auditingHub.setApprovedSHA1Configuration(approvedSplit[2]);
     }
+    // free(result);
 }
 
 void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler) {

@@ -21,16 +21,16 @@ void ocall_print(const char* str) {
 }
 
 void ocall_socketSendBuffer(int minionSocket, char* buffer){
-    if (DebugFlags::debugDeveloper)
+    if (DebugFlags::debugMonitor)
         cout << "OCAL: Will write: " << buffer << " to minion\n";
     SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugDeveloper)
+        if (DebugFlags::debugMonitor)
         cout << "OCAL: Wrote: " << buffer << " to minion\n";
 }
 
 void ocall_socketReceiveBuffer(int minionSocket, char* buffer, size_t bufferLength){
     SocketUtils::receiveBuffer(minionSocket, buffer, bufferLength - 1, 0);
-        if (DebugFlags::debugDeveloper)
+        if (DebugFlags::debugMonitor)
         cout << "OCAL: Recieved from minion: " << buffer << "\n";
 }
 

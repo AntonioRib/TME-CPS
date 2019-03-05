@@ -11,6 +11,8 @@ SysAdminRequestHandler::SysAdminRequestHandler(AuditingHub* auditingHub) : audit
     std::cout << "SysAdminRequestHandler created with the name " << auditingHub->getHostname() << "\n";
 }
 
+sgx_enclave_id_t sysAdminRequestHandler_eid = 0;
+
 void SysAdminRequestHandler::launchSessionProcess(){
     char* sshArgsStream;
     int size = asprintf(&sshArgsStream, "%s -i %s -oStrictHostKeyChecking=no -t %s@%s",
@@ -241,26 +243,48 @@ bool SysAdminRequestHandler::launchManagementSession(){
 }
 
 void SysAdminRequestHandler::processAttestation(int adminSocket) {
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(adminSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugAuditingHub)
-        cout << "Recieved: " << buffer << "\n";
 
-    string request(buffer);
-    vector<string> requestSplit = General::splitString(request);
-    if (requestSplit[0] == Messages::ATTEST) {
-        if (DebugFlags::debugAuditingHub)
-            cout << "Being attested\n";
+    if (initialize_enclave(&sysAdminRequestHandler_eid, "SysAdminRequestHandler.token", "enclave.signed.so") < 0) {
+        std::cout << "Fail to initialize enclave." << std::endl;
+        return;
+    }
+    
+    int result;
+    sgx_status_t status = sysAdminTrustedProcessAttestation(sysAdminRequestHandler_eid, &result, adminSocket, (char*)auditingHub->getApprovedSHA1().c_str(), 
+                                                            (char*)auditingHub->getApprovedSHA1().c_str(), SocketUtils::MESSAGE_BYTES);
+    if (status != SGX_SUCCESS) {
+        std::cout << "Enclave call Failed" << std::endl;
+        return;
+    }
+    std::cout << "Enclave call Success" << std::endl;
 
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
-        std::string quote = string(Messages::QUOTE) + " " + string(AttestationConstants::QUOTE) + " " + string(auditingHub->getApprovedSHA1()) + " " +  string(auditingHub->getApprovedSHA1());
-        General::stringToCharArray(quote, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(adminSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugAuditingHub)
-            cout << "Wrote: " << buffer << " to client\n";
-    } else 
-        throw runtime_error("Recieved something unknown"); //TODO
+    if(result == 0)
+        throw runtime_error("SysAdmin rejected platform attestation\n"); 
+    if (DebugFlags::debugMonitor)
+        cout << "SysAdmin accepted platform attestation\n";
+    return;
+
+    //**//
+    // char buffer[SocketUtils::MESSAGE_BYTES];
+    // bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    // SocketUtils::receiveBuffer(adminSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    // if (DebugFlags::debugAuditingHub)
+    //     cout << "Recieved: " << buffer << "\n";
+
+    // string request(buffer);
+    // vector<string> requestSplit = General::splitString(request);
+    // if (requestSplit[0] == Messages::ATTEST) {
+    //     if (DebugFlags::debugAuditingHub)
+    //         cout << "Being attested\n";
+
+    //     bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    //     std::string quote = string(Messages::QUOTE) + " " + string(AttestationConstants::QUOTE) + " " + string(auditingHub->getApprovedSHA1()) + " " +  string(auditingHub->getApprovedSHA1());
+    //     General::stringToCharArray(quote, buffer, SocketUtils::MESSAGE_BYTES);
+    //     SocketUtils::sendBuffer(adminSocket, buffer, strlen(buffer), 0);
+    //     if (DebugFlags::debugAuditingHub)
+    //         cout << "Wrote: " << buffer << " to client\n";
+    // } else 
+    //     throw runtime_error("Recieved something unknown"); //TODO
 
     // bzero(buffer, SocketUtils::MESSAGE_BYTES);
     // SocketUtils::receiveBuffer(adminSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);

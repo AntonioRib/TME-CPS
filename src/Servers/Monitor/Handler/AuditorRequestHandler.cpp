@@ -12,7 +12,6 @@ AuditorRequestHandler::AuditorRequestHandler(Monitor* monitor) : monitor{monitor
 
 sgx_enclave_id_t auditorRequestHandler_eid = 0;
 
-
 void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, Monitor& monitor){
     if (initialize_enclave(&auditorRequestHandler_eid, "AuditorRequestHandler.token", "enclave.signed.so") < 0) {
         std::cout << "Fail to initialize enclave." << std::endl;
