@@ -1,7 +1,7 @@
 #include "SysAdminRequestHandler.h"
 
-const string UNCOMMITED_LOGS_DIR = "Logs/Uncommited/";
-const string COMMITED_LOGS_DIR = "Logs/Commited/";
+const string UNCOMMITED_LOGS_DIR = "../../../Logs/Uncommited/";
+const string COMMITED_LOGS_DIR = "../../../Logs/Commited/";
 
 SysAdminRequestHandler::SysAdminRequestHandler() {
     std::cout << "SysAdminRequestHandler created\n";
