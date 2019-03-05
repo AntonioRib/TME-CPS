@@ -104,7 +104,7 @@ bool AHubRequestHandler::spawnReplacementInstances(Minion* untrustedMinion){
         vector<string> tempTrustedSet(trustedSet);
         vector<Minion*> applicationHosts = monitor->getHosts(entry.first);
         for (const auto& minion : applicationHosts) {
-            vector<string>::iterator positionToErase = find(tempTrustedSet.begin(), tempTrustedSet.end(), minion->getHostname());
+            vector<string>::iterator positionToErase = find(tempTrustedSet.begin(), tempTrustedSet.end(), minion->getIpAddress());
             if (positionToErase != tempTrustedSet.end())
                 tempTrustedSet.erase(positionToErase);
             if (tempTrustedSet.size() == 0)
@@ -138,15 +138,14 @@ bool AHubRequestHandler::attestMinion(std::string untrustedMinion) {
         return false;
     }
     
-    int* result;
-    sgx_status_t status = trustedAttestMinionReturn(aHubRequestHandler_eid, result, minionSocket, SocketUtils::MESSAGE_BYTES);
-    std::cout << status << std::endl;
+    int result;
+    sgx_status_t status = trustedAttestMinionReturn(aHubRequestHandler_eid, &result, minionSocket, SocketUtils::MESSAGE_BYTES);
     if (status != SGX_SUCCESS) {
         std::cout << "Failed" << std::endl;
     }
     std::cout << "Success" << std::endl;
 
-    if(*result == 1)
+    if(result == 1)
         return true;
     return false;
 }

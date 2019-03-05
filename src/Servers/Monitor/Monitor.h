@@ -10,7 +10,7 @@
 #include "../../Utilities/Messages.h"
 #include "../../Utilities/Ports.h"
 #include "../Application/Application.h"
-#include "../Minion/Minion.h"
+#include "Minion.h"
 
 using namespace std;
 

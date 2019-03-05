@@ -74,10 +74,8 @@ else
 endif
 
 # App_Cpp_Files := App/App.cpp $(wildcard App/Edger8rSyntax/*.cpp) $(wildcard App/TrustedLibrary/*.cpp)
-App_Cpp_Files := Monitor.cpp ../../Utilities/SGX_Utils/sgx_utils.cpp \
+App_Cpp_Files := Monitor.cpp Minion.cpp ../../Utilities/SGX_Utils/sgx_utils.cpp \
 	$(wildcard Handler/*.cpp) \
-	$(wildcard ../Minion/*.cpp) \
-	$(wildcard ../Minion/Handler/*.cpp) \
 	$(wildcard ../Application/*.cpp) \
 
 # App_Include_Paths := -IInclude -IApp -I$(SGX_SDK)/include

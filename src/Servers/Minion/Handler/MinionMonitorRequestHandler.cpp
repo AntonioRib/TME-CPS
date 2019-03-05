@@ -11,6 +11,8 @@ MinionMonitorRequestHandler::MinionMonitorRequestHandler(Minion* minion) : minio
     std::cout << "MonitorRequestHandler created with the name " << minion->getIpAddress() << "\n";
 }
 
+sgx_enclave_id_t minionMonitorRequestHandler_eid = 0;
+
 bool MinionMonitorRequestHandler::deployApp(string appId) {
     // string createString = "sudo docker build -t %s-container /home/AntonioRib/%s%s"; 
     // string deployString = "sudo docker run -p 80 -d --name %s %s-container";
@@ -131,31 +133,29 @@ bool MinionMonitorRequestHandler::deleteApp(string appId) {
     return true;
 }
 
-bool MinionMonitorRequestHandler::processAttestation(int monitorSocket, string nonce) { 
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
-    General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
-    if (DebugFlags::debugMinion)
-        cout << "Wrote: " << buffer << " to client\n";
-
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugMinion)
-        cout << "Recieved: " << buffer << "\n";
-
-    string approved(buffer);
-    vector<string> approvedSplit = General::splitString(approved);
-
-    if (approvedSplit[0] == Messages::NOT_APPROVED) {
+bool MinionMonitorRequestHandler::processAttestation(int monitorSocket, string nonce) {
+    
+    if (initialize_enclave(&minionMonitorRequestHandler_eid, "MinionMonitorRequestHandler.token", "enclave.signed.so") < 0) {
+        std::cout << "Fail to initialize enclave." << std::endl;
+        return false;
+    }
+    
+    int result;// = (char*)malloc(sizeof(char)*SocketUtils::MESSAGE_BYTES);
+    sgx_status_t status = minionMonitorRequestTrustedProcessAttestation(minionMonitorRequestHandler_eid, &result, monitorSocket, SocketUtils::MESSAGE_BYTES);
+    if (status != SGX_SUCCESS) {
+        std::cout << "Enclave call Failed" << std::endl;
+        return false;
+    }
+    std::cout << "Enclave call Success" << std::endl;
+    if(result == 0){
         cout << "Not approved!\n";
         return false;
-    } else if (approvedSplit[0] == Messages::OK_APPROVED) {
+    } 
+    
+    if (DebugFlags::debugMonitor){
         cout << "Approved!\n";
-        return true;
-        // cout << "Configuration approved. Auditor signature for monitor: " + approvedSplit[1] + ". For minions:" + approvedSplit[3];
     }
-    return false;
+    return true;
 }
 
 void MinionMonitorRequestHandler::startMinionMonitorRequestHandler(MinionMonitorRequestHandler* minionMonitorRequestHandler) {

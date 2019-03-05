@@ -1,0 +1,16 @@
+enclave {
+    trusted {
+        /* define ECALLs here. */
+        public int generate_random_number(void);
+        public int minionMonitorRequestTrustedProcessAttestation(int monitorSocket, int messageLength);
+        public int minionTrustedProcessAttestation(int monitorSocket, int messageLength);
+    };
+
+    untrusted {
+        /* define OCALLs here. */
+        void ocall_print([in, string]const char* str);
+        void ocall_socketSendBuffer(int monitorSocket, [in, string]char* buffer);
+        void ocall_socketReceiveBuffer(int monitorSocket, [out, size=bufferLength]char* buffer, size_t bufferLength);
+       /* void ocall_socketReadTPM([out, size=bufferLength]char* tpmOut, size_t tpmOutLength); */
+    };
+};
