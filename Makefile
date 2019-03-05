@@ -5,7 +5,7 @@ SUBDIRS = $(wildcard src/Servers/AuditingHub/.) \
 	$(wildcard src/Clients/SysAdmin/.) \
 	$(wildcard src/Servers/Minion/.) \
 	$(wildcard src/Servers/Monitor/.) \
-	$(wildcard src/Servers/Application/.) 
+	# $(wildcard src/Servers/Application/.) 
 	 #$(wildcard src/Utilities/.)
 
 RMSUBDIRS = $(wildcard src/Servers/AuditingHub/.) \
@@ -15,7 +15,7 @@ RMSUBDIRS = $(wildcard src/Servers/AuditingHub/.) \
 	$(wildcard src/Clients/SysAdmin/.) \
 	$(wildcard src/Servers/Minion/.) \
 	$(wildcard src/Servers/Monitor/.) \
-	$(wildcard src/Servers/Application/.) 
+	# $(wildcard src/Servers/Application/.) 
 	#$(wildcard src/Utilities/.)
 
 .PHONY : all $(SUBDIRS)
