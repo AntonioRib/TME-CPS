@@ -23,6 +23,9 @@
 #include "Enclave_u.h"
 #include "sgx_urts.h"
 #include "../../Utilities/SGX_Utils/sgx_utils.h"
+#include <openssl/conf.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
 using namespace std;
 
 class Developer {
