@@ -13,6 +13,26 @@ const int HOSTNAME_FLAG_INDEX = 7;
 
 // const unsigned char *NULL_VALUE = (unsigned char *)"\0";
 
+// OCall implementations
+void ocall_print(const char* str) {
+    printf("%s\n", str);
+}
+
+void ocall_socketSendBuffer(int minionSocket, char* buffer){
+    if (DebugFlags::debugAuditingHub)
+        cout << "OCAL: Will write: " << buffer << " to minion\n";
+    SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+        if (DebugFlags::debugAuditingHub)
+        cout << "OCAL: Wrote: " << buffer << " to minion\n";
+}
+
+void ocall_socketReceiveBuffer(int minionSocket, char* buffer, size_t bufferLength){
+    SocketUtils::receiveBuffer(minionSocket, buffer, bufferLength - 1, 0);
+        if (DebugFlags::debugAuditingHub)
+        cout << "OCAL: Recieved from minion: " << buffer << "\n";
+}
+
+
 AuditingHub::AuditingHub()
 {
     std::cout << "AuditingHub created\n";

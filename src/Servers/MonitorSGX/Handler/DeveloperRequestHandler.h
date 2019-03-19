@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include "../Enclave_u.h"
+#include "../../../Utilities/SGX_Utils/sgx_utils.h"
 #include "../Monitor.h"
 using namespace std;
 

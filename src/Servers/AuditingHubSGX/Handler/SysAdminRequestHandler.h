@@ -12,6 +12,8 @@
 #include <iterator>
 #include <sstream>
 #include <string>
+#include "../Enclave_u.h"
+#include "../../../Utilities/SGX_Utils/sgx_utils.h"
 #include "../AuditingHub.h"
 using namespace std;
 

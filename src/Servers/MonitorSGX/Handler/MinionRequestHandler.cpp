@@ -10,35 +10,22 @@ MinionRequestHandler::MinionRequestHandler(Monitor* monitor) : monitor{monitor} 
     std::cout << "MinionRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
 
-void MinionRequestHandler::attestMinion(int minionSocket) {
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string request = Messages::ATTEST + " " + AttestationConstants::NONCE;
-    General::stringToCharArray(request, buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Wrote: " << buffer << " to Minion\n";
+sgx_enclave_id_t minionRequestHandler_eid = 0;
 
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Recieved: " << buffer << "\n";
+void MinionRequestHandler::attestMinion(int minionSocket) { 
 
-    string response(buffer);
-    vector<string> responseSplit = General::splitString(response);
-    if (responseSplit[0] == Messages::QUOTE && responseSplit[1] == AttestationConstants::QUOTE) {
-        std::string confirmation = Messages::OK;
-        General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Wrote: " << buffer << " to Minion\n";
-    } else {
-        std::string confirmation = Messages::NOT_OK;
-        General::stringToCharArray(confirmation, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Wrote: " << buffer << " to Minion\n";
-        cout << "Not approved!\n";
+    if (initialize_enclave(&minionRequestHandler_eid, "MinionRequestHandlerEnclave.token", "enclave.signed.so") < 0) {
+        std::cout << "Fail to initialize enclave." << std::endl;
+        return ;
     }
+    
+    sgx_status_t status = trustedAttestMinion(minionRequestHandler_eid, minionSocket, SocketUtils::MESSAGE_BYTES);
+    std::cout << status << std::endl;
+    if (status != SGX_SUCCESS) {
+        std::cout << "Failed" << std::endl;
+    }
+    std::cout << "Success" << std::endl;
+    
 }
 
 void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minionRequestHandler) {

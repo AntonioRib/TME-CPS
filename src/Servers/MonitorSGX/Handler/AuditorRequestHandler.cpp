@@ -10,20 +10,22 @@ AuditorRequestHandler::AuditorRequestHandler(Monitor* monitor) : monitor{monitor
     std::cout << "AuditorRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
 
+sgx_enclave_id_t auditorRequestHandler_eid = 0;
+
 void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, Monitor& monitor){
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
-    General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Wrote: " << buffer << " to client\n";
-
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(clientSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Recieved: " << buffer << "\n";
-
-    string approved(buffer);
+    if (initialize_enclave(&auditorRequestHandler_eid, "AuditorRequestHandler.token", "enclave.signed.so") < 0) {
+        std::cout << "Fail to initialize enclave." << std::endl;
+        return;
+    }
+    
+    char result[SocketUtils::MESSAGE_BYTES];// = (char*)malloc(sizeof(char)*SocketUtils::MESSAGE_BYTES);
+    sgx_status_t status = trustedProcessAttestation(auditorRequestHandler_eid, clientSocket, result, SocketUtils::MESSAGE_BYTES, (char *)AttestationConstants::NONCE.c_str(), SocketUtils::MESSAGE_BYTES);
+    if (status != SGX_SUCCESS) {
+        std::cout << "Enclave call Failed" << std::endl;
+        return;
+    }
+    std::cout << "Enclave call Success" << std::endl;
+    string approved(result);
     vector<string> approvedSplit = General::splitString(approved);
 
     if (approvedSplit[0] == Messages::NOT_APPROVED) {
@@ -36,6 +38,7 @@ void AuditorRequestHandler::processAttestation(int clientSocket, std::string non
         monitor.setApprovedConfigurationForMinions(approvedSplit[3]);
         cout << "Approved Configuration " << +monitor.getApprovedConfiguration();
     }
+    // free(result);
 }
 
 void AuditorRequestHandler::startAuditorRequestHandler(AuditorRequestHandler auditorRequestHandler) {

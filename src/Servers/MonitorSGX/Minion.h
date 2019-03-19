@@ -18,28 +18,21 @@ class Minion
 {
     private:
     string ipAddress;
-    string monitorHost;
-    string hostname;
     map<string, Application*> minionApplications;
-
-    void processAttestation(int monitorSocket);
-    bool startMonitorHandler();
-    bool startAuditingHubHandler();
 
     public:
     Minion();
-    // Minion(string ipAddress);
-    Minion(string monitorHost, string hostname, string ipAddress);
+    Minion(string ipAddress);
     Minion(const Minion&);
 
     //Getters
-    string getMonitorHost();
+    // string getMonitorHost();
     string getHostname();
     string getIpAddress();
-    // map<string, Application*> getApplications();
+    map<string, Application*> getApplications();
 
-    // void addApp(Application* app);
-    // void removeApp(string appID);
+    void addApp(Application* app);
+    void removeApp(string appID);
 };
 
 #endif

@@ -11,6 +11,8 @@
 #include "../../Utilities/Messages.h"
 #include "../../Utilities/Ports.h"
 #include "../Application/Application.h"
+#include "Enclave_u.h"
+#include "../../Utilities/SGX_Utils/sgx_utils.h"
 
 using namespace std;
 
@@ -28,7 +30,6 @@ class Minion
 
     public:
     Minion();
-    // Minion(string ipAddress);
     Minion(string monitorHost, string hostname, string ipAddress);
     Minion(const Minion&);
 
@@ -36,10 +37,6 @@ class Minion
     string getMonitorHost();
     string getHostname();
     string getIpAddress();
-    // map<string, Application*> getApplications();
-
-    // void addApp(Application* app);
-    // void removeApp(string appID);
 };
 
 #endif

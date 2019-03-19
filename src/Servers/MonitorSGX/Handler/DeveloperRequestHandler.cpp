@@ -13,6 +13,8 @@ DeveloperRequestHandler::DeveloperRequestHandler(Monitor* monitor) : monitor{mon
     std::cout << "DeveloperRequestHandler created with the name " << monitor->getHostname() << "\n";
 }
 
+sgx_enclave_id_t developerRequestHandler_eid = 0;
+
 bool DeveloperRequestHandler::sendApp(Minion* minion, string appDir){
     char* scpArgsStream;
     int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no /home/AntonioRib/%s%s %s@%s:%s%s",
@@ -151,41 +153,25 @@ bool DeveloperRequestHandler::deleteApp(string appID){
 }
 
 void DeveloperRequestHandler::processAttestation(int developerSocket) {
-    char buffer[SocketUtils::MESSAGE_BYTES];
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(developerSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Recieved: " << buffer << "\n";
 
-    string request(buffer);
-    vector<string> requestSplit = General::splitString(request);
-
-    if (requestSplit[0] == Messages::ATTEST) {
-        bzero(buffer, SocketUtils::MESSAGE_BYTES);
-        //TODO last getApprovedSHA1 must be getApprovedConfiguration instead
-        string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE + " " + monitor->getApprovedSHA1() + " " + monitor->getApprovedSHA1(); 
-        General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
-        SocketUtils::sendBuffer(developerSocket, buffer, strlen(buffer), 0);
-        if (DebugFlags::debugMonitor)
-            cout << "Wrote: " << buffer << " to client\n";
+    if (initialize_enclave(&developerRequestHandler_eid, "DeveloperRequestHandler.token", "enclave.signed.so") < 0) {
+        std::cout << "Fail to initialize enclave." << std::endl;
+        return;
     }
-
-    bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(developerSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
-    if (DebugFlags::debugMonitor)
-        cout << "Recieved: " << buffer << "\n";
-
-    string response(buffer);
-    vector<string> responseSplit = General::splitString(response);
-    if (responseSplit[0] == Messages::NOT_APPROVED) {
-        if (DebugFlags::debugMonitor)
-            cout << "Developer rejected platform attestation.\n";
-    } else if (responseSplit[0] == Messages::OK_APPROVED) {
-        if (DebugFlags::debugMonitor)
-            cout << "Developer approved platform attestation.\n";
+    
+    int result;// = (char*)malloc(sizeof(char)*SocketUtils::MESSAGE_BYTES);
+    sgx_status_t status = developerTrustedProcessAttestation(developerRequestHandler_eid, &result, developerSocket, (char*)monitor->getApprovedSHA1().c_str(), 
+                                                            (char*)monitor->getApprovedSHA1().c_str(), SocketUtils::MESSAGE_BYTES);
+    if (status != SGX_SUCCESS) {
+        std::cout << "Enclave call Failed" << std::endl;
+        return;
     }
+    std::cout << "Enclave call Success" << std::endl;
+    if(result == 0)
+        throw runtime_error("Developer rejected platform attestation\n"); 
     if (DebugFlags::debugMonitor)
-        cout << "Developer sent somehting unknown.\n";
+        cout << "Developer accepted platform attestation\n";
+    return;
 }
 
 void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandler developerRequestHandler) {
@@ -205,7 +191,6 @@ void DeveloperRequestHandler::startDeveloperRequestHandler(DeveloperRequestHandl
             cout << "Got connection from Developer\n";
 
             developerRequestHandler.processAttestation(developerSocket);
-
             char buffer[SocketUtils::MESSAGE_BYTES];
             bzero(buffer, SocketUtils::MESSAGE_BYTES);
             SocketUtils::receiveBuffer(developerSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
