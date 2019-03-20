@@ -78,7 +78,7 @@ bool SysAdminRequestHandler::setNodeUntrusted(){
     serverHost = SocketUtils::getHostByName(auditingHub->getMonitorHost());
     
     sockaddr_in monitorAddress;
-    monitorAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT);
+    monitorAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT+20);
     bcopy((char *)serverHost->h_addr, (char *)&monitorAddress.sin_addr.s_addr, serverHost->h_length);
     // int serverSocket;
     // serverSocket = SocketUtils::createServerSocket(serverAddress);
@@ -129,7 +129,7 @@ bool SysAdminRequestHandler::purgeMinion(){
     serverHost = SocketUtils::getHostByName(SysAdminRequestHandler::remoteHost);
 
     sockaddr_in monitorAddress;
-    monitorAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT);
+    monitorAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT+20);
     bcopy((char *)serverHost->h_addr, (char *)&monitorAddress.sin_addr.s_addr, serverHost->h_length);
     // int serverSocket;
     // serverSocket = SocketUtils::createServerSocket(serverAddress);

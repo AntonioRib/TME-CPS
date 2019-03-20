@@ -64,7 +64,7 @@ bool Developer::sendSyncMessageAndGetResponse(string message){
     serverHost = SocketUtils::getHostByName(monitorHost);
 
     sockaddr_in serverAddress;
-    serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_DEVELOPER_PORT);
+    serverAddress = SocketUtils::createServerAddress(Ports::MONITOR_DEVELOPER_PORT+20);
     bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
     int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
     SocketUtils::connectToServerSocket(monitorSocket, serverAddress);

@@ -74,7 +74,7 @@ bool DeveloperRequestHandler::deployApp(string appID, int instances){
                     minionHost = SocketUtils::getHostByName(minion->getIpAddress());
 
                     sockaddr_in minionAddress;
-                    minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
+                    minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT+20);
                     // minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
                     bcopy((char *)minionHost->h_addr, (char *)&minionAddress.sin_addr.s_addr, minionHost->h_length);
                     int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -120,7 +120,7 @@ bool DeveloperRequestHandler::deleteApp(string appID){
                     minionHost = SocketUtils::getHostByName(minion->getIpAddress());
 
                      sockaddr_in minionAddress;
-                     minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT);
+                     minionAddress = SocketUtils::createServerAddress(Ports::MINION_MONITOR_PORT+20);
                     //  minionAddress.sin_addr.s_addr = inet_addr(minion->getIpAddress().c_str());  // minion.getIpAddress();
                     bcopy((char *)minionHost->h_addr, (char *)&minionAddress.sin_addr.s_addr, minionHost->h_length);
                      int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
