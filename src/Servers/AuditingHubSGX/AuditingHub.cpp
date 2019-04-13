@@ -32,6 +32,10 @@ void ocall_socketReceiveBuffer(int minionSocket, char* buffer, size_t bufferLeng
         cout << "OCAL: Recieved from minion: " << buffer << "\n";
 }
 
+void ocall_socketReadTPM(char* tpmOut, size_t tpmOutLength){
+    std::this_thread::sleep_for (std::chrono::seconds(3));
+}
+
 
 AuditingHub::AuditingHub()
 {

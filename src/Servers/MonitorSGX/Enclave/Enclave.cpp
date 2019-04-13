@@ -37,6 +37,7 @@ bool debug = true;
 
 void trustedAttestMinion(int minionSocket, int messageLength){
     ocall_print("ENCLAVE: Attesting");
+    char* tpmOut;
     char* attestationRequestString;
     attestationRequestString = concatCharVec(MessagesSGX::ATTEST, " ");
     attestationRequestString = concatCharVec(attestationRequestString, AttestationConstantsSGX::NONCE);
@@ -127,6 +128,8 @@ int trustedAttestMinionReturn(int minionSocket, int messageLength){
 
 void trustedProcessAttestation(int clientSocket, char* result, size_t resultLength, char* nonce, int messageLength){
     ocall_print("ENCLAVE: Attesting");
+        char* tpmOut;
+        ocall_socketReadTPM(tpmOut, 0);
     char* attestationRequestString;
     attestationRequestString = concatCharVec(MessagesSGX::QUOTE, " ");
     attestationRequestString = concatCharVec(attestationRequestString, AttestationConstantsSGX::QUOTE);

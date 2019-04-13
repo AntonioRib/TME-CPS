@@ -39,6 +39,11 @@ typedef struct ms_ocall_socketReceiveBuffer_t {
 	size_t ms_bufferLength;
 } ms_ocall_socketReceiveBuffer_t;
 
+typedef struct ms_ocall_socketReadTPM_t {
+	char* ms_tpmOut;
+	size_t ms_tpmOutLength;
+} ms_ocall_socketReadTPM_t;
+
 static sgx_status_t SGX_CDECL Enclave_ocall_print(void* pms)
 {
 	ms_ocall_print_t* ms = SGX_CAST(ms_ocall_print_t*, pms);
@@ -63,15 +68,24 @@ static sgx_status_t SGX_CDECL Enclave_ocall_socketReceiveBuffer(void* pms)
 	return SGX_SUCCESS;
 }
 
+static sgx_status_t SGX_CDECL Enclave_ocall_socketReadTPM(void* pms)
+{
+	ms_ocall_socketReadTPM_t* ms = SGX_CAST(ms_ocall_socketReadTPM_t*, pms);
+	ocall_socketReadTPM(ms->ms_tpmOut, ms->ms_tpmOutLength);
+
+	return SGX_SUCCESS;
+}
+
 static const struct {
 	size_t nr_ocall;
-	void * table[3];
+	void * table[4];
 } ocall_table_Enclave = {
-	3,
+	4,
 	{
 		(void*)Enclave_ocall_print,
 		(void*)Enclave_ocall_socketSendBuffer,
 		(void*)Enclave_ocall_socketReceiveBuffer,
+		(void*)Enclave_ocall_socketReadTPM,
 	}
 };
 sgx_status_t generate_random_number(sgx_enclave_id_t eid, int* retval)

@@ -72,6 +72,11 @@ typedef struct ms_ocall_socketReceiveBuffer_t {
 	size_t ms_bufferLength;
 } ms_ocall_socketReceiveBuffer_t;
 
+typedef struct ms_ocall_socketReadTPM_t {
+	char* ms_tpmOut;
+	size_t ms_tpmOutLength;
+} ms_ocall_socketReadTPM_t;
+
 static sgx_status_t SGX_CDECL sgx_generate_random_number(void* pms)
 {
 	CHECK_REF_POINTER(pms, sizeof(ms_generate_random_number_t));
@@ -279,10 +284,11 @@ SGX_EXTERNC const struct {
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[3][5];
+	uint8_t entry_table[4][5];
 } g_dyn_entry_table = {
-	3,
+	4,
 	{
+		{0, 0, 0, 0, 0, },
 		{0, 0, 0, 0, 0, },
 		{0, 0, 0, 0, 0, },
 		{0, 0, 0, 0, 0, },
@@ -418,6 +424,55 @@ sgx_status_t SGX_CDECL ocall_socketReceiveBuffer(int monitorSocket, char* buffer
 	if (status == SGX_SUCCESS) {
 		if (buffer) {
 			if (memcpy_s((void*)buffer, _len_buffer, __tmp_buffer, _len_buffer)) {
+				sgx_ocfree();
+				return SGX_ERROR_UNEXPECTED;
+			}
+		}
+	}
+	sgx_ocfree();
+	return status;
+}
+
+sgx_status_t SGX_CDECL ocall_socketReadTPM(char* tpmOut, size_t tpmOutLength)
+{
+	sgx_status_t status = SGX_SUCCESS;
+	size_t _len_tpmOut = tpmOutLength;
+
+	ms_ocall_socketReadTPM_t* ms = NULL;
+	size_t ocalloc_size = sizeof(ms_ocall_socketReadTPM_t);
+	void *__tmp = NULL;
+
+	void *__tmp_tpmOut = NULL;
+
+	CHECK_ENCLAVE_POINTER(tpmOut, _len_tpmOut);
+
+	ocalloc_size += (tpmOut != NULL) ? _len_tpmOut : 0;
+
+	__tmp = sgx_ocalloc(ocalloc_size);
+	if (__tmp == NULL) {
+		sgx_ocfree();
+		return SGX_ERROR_UNEXPECTED;
+	}
+	ms = (ms_ocall_socketReadTPM_t*)__tmp;
+	__tmp = (void *)((size_t)__tmp + sizeof(ms_ocall_socketReadTPM_t));
+	ocalloc_size -= sizeof(ms_ocall_socketReadTPM_t);
+
+	if (tpmOut != NULL) {
+		ms->ms_tpmOut = (char*)__tmp;
+		__tmp_tpmOut = __tmp;
+		memset(__tmp_tpmOut, 0, _len_tpmOut);
+		__tmp = (void *)((size_t)__tmp + _len_tpmOut);
+		ocalloc_size -= _len_tpmOut;
+	} else {
+		ms->ms_tpmOut = NULL;
+	}
+	
+	ms->ms_tpmOutLength = tpmOutLength;
+	status = sgx_ocall(3, ms);
+
+	if (status == SGX_SUCCESS) {
+		if (tpmOut) {
+			if (memcpy_s((void*)tpmOut, _len_tpmOut, __tmp_tpmOut, _len_tpmOut)) {
 				sgx_ocfree();
 				return SGX_ERROR_UNEXPECTED;
 			}

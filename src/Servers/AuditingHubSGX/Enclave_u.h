@@ -28,6 +28,10 @@ void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_socketSendBuffer, (int monitorSocket, c
 #define OCALL_SOCKETRECEIVEBUFFER_DEFINED__
 void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_socketReceiveBuffer, (int monitorSocket, char* buffer, size_t bufferLength));
 #endif
+#ifndef OCALL_SOCKETREADTPM_DEFINED__
+#define OCALL_SOCKETREADTPM_DEFINED__
+void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_socketReadTPM, (char* tpmOut, size_t tpmOutLength));
+#endif
 
 sgx_status_t generate_random_number(sgx_enclave_id_t eid, int* retval);
 sgx_status_t sysAdminTrustedProcessAttestation(sgx_enclave_id_t eid, int* retval, int adminSocket, char* approvedSHA1, char* approvedConfiguration, int messageLength);

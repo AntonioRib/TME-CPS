@@ -12,6 +12,7 @@ AuditorRequestHandler::AuditorRequestHandler(AuditingHub* auditingHub) : auditin
 
 void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, AuditingHub& auditingHub) {
     char buffer[SocketUtils::MESSAGE_BYTES];
+    std::this_thread::sleep_for (std::chrono::seconds(3));
     std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
     // cout << "Buffer: " << buffer;

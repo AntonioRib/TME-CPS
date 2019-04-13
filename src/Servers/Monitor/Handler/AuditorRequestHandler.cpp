@@ -1,4 +1,5 @@
 #include "AuditorRequestHandler.h"
+#include <chrono>
 
 // const int MESSAGE_BYTES = 2048;
 
@@ -12,6 +13,7 @@ AuditorRequestHandler::AuditorRequestHandler(Monitor* monitor) : monitor{monitor
 
 void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, Monitor& monitor){
     char buffer[SocketUtils::MESSAGE_BYTES];
+    std::this_thread::sleep_for (std::chrono::seconds(3));
     std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);

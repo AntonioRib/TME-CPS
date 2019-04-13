@@ -35,6 +35,10 @@ void ocall_socketReceiveBuffer(int minionSocket, char* buffer, size_t bufferLeng
 }
 
 
+void ocall_socketReadTPM(char* tpmOut, size_t tpmOutLength){
+    std::this_thread::sleep_for (std::chrono::seconds(3));
+}
+
 //Constructors
 Monitor::Monitor(const Monitor& m) : username{m.username}, sshKey{m.sshKey}, hostname{m.hostname}, 
     trustedMinions{m.trustedMinions}, untrustedMinions{m.untrustedMinions}, applications{m.applications} {

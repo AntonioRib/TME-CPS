@@ -11,6 +11,6 @@ enclave {
         void ocall_print([in, string]const char* str);
         void ocall_socketSendBuffer(int monitorSocket, [in, string]char* buffer);
         void ocall_socketReceiveBuffer(int monitorSocket, [out, size=bufferLength]char* buffer, size_t bufferLength);
-       /* void ocall_socketReadTPM([out, size=bufferLength]char* tpmOut, size_t tpmOutLength); */
+        void ocall_socketReadTPM([out, size=tpmOutLength]char* tpmOut, size_t tpmOutLength);
     };
 };

@@ -24,6 +24,7 @@ int developerTrustedProcessAttestation(int developerSocket, char* approvedSHA1, 
 sgx_status_t SGX_CDECL ocall_print(const char* str);
 sgx_status_t SGX_CDECL ocall_socketSendBuffer(int monitorSocket, char* buffer);
 sgx_status_t SGX_CDECL ocall_socketReceiveBuffer(int monitorSocket, char* buffer, size_t bufferLength);
+sgx_status_t SGX_CDECL ocall_socketReadTPM(char* tpmOut, size_t tpmOutLength);
 
 #ifdef __cplusplus
 }

@@ -3,6 +3,7 @@
 #include "../../Utilities/General.h"
 #include "../../Utilities/Messages.h"
 #include "../../Utilities/Ports.h"
+#include <chrono> 
 using namespace std;
 
 // const int MESSAGE_BYTES = 2048;
@@ -146,18 +147,26 @@ int main(int argc, char* argv[]) {
                 printHelp();
             } else if (lineSeparated[0] == "attm") {
                 if(lineSeparated.size() == 2){
+                    auto start = chrono::high_resolution_clock::now(); 
                     if(DebugFlags::debugAuditor)
                         std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1] << "\n";
                     auditor->attestMonitor(lineSeparated[1].c_str());
+                    auto stop = chrono::high_resolution_clock::now(); 
+                    auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
+                    cout << "Time taken by function: " << duration.count() << " milliseconds" << endl;
                 } else {
                     std::cout << "Bad usage of command \n";
                     printHelp();
                 }
             } else if (lineSeparated[0] == "attl") {
                 if (lineSeparated.size() == 2) {
+                    auto start = chrono::high_resolution_clock::now(); 
                     if (DebugFlags::debugAuditor)
                         std::cout << "Command " << lineSeparated[0] << " " << lineSeparated[1];
                     auditor->attestAuditingHub(lineSeparated[1].c_str());
+                    auto stop = chrono::high_resolution_clock::now(); 
+                    auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
+                    cout << "Time taken by function: " << duration.count() << " milliseconds" << endl;
                 } else {
                     std::cout << "Bad usage of command \n";
                     printHelp();
