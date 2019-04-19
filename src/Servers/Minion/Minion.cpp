@@ -56,6 +56,12 @@ void Minion::processAttestation(int monitorSocket){
     vector<string> requestSplit = General::splitString(request);
 
     if (requestSplit[0] == Messages::ATTEST){
+        // TPM2B_ATTEST *quoted = NULL;
+	    // TPMT_SIGNATURE *signature = NULL;
+        // TPM::tpm_quote(quoted, signature);
+    	// cout << "quoted: " << quoted << "\n";
+        // cout << "signature: " << quoted << "\n";
+        std::this_thread::sleep_for (std::chrono::seconds(2));
         std::string response = Messages::QUOTE + " " + AttestationConstants::QUOTE;
         General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);

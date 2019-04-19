@@ -46,7 +46,7 @@
 #endif
 
 #define xstr(s) str(s)
-#define str(s) #s
+#define stri(s) #s
 
 #define UNUSED(x) (void)x
 

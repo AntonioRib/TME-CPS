@@ -184,11 +184,11 @@ void printHelp() {
 
 int main(int argc, char* argv[]) {
 
-    TPM2B_ATTEST *quoted = NULL;
-	TPMT_SIGNATURE *signature = NULL;
-    TPM::tpm_quote(quoted, signature);
-    	cout << "quoted: " << quoted << "\n";
-        cout << "signature: " << quoted << "\n";
+    // TPM2B_ATTEST *quoted = NULL;
+	// TPMT_SIGNATURE *signature = NULL;
+    // TPM::tpm_quote(quoted, signature);
+    // 	cout << "quoted: " << quoted << "\n";
+    //     cout << "signature: " << quoted << "\n";
 
     string monitorHost;
     string username;

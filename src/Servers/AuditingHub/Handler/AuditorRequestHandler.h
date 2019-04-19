@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <iostream>
 #include "../AuditingHub.h"
+#include "../../../Utilities/TPM.h"
 
 class AuditorRequestHandler {
     //TODO this class needs to be checked better

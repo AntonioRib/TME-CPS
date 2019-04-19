@@ -12,7 +12,14 @@ AuditorRequestHandler::AuditorRequestHandler(AuditingHub* auditingHub) : auditin
 
 void AuditorRequestHandler::processAttestation(int clientSocket, std::string nonce, AuditingHub& auditingHub) {
     char buffer[SocketUtils::MESSAGE_BYTES];
-    std::this_thread::sleep_for (std::chrono::seconds(3));
+    
+    // TPM2B_ATTEST *quoted = NULL;
+	// TPMT_SIGNATURE *signature = NULL;
+    // TPM::tpm_quote(quoted, signature);
+    // 	cout << "quoted: " << quoted << "\n";
+    //     cout << "signature: " << quoted << "\n";
+    std::this_thread::sleep_for (std::chrono::seconds(2));
+
     std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
     // cout << "Buffer: " << buffer;

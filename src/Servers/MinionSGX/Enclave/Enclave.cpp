@@ -37,6 +37,8 @@ bool debug = true;
 
 int minionMonitorRequestTrustedProcessAttestation(int monitorSocket, int messageLength){
     ocall_print("ENCLAVE: Attesting");
+    char* tpmOut;
+    ocall_socketReadTPM(tpmOut, 0);
 
     char* configurationString;
     configurationString = concatCharVec(MessagesSGX::QUOTE, " ");
@@ -73,6 +75,9 @@ int minionMonitorRequestTrustedProcessAttestation(int monitorSocket, int message
 
 int minionTrustedProcessAttestation(int monitorSocket, int messageLength){
     ocall_print("ENCLAVE: Attesting");
+    char* tpmOut;
+    ocall_socketReadTPM(tpmOut, 0);
+    
     char buffer[messageLength];
     ocall_socketReceiveBuffer(monitorSocket, buffer, messageLength);
     if (debug){

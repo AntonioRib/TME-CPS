@@ -44,7 +44,7 @@ struct tpm_quote_ctx {
 	} flags;
 };
 
-static ESYS_CONTEXT* ctx_init(TSS2_TCTI_CONTEXT *tcti_ctx) {
+inline static ESYS_CONTEXT* ctx_init(TSS2_TCTI_CONTEXT *tcti_ctx) {
 
 	TSS2_ABI_VERSION abi_version = SUPPORTED_ABI_VERSION;
 	ESYS_CONTEXT *esys_ctx;
@@ -59,9 +59,9 @@ static ESYS_CONTEXT* ctx_init(TSS2_TCTI_CONTEXT *tcti_ctx) {
 
 
 static tpm_quote_ctx ctx;
-extern bool output_enabled = true;
+inline bool output_enabled = true;
 
-void tpm_quote(TPM2B_ATTEST *quoted, TPMT_SIGNATURE *signature){
+inline void tpm_quote(TPM2B_ATTEST *quoted, TPMT_SIGNATURE *signature){
     // ESYS_CONTEXT *esys_context = (ESYS_CONTEXT *) * state;
 	ESYS_CONTEXT *ectx;
     TSS2_TCTI_CONTEXT *tcti;
@@ -85,8 +85,8 @@ void tpm_quote(TPM2B_ATTEST *quoted, TPMT_SIGNATURE *signature){
 		&ctx.qualifyingData, &inScheme, &ctx.pcrSelections,
 		&quoted, &signature);
 
-	cout << "Quoted: " << (TPM2B *)quoted << "\n";
-	cout << "Signature: " << signature << "\n";
+	// cout << "Quoted: " << (TPM2B *)quoted << "\n";
+	// cout << "Signature: " << signature << "\n";
     return;
 
 	// free(quoted);

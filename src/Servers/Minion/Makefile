@@ -21,7 +21,7 @@ BIN=$(BINDIR)/Minion
 all: $(BIN) 
 
 $(BIN): $(OBJ)
-	$(LINK) $(BIN) $(OBJ)
+	$(LINK) $(BIN) $(OBJ) -ltss2-mu  -ltss2-sys -ltss2-esys -ltss2-tcti-device -ltss2-tcti-mssim -L/usr/local/lib/ 
 
 $(OBJDIR)/%.o:	$(SRCDIR)/%.cpp
 	$(COMPILE) $< -o $@

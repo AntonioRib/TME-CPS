@@ -1,6 +1,7 @@
 #include "Minion.h"
 #include "Handler/MinionAHubRequestHandler.h"
 #include "Handler/MinionMonitorRequestHandler.h"
+#include "../../Utilities/TPM.h"
 #include <iterator>
 using namespace std;
 
@@ -31,6 +32,14 @@ void ocall_socketReceiveBuffer(int minionSocket, char* buffer, size_t bufferLeng
         cout << "OCAL: Recieved from minion: " << buffer << "\n";
 }
 
+void ocall_socketReadTPM(char* tpmOut, size_t tpmOutLength){
+    TPM2B_ATTEST *quoted = NULL;
+	TPMT_SIGNATURE *signature = NULL;
+    TPM::tpm_quote(quoted, signature);
+    	// cout << "quoted: " << quoted << "\n";
+        // cout << "signature: " << quoted << "\n";
+    std::this_thread::sleep_for (std::chrono::seconds(2));
+}
 
 Minion::Minion()
 {

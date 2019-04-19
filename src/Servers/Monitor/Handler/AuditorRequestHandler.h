@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <iostream>
 #include "../Monitor.h"
+#include "../../../Utilities/TPM.h"
 
 class AuditorRequestHandler {
     Monitor* monitor;
