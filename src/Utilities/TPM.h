@@ -65,8 +65,8 @@ void tpm_quote(TPM2B_ATTEST *quoted, TPMT_SIGNATURE *signature){
     // ESYS_CONTEXT *esys_context = (ESYS_CONTEXT *) * state;
 	ESYS_CONTEXT *ectx;
     TSS2_TCTI_CONTEXT *tcti;
-    Esys_GetTcti(ectx, &tcti);
 	ectx  = ctx_init(tcti);
+    Esys_GetTcti(ectx, &tcti);
 
 	ctx.auth.session_data = TPMS_AUTH_COMMAND_INIT(TPM2_RS_PW);
 	ctx.qualifyingData = TPM2B_EMPTY_INIT;
