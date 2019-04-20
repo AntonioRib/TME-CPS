@@ -59,7 +59,7 @@ inline static ESYS_CONTEXT* ctx_init(TSS2_TCTI_CONTEXT *tcti_ctx) {
 
 
 static tpm_quote_ctx ctx;
-extern bool output_enabled = true;
+inline extern bool output_enabled = true;
 
 inline void tpm_quote(TPM2B_ATTEST *quoted, TPMT_SIGNATURE *signature){
     // ESYS_CONTEXT *esys_context = (ESYS_CONTEXT *) * state;
