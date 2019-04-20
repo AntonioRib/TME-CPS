@@ -175,6 +175,9 @@ bool SysAdminRequestHandler::purgeMinion(){
 bool SysAdminRequestHandler::launchManagementSession(){
     if (DebugFlags::debugAuditingHub)
         cout << "Will set and purge stuff.\n";
+    
+    auto start = chrono::high_resolution_clock::now(); 
+
     if(!setNodeUntrusted())
         return false;
 
@@ -183,13 +186,18 @@ bool SysAdminRequestHandler::launchManagementSession(){
     
     launchSessionProcess();
     launchLogger();
+    
+    auto stop = chrono::high_resolution_clock::now(); 
+    auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
+
+    cout << "Time taken to start session: " << duration.count() << " milliseconds" << endl;
 
     if (DebugFlags::debugAuditingHub)
         cout << "Session created. Sending prompt to admin.\n";
         
     std::this_thread::sleep_for(std::chrono::seconds(1));
     string promptString = "[" + adminUsername + "@" + remoteHost + "]> ";
-    string promptStringCmd = string("echo ") + string("\"\n") + promptString + string("\"") + "\n";
+    string promptStringCmd = string("echo ") + string("\"\n") + promptString; //+ string("\"") + "\n";
     write(processWrite[1], promptStringCmd.c_str(), strlen(promptStringCmd.c_str()));
     if (DebugFlags::debugAuditingHub)
         cout << "Wrote: " << promptStringCmd << " to Pipe\n";
