@@ -14,8 +14,10 @@ MinionMonitorRequestHandler::MinionMonitorRequestHandler(Minion* minion) : minio
 bool MinionMonitorRequestHandler::deployApp(string appId) {
     // string createString = "sudo docker build -t %s-container /home/AntonioRib/%s%s"; 
     // string deployString = "sudo docker run -p 80 -d --name %s %s-container";
+    srand (time(NULL));
+    int port = rand() % 30 + 6370;
     string createString = "sudo docker pull redis";
-    string deployString = "sudo docker run -d -p 6379:6379 -i -t redis";
+    string deployString = "sudo docker run --name "+appId+" -d -p " + std::to_string(port) + ":" + std::to_string(port) + " -i -t redis";
 
     char* createContainerArgsStream;
     int sizeCreateStream = asprintf(&createContainerArgsStream, "sudo docker pull redis", appId.c_str(), Directories::APPS_DIR_MINION.c_str(), appId.c_str());
@@ -30,7 +32,7 @@ bool MinionMonitorRequestHandler::deployApp(string appId) {
     createContainerArgsStreamCharVec[i] = NULL;
 
     char* deployContainerArgsStream;
-    int sizeDeployStream = asprintf(&deployContainerArgsStream, "sudo docker run -d -p 6379:6379 -i -t redis", appId.c_str(), appId.c_str());
+    int sizeDeployStream = asprintf(&deployContainerArgsStream, "sudo docker run --name %s -d -p %d:%d -i -t redis", appId.c_str(), port, port, appId.c_str());
     string deployContainerArgsStreamStr(deployContainerArgsStream);
     std::vector<std::string> deployContainerArgsStreamVec = General::splitString(deployContainerArgsStreamStr);
     char* deployContainerArgsStreamCharVec[deployContainerArgsStreamVec.size()];
