@@ -195,7 +195,7 @@ bool SysAdminRequestHandler::launchManagementSession(){
         
     std::this_thread::sleep_for(std::chrono::seconds(1));
     string promptString = "[" + adminUsername + "@" + remoteHost + "]> ";
-    string promptStringCmd = string("echo ") + string("\"\n") + promptString; //+ string("\"") + "\n";
+    string promptStringCmd = string("echo ") + string("\"\n") + promptString+ string("\"") + "\n";
     write(processWrite[1], promptStringCmd.c_str(), strlen(promptStringCmd.c_str()));
     if (DebugFlags::debugAuditingHub)
         cout << "Wrote: " << promptStringCmd << " to Pipe\n";
@@ -240,7 +240,7 @@ bool SysAdminRequestHandler::launchManagementSession(){
             return true;
         }
 
-        string response = hostInput + string("; echo ") + string("\"") + promptString + string("\"") + "\n";
+        string response = hostInput + string("; echo ") + string("\"\n") + promptString + string("\"") + "\n";
         write(processWrite[1], response.c_str(), strlen(response.c_str()));
          if (DebugFlags::debugAuditingHub)
             cout << "Going to log: " << "Admin->Host:\n"+hostInput << "\n";
