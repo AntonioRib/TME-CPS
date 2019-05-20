@@ -22,6 +22,7 @@ namespace Messages{
 
     //Admin -> AHub
     static const string MANAGE = "MANAGE";
+    static const string URGENTMANAGE = "URGENTMANAGE";
     static const string MANAGE_TEARDOWN = "MANAGE_TEARDOWN";
 
     //Monitor -> Minions
@@ -36,6 +37,8 @@ namespace Messages{
     static const string START_MANAGEMENTSESSION = "START_MANAGEMENTSESSION";
 
     static const string PURGE = "PURGE";
+    static const string IMPORT = "IMPORT";
+    static const string EXPORT = "EXPORT";
 
     static const string QUIT = "QUIT";
 }

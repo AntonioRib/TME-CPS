@@ -122,31 +122,30 @@ bool SysAdminRequestHandler::setNodeUntrusted(){
     return false;
 }
 
-bool SysAdminRequestHandler::purgeMinion(){
+bool SysAdminRequestHandler::exportMinion() {
     struct hostent* serverHost;
     serverHost = SocketUtils::getHostByName(SysAdminRequestHandler::remoteHost);
 
-    sockaddr_in monitorAddress;
-    monitorAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT+20);
-    bcopy((char *)serverHost->h_addr, (char *)&monitorAddress.sin_addr.s_addr, serverHost->h_length);
+    sockaddr_in minionAddress;
+    minionAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT + 20);
+    bcopy((char*)serverHost->h_addr, (char*)&minionAddress.sin_addr.s_addr, serverHost->h_length);
     // int serverSocket;
     // serverSocket = SocketUtils::createServerSocket(serverAddress);
-    int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
-    SocketUtils::connectToServerSocket(monitorSocket, monitorAddress);
+    int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
+    SocketUtils::connectToServerSocket(minionSocket, minionAddress);
     if (DebugFlags::debugAuditingHub)
         cout << "Connected to the server\n";
 
     hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
-
     char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string configuration = Messages::PURGE;
+    std::string configuration = Messages::EXPORT + " " + inet_ntoa(minionAddress.sin_addr) + " " + Directories::APPS_DIR_IMPORTEXPORT + " " + "antoniorib";
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
+    SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
     if (DebugFlags::debugAuditingHub)
         cout << "Wrote: " << buffer << " to Monitor\n";
 
     bzero(buffer, SocketUtils::MESSAGE_BYTES);
-    SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
     if (DebugFlags::debugAuditingHub)
         cout << "Recieved: " << buffer << "\n";
 
@@ -156,17 +155,113 @@ bool SysAdminRequestHandler::purgeMinion(){
     if (resultSplit[0] == Messages::NOT_OK) {
         if (DebugFlags::debugAuditingHub)
             cout << "Unsucessfull purge\n";
-        close(monitorSocket);
+        close(minionSocket);
         return false;
     } else if (resultSplit[0] == Messages::OK) {
         if (DebugFlags::debugAuditingHub)
             cout << "Sucessfull purge\n";
-        close(monitorSocket);
+        close(minionSocket);
         return true;
     }
     if (DebugFlags::debugAuditingHub)
         cout << "Unknown command about purge\n";
-    close(monitorSocket);
+    // close(minionSocket);
+    return false;
+}
+
+bool SysAdminRequestHandler::purgeMinion(){
+    struct hostent* serverHost;
+    serverHost = SocketUtils::getHostByName(SysAdminRequestHandler::remoteHost);
+
+    sockaddr_in monitorAddress;
+    monitorAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT+20);
+    bcopy((char *)serverHost->h_addr, (char *)&monitorAddress.sin_addr.s_addr, serverHost->h_length);
+    // int serverSocket;
+    // serverSocket = SocketUtils::createServerSocket(serverAddress);
+    int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
+    SocketUtils::connectToServerSocket(minionSocket, monitorAddress);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Connected to the server\n";
+
+    hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
+
+    char buffer[SocketUtils::MESSAGE_BYTES];
+    std::string configuration = Messages::PURGE;
+    General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Wrote: " << buffer << " to Monitor\n";
+
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Recieved: " << buffer << "\n";
+
+    string result(buffer);
+    vector<string> resultSplit = General::splitString(result);
+
+    if (resultSplit[0] == Messages::NOT_OK) {
+        if (DebugFlags::debugAuditingHub)
+            cout << "Unsucessfull purge\n";
+        close(minionSocket);
+        return false;
+    } else if (resultSplit[0] == Messages::OK) {
+        if (DebugFlags::debugAuditingHub)
+            cout << "Sucessfull purge\n";
+        close(minionSocket);
+        return true;
+    }
+    if (DebugFlags::debugAuditingHub)
+        cout << "Unknown command about purge\n";
+    close(minionSocket);
+    return false;
+}
+
+bool SysAdminRequestHandler::importMinion() {
+    struct hostent* serverHost;
+    serverHost = SocketUtils::getHostByName(SysAdminRequestHandler::remoteHost);
+
+    sockaddr_in minionAddress;
+    minionAddress = SocketUtils::createServerAddress(Ports::MINION_AHUB_PORT + 20);
+    bcopy((char*)serverHost->h_addr, (char*)&minionAddress.sin_addr.s_addr, serverHost->h_length);
+    // int serverSocket;
+    // serverSocket = SocketUtils::createServerSocket(serverAddress);
+    int minionSocket = socket(AF_INET, SOCK_STREAM, 0);
+    SocketUtils::connectToServerSocket(minionSocket, minionAddress);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Connected to the server\n";
+
+    hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
+
+    char buffer[SocketUtils::MESSAGE_BYTES];
+    std::string configuration = Messages::IMPORT + " " + Directories::APPS_DIR_IMPORTEXPORT;
+    General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Wrote: " << buffer << " to Monitor\n";
+
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(minionSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Recieved: " << buffer << "\n";
+
+    string result(buffer);
+    vector<string> resultSplit = General::splitString(result);
+
+    if (resultSplit[0] == Messages::NOT_OK) {
+        if (DebugFlags::debugAuditingHub)
+            cout << "Unsucessfull purge\n";
+        close(minionSocket);
+        return false;
+    } else if (resultSplit[0] == Messages::OK) {
+        if (DebugFlags::debugAuditingHub)
+            cout << "Sucessfull purge\n";
+        close(minionSocket);
+        return true;
+    }
+    if (DebugFlags::debugAuditingHub)
+        cout << "Unknown command about purge\n";
+    // close(minionSocket);
     return false;
 }
 
@@ -192,10 +287,10 @@ bool SysAdminRequestHandler::launchManagementSession(){
 
     if (DebugFlags::debugAuditingHub)
         cout << "Session created. Sending prompt to admin.\n";
-        
+
     std::this_thread::sleep_for(std::chrono::seconds(1));
     string promptString = "[" + adminUsername + "@" + remoteHost + "]> ";
-    string promptStringCmd = string("echo ") + string("\"\n") + promptString+ string("\"") + "\n";
+    string promptStringCmd = string("echo ") + string("\"\n") + promptString + string("\"") + "\n";
     write(processWrite[1], promptStringCmd.c_str(), strlen(promptStringCmd.c_str()));
     if (DebugFlags::debugAuditingHub)
         cout << "Wrote: " << promptStringCmd << " to Pipe\n";
@@ -205,12 +300,12 @@ bool SysAdminRequestHandler::launchManagementSession(){
     string hostOutput;
     std::ostringstream oss;
     char buffer[SocketUtils::MESSAGE_BYTES];
-    while(true){
+    while (true) {
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
         int nbytes = read(processRead[0], buffer, sizeof(buffer));
-        if(nbytes <= 0)
+        if (nbytes <= 0)
             nbytes = read(processReadErr[0], buffer, sizeof(buffer));
-        hostOutput = string(buffer); //READ from process
+        hostOutput = string(buffer);  //READ from process
         hostOutput.pop_back();
         oss << hostOutput;
 
@@ -223,8 +318,9 @@ bool SysAdminRequestHandler::launchManagementSession(){
             continue;
 
         if (DebugFlags::debugAuditingHub)
-            cout << "Going to log: " << "Host->Admin:\n"+oss.str() << "\n";
-        SysAdminRequestHandler::logger->info("\nHost->Admin:\n"+oss.str());
+            cout << "Going to log: "
+                 << "Host->Admin:\n" + oss.str() << "\n";
+        SysAdminRequestHandler::logger->info("\nHost->Admin:\n" + oss.str());
         oss.str(string());
 
         bzero(buffer, SocketUtils::MESSAGE_BYTES);
@@ -232,7 +328,7 @@ bool SysAdminRequestHandler::launchManagementSession(){
         hostInput = string(buffer);
         if (DebugFlags::debugAuditingHub)
             cout << "Recieved: " << buffer << "\n";
-        if (hostInput == Messages::QUIT){
+        if (hostInput == Messages::QUIT) {
             if (DebugFlags::debugAuditingHub)
                 cout << "Session has ended\n";
             //auditingHubToNodeSessionProcess destroy process
@@ -240,11 +336,98 @@ bool SysAdminRequestHandler::launchManagementSession(){
             return true;
         }
 
-        string response = hostInput + string("; echo ") + string("\"\n") + promptString + string("\"") + "\n";
+        string response = hostInput + string("; echo ") + string("\"") + promptString + string("\"") + "\n";
         write(processWrite[1], response.c_str(), strlen(response.c_str()));
-         if (DebugFlags::debugAuditingHub)
-            cout << "Going to log: " << "Admin->Host:\n"+hostInput << "\n";
-        SysAdminRequestHandler::logger->info("\nAdmin->Host:\n"+hostInput);
+        if (DebugFlags::debugAuditingHub)
+            cout << "Going to log: "
+                 << "Admin->Host:\n" + hostInput << "\n";
+        SysAdminRequestHandler::logger->info("\nAdmin->Host:\n" + hostInput);
+    }
+}
+
+bool SysAdminRequestHandler::launchUrgentManagementSession(){
+    if (DebugFlags::debugAuditingHub)
+        cout << "Will set and purge stuff.\n";
+
+    auto start = chrono::high_resolution_clock::now(); 
+
+    if(!setNodeUntrusted())
+        return false;
+
+    if(!exportMinion())
+        return false;
+
+    if (!importMinion())
+        return false;
+
+    if(!purgeMinion())
+        return false;
+    
+    launchSessionProcess();
+    launchLogger();
+    
+    auto stop = chrono::high_resolution_clock::now(); 
+    auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
+
+    cout << "Time taken to start session: " << duration.count() << " milliseconds" << endl;
+
+    if (DebugFlags::debugAuditingHub)
+        cout << "Session created. Sending prompt to admin.\n";
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    string promptString = "[" + adminUsername + "@" + remoteHost + "]> ";
+    string promptStringCmd = string("echo ") + string("\"\n") + promptString + string("\"") + "\n";
+    write(processWrite[1], promptStringCmd.c_str(), strlen(promptStringCmd.c_str()));
+    if (DebugFlags::debugAuditingHub)
+        cout << "Wrote: " << promptStringCmd << " to Pipe\n";
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    string hostInput;
+    string hostOutput;
+    std::ostringstream oss;
+    char buffer[SocketUtils::MESSAGE_BYTES];
+    while (true) {
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        int nbytes = read(processRead[0], buffer, sizeof(buffer));
+        if (nbytes <= 0)
+            nbytes = read(processReadErr[0], buffer, sizeof(buffer));
+        hostOutput = string(buffer);  //READ from process
+        hostOutput.pop_back();
+        oss << hostOutput;
+
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        General::stringToCharArray(hostOutput, buffer, SocketUtils::MESSAGE_BYTES);
+        SocketUtils::sendBuffer(adminToHubSocket, buffer, strlen(buffer), 0);
+        cout << "hostOutput: " << hostOutput << "\n";
+        cout << "promptString: " << promptString << "\n";
+        if (hostOutput.find(promptString) == std::string::npos)
+            continue;
+
+        if (DebugFlags::debugAuditingHub)
+            cout << "Going to log: "
+                 << "Host->Admin:\n" + oss.str() << "\n";
+        SysAdminRequestHandler::logger->info("\nHost->Admin:\n" + oss.str());
+        oss.str(string());
+
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        SocketUtils::receiveBuffer(adminToHubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+        hostInput = string(buffer);
+        if (DebugFlags::debugAuditingHub)
+            cout << "Recieved: " << buffer << "\n";
+        if (hostInput == Messages::QUIT) {
+            if (DebugFlags::debugAuditingHub)
+                cout << "Session has ended\n";
+            //auditingHubToNodeSessionProcess destroy process
+            auditingHub->removeSession(remoteHost);
+            return true;
+        }
+
+        string response = hostInput + string("; echo ") + string("\"") + promptString + string("\"") + "\n";
+        write(processWrite[1], response.c_str(), strlen(response.c_str()));
+        if (DebugFlags::debugAuditingHub)
+            cout << "Going to log: "
+                 << "Admin->Host:\n" + hostInput << "\n";
+        SysAdminRequestHandler::logger->info("\nAdmin->Host:\n" + hostInput);
     }
 }
 
@@ -318,7 +501,7 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
             vector<string> commandSplit = General::splitString(command);
             bzero(buffer, SocketUtils::MESSAGE_BYTES);
 
-            if (commandSplit[0].find(Messages::MANAGE) == string::npos) {
+            if (commandSplit[0].find(Messages::MANAGE) == string::npos && commandSplit[0].find(Messages::URGENTMANAGE) == string::npos) {
                 std::string response = Messages::NOT_OK;
                 bzero(buffer, SocketUtils::MESSAGE_BYTES);
                 General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
@@ -328,6 +511,7 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
                 return;
             }
 
+            bool urgentSession = commandSplit[0].find(Messages::URGENTMANAGE) != string::npos;
             sysAdminRequestHandler.adminUsername = commandSplit[1];
             sysAdminRequestHandler.remoteHost = commandSplit[2];
 
@@ -341,7 +525,11 @@ void SysAdminRequestHandler::startSysAdminRequestHandler(SysAdminRequestHandler 
                     cout << "Wrote: " << buffer << " to client\n";
             }
 
-            launchManagementSessionResult = sysAdminRequestHandler.launchManagementSession();
+            if(urgentSession)
+                launchManagementSessionResult = sysAdminRequestHandler.launchUrgentManagementSession();
+            else
+                launchManagementSessionResult = sysAdminRequestHandler.launchManagementSession();
+
             if (launchManagementSessionResult){
                 std::string response = Messages::OK;
                 bzero(buffer, SocketUtils::MESSAGE_BYTES);

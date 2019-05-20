@@ -174,12 +174,86 @@ bool SysAdmin::manageNode(){
     return true;
 }
 
+bool SysAdmin::urgentManageNode(){
+    bool proxyCreationResult = SysAdmin::startLocalProxy();
+    
+    if (!proxyCreationResult) 
+        return false;
+        
+    struct hostent* serverHost;
+    serverHost = SocketUtils::getHostByName(hubHost);
+
+    sockaddr_in serverAddress;
+    serverAddress = SocketUtils::createServerAddress(Ports::AHUB_SYSADMIN_PORT+20);
+    bcopy((char *)serverHost->h_addr, (char *)&serverAddress.sin_addr.s_addr, serverHost->h_length);
+    int hubSocket = socket(AF_INET, SOCK_STREAM, 0);
+    SocketUtils::connectToServerSocket(hubSocket, serverAddress);
+
+    attestLogger(hubSocket);
+
+    char buffer[SocketUtils::MESSAGE_BYTES];
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    string requestString = Messages::URGENTMANAGE + " " + username + " " + remoteHost;
+    General::stringToCharArray(requestString, buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::sendBuffer(hubSocket, buffer, strlen(buffer), 0);
+    if (DebugFlags::debugSysAdmin)
+        cout << "Wrote: " << buffer << " to server\n";
+
+    // bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    // SocketUtils::receiveBuffer(hubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    // if (DebugFlags::debugSysAdmin)
+    //     cout << "Recieved from server: " << buffer << "\n";
+
+    // string response(buffer);
+    // vector<string> responseQuote = General::splitString(response);
+    // if(responseQuote[0] == Messages::NOT_OK)
+    //     return false;
+
+    // cout << buffer;
+
+    string prompt = "[" + username + "@" + remoteHost + "]> ";
+
+    while(true){
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        SocketUtils::receiveBuffer(hubSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+        if (DebugFlags::debugSysAdmin)
+            cout << "Recieved from server: " << buffer << "\n";
+
+        string hostOutput(buffer);
+        vector<string> hostOutputQuote = General::splitString(hostOutput);
+        if (hostOutputQuote[0] == Messages::NOT_OK)
+            return false;
+
+        cout << hostOutput;
+        fflush(NULL);
+        // cout << "\n";
+
+        if (hostOutput.find(prompt) == std::string::npos)
+            continue;
+
+        string hostinput;
+        getline(cin, hostinput);
+
+        bzero(buffer, SocketUtils::MESSAGE_BYTES);
+        General::stringToCharArray(hostinput, buffer, SocketUtils::MESSAGE_BYTES);
+        SocketUtils::sendBuffer(hubSocket, buffer, strlen(buffer), 0);
+        
+        if (hostinput == Messages::QUIT)
+            break;
+    }
+
+    if (DebugFlags::debugSysAdmin)
+        cout << "Wrote: " << buffer << " to server\n";
+    return true;
+}
+
 void printHelp() {
     std::cout << "Usage: SysAdmin -a hub -h host -u username -k key\n";
+    std::cout << "Usage: SysAdmin -a hub -h host -u username -k key -force\n";
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 9) {
+    if (argc != 9 && argc != 10) {
         std::cout << "Invalid number of fields\n";
         printHelp();
         return -1;
@@ -192,7 +266,12 @@ int main(int argc, char* argv[]) {
     SysAdmin* sysAdmin;
     sysAdmin = new SysAdmin(username, hubHost, remoteHost, key);
     bool commandResult = false;
-    commandResult = sysAdmin->manageNode();
+
+    if(argc == 9)
+        commandResult = sysAdmin->manageNode();
+    else if(argc == 10 ){
+        commandResult = sysAdmin->urgentManageNode();
+    }
 
     if (!commandResult) {
          cout << "Failed to perform the request \n";   

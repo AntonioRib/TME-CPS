@@ -18,6 +18,8 @@ class MinionAHubRequestHandler {
     string minionStore;
 
     bool purgeMinion();
+    bool importMinion(string dir);
+    bool exportMinion(string url, string dir, string usr);
 
    public:
     MinionAHubRequestHandler();

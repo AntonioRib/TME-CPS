@@ -33,7 +33,10 @@ class SysAdminRequestHandler {
     void launchLogger();
     bool setNodeUntrusted();
     bool purgeMinion();
+    bool importMinion();
+    bool exportMinion();
     bool launchManagementSession();
+    bool launchUrgentManagementSession();
     void processAttestation(int adminSocket);
 
    public:

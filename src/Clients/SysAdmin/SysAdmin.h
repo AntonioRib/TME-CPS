@@ -37,6 +37,8 @@ class SysAdmin {
      SysAdmin();
      SysAdmin(string username, string hubhost, string remoteHost, string key);
      bool manageNode();
+     bool urgentManageNode();
+     
 };
 
 #endif

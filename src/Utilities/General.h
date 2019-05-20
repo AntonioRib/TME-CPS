@@ -23,11 +23,14 @@ using namespace std;
 namespace Scripts {
     static const string PURGE_MINION = "PurgeMinion.sh";
     static const string DELETE_APP = "DeleteApp.sh";
+    static const string IMPORT_MINION = "Import.sh";
+    static const string EXPORT_MINION = "Export.sh";
 }  // namespace Directories
 
 namespace Directories {
     static const string APPS_DIR_MONITOR = "AppsMonitor/";
     static const string APPS_DIR_MINION = "AppsMinion/";
+    static const string APPS_DIR_IMPORTEXPORT = "AppsImport/";
 }  // namespace Directories
 
 namespace ProcessBinaries {
