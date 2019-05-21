@@ -15,7 +15,7 @@ DeveloperRequestHandler::DeveloperRequestHandler(Monitor* monitor) : monitor{mon
 
 bool DeveloperRequestHandler::sendApp(Minion* minion, string appDir){
     char* scpArgsStream;
-    int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no /home/AntonioRib/%s%s %s@%s:%s%s",
+    int size = asprintf(&scpArgsStream, "%s -r -i %s -oStrictHostKeyChecking=no ./%s%s %s@%s:%s%s",
                         ProcessBinaries::SCP.c_str(), sshKey.c_str(), Directories::APPS_DIR_MONITOR.c_str(), appDir.c_str(),
                         username.c_str(), minion->getIpAddress().c_str(), Directories::APPS_DIR_MINION.c_str(), appDir.c_str());
     string scpArgsStreamStr(scpArgsStream);
