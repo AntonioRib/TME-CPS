@@ -52,8 +52,8 @@ Minion::Minion(const Minion &m) : monitorHost{m.monitorHost}, hostname{m.hostnam
     Minion::startAuditingHubHandler();
 }
 
-Minion::Minion(string monitorHost, string hostname, string ipAddress) : monitorHost{monitorHost}, hostname{hostname} {
-    std::cout << "Minion created with the name " << Minion::monitorHost << " - string constructor \n";
+Minion::Minion(string monitorHost, string hostname, string ipAddress) : monitorHost{monitorHost}, hostname{hostname}, ipAddress{ipAddress} {
+    std::cout << "Minion created with the name " << Minion::hostname << " - " << Minion::ipAddress << " string constructor \n";
     bool handlersStartResult = true;
     handlersStartResult &= Minion::startMonitorHandler();
     handlersStartResult &= Minion::startAuditingHubHandler();
@@ -115,7 +115,7 @@ bool Minion::startMonitorHandler(){
     processAttestation(monitorSocket);
 
     char buffer[SocketUtils::MESSAGE_BYTES];
-    string registerString = Messages::REGISTER;
+    string registerString = Messages::REGISTER + " " + Minion::ipAddress;
     General::stringToCharArray(registerString, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
 

@@ -72,8 +72,10 @@ void MinionRequestHandler::startMinionRequestHandler(MinionRequestHandler minion
                 socklen_t len = sizeof(serverAddress);
                 char ip[32];
                 getpeername(minionSocket, (struct sockaddr*)&serverAddress, &len);
-                inet_ntop(AF_INET, &serverAddress.sin_addr, ip, sizeof(ip));
-                string minionAddress(ip);
+                // inet_ntop(AF_INET, &serverAddress.sin_addr, ip, sizeof(ip));
+                // string minionAddress(ip);
+                // string minionAddress(inet_ntoa(serverAddress.sin_addr));
+                string minionAddress = commandSplit[1];
                 if (DebugFlags::debugMonitor)
                     cout << "Registering: " << minionAddress << "\n";
                 minionRequestHandler.monitor->addNewMinion(minionAddress);
