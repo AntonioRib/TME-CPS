@@ -39,6 +39,12 @@ typedef struct ms_minionTrustedProcessAttestation_t {
 	int ms_messageLength;
 } ms_minionTrustedProcessAttestation_t;
 
+typedef struct ms_minionAuditorRequestTrustedProcessAttestation_t {
+	int ms_retval;
+	int ms_monitorSocket;
+	int ms_messageLength;
+} ms_minionAuditorRequestTrustedProcessAttestation_t;
+
 typedef struct ms_ocall_print_t {
 	const char* ms_str;
 } ms_ocall_print_t;
@@ -113,28 +119,47 @@ static sgx_status_t SGX_CDECL sgx_minionTrustedProcessAttestation(void* pms)
 	return status;
 }
 
+static sgx_status_t SGX_CDECL sgx_minionAuditorRequestTrustedProcessAttestation(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_minionAuditorRequestTrustedProcessAttestation_t));
+	//
+	// fence after pointer checks
+	//
+	sgx_lfence();
+	ms_minionAuditorRequestTrustedProcessAttestation_t* ms = SGX_CAST(ms_minionAuditorRequestTrustedProcessAttestation_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+
+
+
+	ms->ms_retval = minionAuditorRequestTrustedProcessAttestation(ms->ms_monitorSocket, ms->ms_messageLength);
+
+
+	return status;
+}
+
 SGX_EXTERNC const struct {
 	size_t nr_ecall;
-	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[3];
+	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[4];
 } g_ecall_table = {
-	3,
+	4,
 	{
 		{(void*)(uintptr_t)sgx_generate_random_number, 0},
 		{(void*)(uintptr_t)sgx_minionMonitorRequestTrustedProcessAttestation, 0},
 		{(void*)(uintptr_t)sgx_minionTrustedProcessAttestation, 0},
+		{(void*)(uintptr_t)sgx_minionAuditorRequestTrustedProcessAttestation, 0},
 	}
 };
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[4][3];
+	uint8_t entry_table[4][4];
 } g_dyn_entry_table = {
 	4,
 	{
-		{0, 0, 0, },
-		{0, 0, 0, },
-		{0, 0, 0, },
-		{0, 0, 0, },
+		{0, 0, 0, 0, },
+		{0, 0, 0, 0, },
+		{0, 0, 0, 0, },
+		{0, 0, 0, 0, },
 	}
 };
 

@@ -16,9 +16,11 @@ void AuditorRequestHandler::processAttestation(int clientSocket, std::string non
     // TPM2B_ATTEST *quoted = NULL;
 	// TPMT_SIGNATURE *signature = NULL;
     // TPM::tpm_quote(quoted, signature);
-    	// cout << "quoted: " << quoted << "\n";
-        // cout << "signature: " << quoted << "\n";
-    std::this_thread::sleep_for (std::chrono::seconds(2));
+    #pragma region Debug
+    // cout << "quoted: " << quoted << "\n";
+    // cout << "signature: " << quoted << "\n";
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+#pragma endregion
     std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(clientSocket, buffer, strlen(buffer), 0);

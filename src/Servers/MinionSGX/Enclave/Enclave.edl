@@ -4,6 +4,9 @@ enclave {
         public int generate_random_number(void);
         public int minionMonitorRequestTrustedProcessAttestation(int monitorSocket, int messageLength);
         public int minionTrustedProcessAttestation(int monitorSocket, int messageLength);
+        public int minionAuditorRequestTrustedProcessAttestation(int monitorSocket, int messageLength);
+
+        
     };
 
     untrusted {

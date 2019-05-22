@@ -18,6 +18,7 @@ extern "C" {
 int generate_random_number(void);
 int minionMonitorRequestTrustedProcessAttestation(int monitorSocket, int messageLength);
 int minionTrustedProcessAttestation(int monitorSocket, int messageLength);
+int minionAuditorRequestTrustedProcessAttestation(int monitorSocket, int messageLength);
 
 sgx_status_t SGX_CDECL ocall_print(const char* str);
 sgx_status_t SGX_CDECL ocall_socketSendBuffer(int monitorSocket, char* buffer);

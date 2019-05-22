@@ -73,6 +73,44 @@ int minionMonitorRequestTrustedProcessAttestation(int monitorSocket, int message
     return result;
 }
 
+int minionAuditorRequestTrustedProcessAttestation(int monitorSocket, int messageLength) {
+    ocall_print("ENCLAVE: Attesting");
+    char* tpmOut;
+    ocall_socketReadTPM(tpmOut, 0);
+
+    char* configurationString;
+    configurationString = concatCharVec(MessagesSGX::QUOTE, " ");
+    configurationString = concatCharVec(configurationString, AttestationConstantsSGX::QUOTE);
+    ocall_socketSendBuffer(monitorSocket, configurationString);
+    if (debug) {
+        ocall_print("ENCLAVE: Wrote to Client: ");
+        ocall_print(configurationString);
+    }
+
+    char recieveBuffer[messageLength];
+    ocall_socketReceiveBuffer(monitorSocket, recieveBuffer, messageLength);
+    if (debug) {
+        ocall_print("ENCLAVE: Recieved from Client: ");
+        ocall_print(recieveBuffer);
+    }
+
+    int result = 0;
+    char** splittedResponse = splitString(recieveBuffer);
+    if (strcmp(splittedResponse[0], MessagesSGX::NOT_APPROVED) == 0) {
+        if (debug) {
+            ocall_print("ENCLAVE: Not approved ");
+        }
+        result = 0;
+    } else if (strcmp(splittedResponse[0], MessagesSGX::OK_APPROVED) == 0) {
+        if (debug) {
+            ocall_print("ENCLAVE: Approved! ");
+        }
+        result = 1;
+    }
+    free(splittedResponse);
+    return result;
+}
+
 int minionTrustedProcessAttestation(int monitorSocket, int messageLength){
     ocall_print("ENCLAVE: Attesting");
     char* tpmOut;

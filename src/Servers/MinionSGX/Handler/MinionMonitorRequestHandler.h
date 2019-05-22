@@ -1,4 +1,4 @@
-#ifndef _minionmonitorequesthandler_h_
+#ifndef _minionmonitorrequesthandler_h_
 #define _minionmonitorrequesthandler_h_
 
 #include <stdio.h>

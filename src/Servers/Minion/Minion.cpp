@@ -1,7 +1,8 @@
 #include "Minion.h"
-#include "Handler/MinionAHubRequestHandler.h"
-#include "Handler/MinionMonitorRequestHandler.h"
 #include <iterator>
+#include "Handler/MinionAHubRequestHandler.h"
+#include "Handler/MinionAuditorRequestHandler.h"
+#include "Handler/MinionMonitorRequestHandler.h"
 using namespace std;
 
 // const int MESSAGE_BYTES = 2048;
@@ -19,6 +20,7 @@ Minion::Minion(const Minion &m) : monitorHost{m.monitorHost}, hostname{m.hostnam
     // std::cout << "Minion created with the name " << Minion::name << " - copy constructor \n";
     Minion::startMonitorHandler();
     Minion::startAuditingHubHandler();
+    Minion::startAuditorHandler();
 }
 
 Minion::Minion(string monitorHost, string hostname, string ipAddress) : monitorHost{monitorHost}, hostname{hostname}, ipAddress{ipAddress} {
@@ -26,6 +28,7 @@ Minion::Minion(string monitorHost, string hostname, string ipAddress) : monitorH
     bool handlersStartResult = true;
     handlersStartResult &= Minion::startMonitorHandler();
     handlersStartResult &= Minion::startAuditingHubHandler();
+    handlersStartResult &= Minion::startAuditorHandler();
 
     if (handlersStartResult){
         while (true) {
@@ -59,9 +62,11 @@ void Minion::processAttestation(int monitorSocket){
         // TPM2B_ATTEST *quoted = NULL;
 	    // TPMT_SIGNATURE *signature = NULL;
         // TPM::tpm_quote(quoted, signature);
+        #pragma region Debug
     	// cout << "quoted: " << quoted << "\n";
         // cout << "signature: " << quoted << "\n";
         std::this_thread::sleep_for (std::chrono::seconds(2));
+        #pragma endregion
         std::string response = Messages::QUOTE + " " + AttestationConstants::QUOTE;
         General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);
         SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
@@ -132,6 +137,12 @@ bool Minion::startAuditingHubHandler(){
     return true;
 }
 
+bool Minion::startAuditorHandler() {
+    MinionAuditorRequestHandler *minionAuditorRequestHandler = new MinionAuditorRequestHandler(this);
+    std::thread minionAuditorRequestHandlerThread(MinionAuditorRequestHandler::startMinionAuditorRequestHandler, minionAuditorRequestHandler);
+    minionAuditorRequestHandlerThread.detach();
+    return true;
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 7) {

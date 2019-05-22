@@ -34,12 +34,14 @@ void ocall_socketReceiveBuffer(int minionSocket, char* buffer, size_t bufferLeng
 }
 
 void ocall_socketReadTPM(char* tpmOut, size_t tpmOutLength){
-        TPM2B_ATTEST *quoted = NULL;
+    TPM2B_ATTEST *quoted = NULL;
 	TPMT_SIGNATURE *signature = NULL;
     TPM::tpm_quote(quoted, signature);
-    	// cout << "quoted: " << quoted << "\n";
-        // cout << "signature: " << quoted << "\n";
-    std::this_thread::sleep_for (std::chrono::seconds(2));
+    #pragma region Debug
+    // cout << "quoted: " << quoted << "\n";
+    // cout << "signature: " << quoted << "\n";
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+#pragma endregion
 }
 
 

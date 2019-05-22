@@ -1,6 +1,7 @@
 #include "Minion.h"
 #include "Handler/MinionAHubRequestHandler.h"
 #include "Handler/MinionMonitorRequestHandler.h"
+#include "Handler/MinionAuditorRequestHandler.h"
 #include "../../Utilities/TPM.h"
 #include <iterator>
 using namespace std;
@@ -36,9 +37,11 @@ void ocall_socketReadTPM(char* tpmOut, size_t tpmOutLength){
     TPM2B_ATTEST *quoted = NULL;
 	TPMT_SIGNATURE *signature = NULL;
     TPM::tpm_quote(quoted, signature);
+    #pragma region Debug
     	// cout << "quoted: " << quoted << "\n";
         // cout << "signature: " << quoted << "\n";
-    std::this_thread::sleep_for (std::chrono::seconds(2));
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    #pragma endregion
 }
 
 Minion::Minion()
@@ -50,6 +53,7 @@ Minion::Minion(const Minion &m) : monitorHost{m.monitorHost}, hostname{m.hostnam
     // std::cout << "Minion created with the name " << Minion::name << " - copy constructor \n";
     Minion::startMonitorHandler();
     Minion::startAuditingHubHandler();
+    Minion::startAuditorHandler();
 }
 
 Minion::Minion(string monitorHost, string hostname, string ipAddress) : monitorHost{monitorHost}, hostname{hostname}, ipAddress{ipAddress} {
@@ -57,6 +61,7 @@ Minion::Minion(string monitorHost, string hostname, string ipAddress) : monitorH
     bool handlersStartResult = true;
     handlersStartResult &= Minion::startMonitorHandler();
     handlersStartResult &= Minion::startAuditingHubHandler();
+    handlersStartResult &= Minion::startAuditorHandler();
 
     if (handlersStartResult){
         while (true) {
@@ -147,6 +152,12 @@ bool Minion::startAuditingHubHandler(){
     return true;
 }
 
+bool Minion::startAuditorHandler() {
+    MinionAuditorRequestHandler *minionAuditorRequestHandler = new MinionAuditorRequestHandler(this);
+    std::thread minionAuditorRequestHandlerThread(MinionAuditorRequestHandler::startMinionAuditorRequestHandler, minionAuditorRequestHandler);
+    minionAuditorRequestHandlerThread.detach();
+    return true;
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 7) {

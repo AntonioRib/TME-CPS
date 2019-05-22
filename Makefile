@@ -3,6 +3,7 @@ SUBDIRS = $(wildcard src/Servers/AuditingHub/.) \
 	$(wildcard src/Servers/Monitor/.) \
 	$(wildcard src/Clients/Auditor/.) \
 	$(wildcard src/Clients/AuditorInterface/.) \
+	$(wildcard src/Clients/AuditorMinion/.) \
 	$(wildcard src/Clients/Developer/.) \
 	$(wildcard src/Clients/SysAdmin/.) \
 	$(wildcard src/Clients/DeveloperSGX/.) \
@@ -17,6 +18,7 @@ RMSUBDIRS = $(wildcard src/Servers/AuditingHub/.) \
 	$(wildcard src/Servers/Monitor/.) \
 	$(wildcard src/Clients/Auditor/.) \
 	$(wildcard src/Clients/AuditorInterface/.) \
+	$(wildcard src/Clients/AuditorMinion/.) \
 	$(wildcard src/Clients/Developer/.) \
 	$(wildcard src/Clients/SysAdmin/.) \
 	$(wildcard src/Clients/DeveloperSGX/.) \

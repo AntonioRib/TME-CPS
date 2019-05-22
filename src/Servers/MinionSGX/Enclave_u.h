@@ -36,6 +36,7 @@ void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_socketReadTPM, (char* tpmOut, size_t tp
 sgx_status_t generate_random_number(sgx_enclave_id_t eid, int* retval);
 sgx_status_t minionMonitorRequestTrustedProcessAttestation(sgx_enclave_id_t eid, int* retval, int monitorSocket, int messageLength);
 sgx_status_t minionTrustedProcessAttestation(sgx_enclave_id_t eid, int* retval, int monitorSocket, int messageLength);
+sgx_status_t minionAuditorRequestTrustedProcessAttestation(sgx_enclave_id_t eid, int* retval, int monitorSocket, int messageLength);
 
 #ifdef __cplusplus
 }

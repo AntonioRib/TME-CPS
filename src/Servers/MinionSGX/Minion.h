@@ -27,8 +27,9 @@ class Minion
     void processAttestation(int monitorSocket);
     bool startMonitorHandler();
     bool startAuditingHubHandler();
+    bool startAuditorHandler();
 
-    public:
+   public:
     Minion();
     Minion(string monitorHost, string hostname, string ipAddress);
     Minion(const Minion&);

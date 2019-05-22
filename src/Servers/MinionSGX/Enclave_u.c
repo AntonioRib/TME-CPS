@@ -17,6 +17,12 @@ typedef struct ms_minionTrustedProcessAttestation_t {
 	int ms_messageLength;
 } ms_minionTrustedProcessAttestation_t;
 
+typedef struct ms_minionAuditorRequestTrustedProcessAttestation_t {
+	int ms_retval;
+	int ms_monitorSocket;
+	int ms_messageLength;
+} ms_minionAuditorRequestTrustedProcessAttestation_t;
+
 typedef struct ms_ocall_print_t {
 	const char* ms_str;
 } ms_ocall_print_t;
@@ -108,6 +114,17 @@ sgx_status_t minionTrustedProcessAttestation(sgx_enclave_id_t eid, int* retval, 
 	ms.ms_monitorSocket = monitorSocket;
 	ms.ms_messageLength = messageLength;
 	status = sgx_ecall(eid, 2, &ocall_table_Enclave, &ms);
+	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
+	return status;
+}
+
+sgx_status_t minionAuditorRequestTrustedProcessAttestation(sgx_enclave_id_t eid, int* retval, int monitorSocket, int messageLength)
+{
+	sgx_status_t status;
+	ms_minionAuditorRequestTrustedProcessAttestation_t ms;
+	ms.ms_monitorSocket = monitorSocket;
+	ms.ms_messageLength = messageLength;
+	status = sgx_ecall(eid, 3, &ocall_table_Enclave, &ms);
 	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;
 }
