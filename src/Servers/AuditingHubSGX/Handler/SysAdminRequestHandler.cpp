@@ -140,7 +140,7 @@ bool SysAdminRequestHandler::exportMinion() {
 
     hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
     char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string configuration = Messages::EXPORT + " " + inet_ntoa(minionAddress.sin_addr) + " " + Directories::APPS_DIR_IMPORTEXPORT + " " + "antoniorib";
+    std::string configuration = Messages::EXPORT + " " + inet_ntoa(minionAddress.sin_addr) + " " + Directories::APPS_DIR_IMPORTEXPORT + " " + "root";
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
     if (DebugFlags::debugAuditingHub)
