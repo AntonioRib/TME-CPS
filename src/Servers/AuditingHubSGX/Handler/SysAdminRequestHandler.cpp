@@ -124,7 +124,58 @@ bool SysAdminRequestHandler::setNodeUntrusted(){
     return false;
 }
 
-bool SysAdminRequestHandler::exportMinion() {
+string SysAdminRequestHandler::setNodeUntrustedUrgent() {
+    struct hostent* serverHost;
+    serverHost = SocketUtils::getHostByName(auditingHub->getMonitorHost());
+
+    sockaddr_in monitorAddress;
+    monitorAddress = SocketUtils::createServerAddress(Ports::MONITOR_AHUB_PORT + 20);
+    bcopy((char*)serverHost->h_addr, (char*)&monitorAddress.sin_addr.s_addr, serverHost->h_length);
+    // int serverSocket;
+    // serverSocket = SocketUtils::createServerSocket(serverAddress);
+    int monitorSocket = socket(AF_INET, SOCK_STREAM, 0);
+    SocketUtils::connectToServerSocket(monitorSocket, monitorAddress);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Connected to the server\n";
+
+    hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
+    struct in_addr addr;
+    memcpy(&addr, rHost->h_addr_list[0], sizeof(struct in_addr));
+    string host = inet_ntoa(addr);
+
+    char buffer[SocketUtils::MESSAGE_BYTES];
+    std::string configuration = Messages::SET_UNTRUSTEDURGENT + " " + host.c_str();
+    General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::sendBuffer(monitorSocket, buffer, strlen(buffer), 0);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Wrote: " << buffer << " to Monitor\n";
+
+    bzero(buffer, SocketUtils::MESSAGE_BYTES);
+    SocketUtils::receiveBuffer(monitorSocket, buffer, SocketUtils::MESSAGE_BYTES - 1, 0);
+    if (DebugFlags::debugAuditingHub)
+        cout << "Recieved: " << buffer << "\n";
+
+    string result(buffer);
+    vector<string> resultSplit = General::splitString(result);
+
+    if (resultSplit[0] == Messages::NOT_OK) {
+        if (DebugFlags::debugAuditingHub)
+            cout << "Unsucessfull migration\n";
+        close(monitorSocket);
+        return resultSplit[1];
+    } else if (resultSplit[0] == Messages::OK) {
+        if (DebugFlags::debugAuditingHub)
+            cout << "Sucessfull migration\n";
+        close(monitorSocket);
+        return resultSplit[1];
+    }
+    if (DebugFlags::debugAuditingHub)
+        cout << "Unknown command about migration\n";
+    close(monitorSocket);
+    return "NULL";
+}
+
+bool SysAdminRequestHandler::exportMinion(string newMinion) {
     struct hostent* serverHost;
     serverHost = SocketUtils::getHostByName(SysAdminRequestHandler::remoteHost);
 
@@ -140,7 +191,8 @@ bool SysAdminRequestHandler::exportMinion() {
 
     hostent* rHost = SocketUtils::getHostByName(this->remoteHost);
     char buffer[SocketUtils::MESSAGE_BYTES];
-    std::string configuration = Messages::EXPORT + " " + inet_ntoa(minionAddress.sin_addr) + " " + Directories::APPS_DIR_IMPORTEXPORT + " " + "root";
+    // std::string configuration = Messages::EXPORT + " " + inet_ntoa(minionAddress.sin_addr) + " " + Directories::APPS_DIR_IMPORTEXPORT + " " + "root";
+    std::string configuration = Messages::EXPORT + " " + newMinion + " " + Directories::APPS_DIR_IMPORTEXPORT + " " + "root";
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
     SocketUtils::sendBuffer(minionSocket, buffer, strlen(buffer), 0);
     if (DebugFlags::debugAuditingHub)
@@ -219,7 +271,7 @@ bool SysAdminRequestHandler::purgeMinion(){
     return false;
 }
 
-bool SysAdminRequestHandler::importMinion() {
+bool SysAdminRequestHandler::importMinion(string newMinion) {
     struct hostent* serverHost;
     serverHost = SocketUtils::getHostByName(SysAdminRequestHandler::remoteHost);
 
@@ -351,13 +403,14 @@ bool SysAdminRequestHandler::launchUrgentManagementSession() {
 
     auto start = chrono::high_resolution_clock::now();
 
-    if (!setNodeUntrusted())
+    string newMinion = setNodeUntrustedUrgent();
+    if (newMinion == "NULL")
         return false;
 
-    if (!exportMinion())
+    if (!exportMinion(newMinion))
         return false;
 
-    if (!importMinion())
+    if (!importMinion(newMinion))
         return false;
 
     if (!purgeMinion())

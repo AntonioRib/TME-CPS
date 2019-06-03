@@ -91,30 +91,23 @@ bool AHubRequestHandler::deployAppOnMinion(Minion* host, string appId) {
     }
 }
 
-bool AHubRequestHandler::spawnReplacementInstances(Minion* untrustedMinion){
+string AHubRequestHandler::spawnReplacementInstances(Minion* untrustedMinion) {
     map<string, Minion*> trustedMinions = monitor->getTrustedMinions();
+    if (trustedMinions.size() == 0)
+        return "NULL";
     vector<string> trustedSet;
     for (map<string, Minion*>::iterator it = trustedMinions.begin(); it != trustedMinions.end(); ++it) {
         trustedSet.push_back(it->first);
     }
-    
     bool spawnResult = true;
     map<string, Application*> untrustedMinionApplications = untrustedMinion->getApplications();
+    string minionHandler = trustedSet.front();
+    Minion* minion = trustedMinions[minionHandler];
     for (const auto& entry : untrustedMinionApplications) {
-        vector<string> tempTrustedSet(trustedSet);
-        vector<Minion*> applicationHosts = monitor->getHosts(entry.first);
-        for (const auto& minion : applicationHosts) {
-            vector<string>::iterator positionToErase = find(tempTrustedSet.begin(), tempTrustedSet.end(), minion->getIpAddress());
-            if (positionToErase != tempTrustedSet.end())
-                tempTrustedSet.erase(positionToErase);
-            if (tempTrustedSet.size() == 0)
-                 throw runtime_error("No minions to spawn applications");
-        }
-        spawnResult &= this->deployAppOnMinion(trustedMinions.find(tempTrustedSet[0])->second, entry.first);
-        if (!spawnResult)
-            return false;
+        untrustedMinion->removeApp(entry.first);
+        minion->addApp(entry.second);
     }
-    return true;
+    return minionHandler;
 }
 
 bool AHubRequestHandler::attestMinion(std::string untrustedMinion) {
@@ -193,24 +186,34 @@ void AHubRequestHandler::startAHubRequestHandler(AHubRequestHandler aHubRequestH
             vector<string> commandSplit = General::splitString(command);
 
             bool requestResult = false;
+            string newMinion = "NULL";
             if (commandSplit[0] == Messages::SET_TRUSTED) {
                 requestResult = aHubRequestHandler.attestMinion(commandSplit[1]);
                 aHubRequestHandler.setMinionTrustedOnMonitor(commandSplit[1]);
             } else if (commandSplit[0] == Messages::SET_UNTRUSTED) {
                 aHubRequestHandler.setMinionUntrustedOnMonitor(commandSplit[1]);
                 requestResult = true;
+            } else if (commandSplit[0] == Messages::SET_UNTRUSTEDURGENT) {
+                aHubRequestHandler.setMinionUntrustedOnMonitor(commandSplit[1]);
+                Minion* untrustedMinion = aHubRequestHandler.monitor->getUntrustedMinion(commandSplit[1]);
+                newMinion = aHubRequestHandler.spawnReplacementInstances(untrustedMinion);
+                requestResult = true;
             }
 
             if (requestResult) {
                 bzero(buffer, SocketUtils::MESSAGE_BYTES);
                 std::string result = Messages::OK;
+                if (newMinion != "NULL")
+                    result = Messages::OK + " " + newMinion;
+                else
+                    result = Messages::OK + " " + commandSplit[1];
                 General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
                 SocketUtils::sendBuffer(hubSocket, buffer, strlen(buffer), 0);
                 if (DebugFlags::debugMonitor)
                     cout << "Success \n";
             } else {
                 bzero(buffer, SocketUtils::MESSAGE_BYTES);
-                std::string result = Messages::NOT_OK;
+                std::string result = Messages::NOT_OK + " NULL";
                 General::stringToCharArray(result, buffer, SocketUtils::MESSAGE_BYTES);
                 SocketUtils::sendBuffer(hubSocket, buffer, strlen(buffer), 0);
                 if (DebugFlags::debugMonitor)

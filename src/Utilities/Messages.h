@@ -19,6 +19,7 @@ namespace Messages{
     //AHub -> Monitor
     static const string SET_TRUSTED = "SET_TRUSTED";
     static const string SET_UNTRUSTED = "SET_UNTRUSTED";
+    static const string SET_UNTRUSTEDURGENT = "SET_UNTRUSTEDURGENT";
 
     //Admin -> AHub
     static const string MANAGE = "MANAGE";
