@@ -65,7 +65,6 @@ void Minion::processAttestation(int monitorSocket){
         #pragma region Debug
     	// cout << "quoted: " << quoted << "\n";
         // cout << "signature: " << quoted << "\n";
-        std::this_thread::sleep_for (std::chrono::seconds(2));
         #pragma endregion
         std::string response = Messages::QUOTE + " " + AttestationConstants::QUOTE;
         General::stringToCharArray(response, buffer, SocketUtils::MESSAGE_BYTES);

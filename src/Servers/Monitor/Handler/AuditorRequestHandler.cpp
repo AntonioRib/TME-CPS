@@ -19,7 +19,6 @@ void AuditorRequestHandler::processAttestation(int clientSocket, std::string non
     #pragma region Debug
     // cout << "quoted: " << quoted << "\n";
     // cout << "signature: " << quoted << "\n";
-    std::this_thread::sleep_for(std::chrono::seconds(2));
 #pragma endregion
     std::string configuration = Messages::QUOTE + " " + AttestationConstants::QUOTE;
     General::stringToCharArray(configuration, buffer, SocketUtils::MESSAGE_BYTES);
