@@ -52,7 +52,7 @@ In our prototype the software running on these nodes has both implementations wi
 
 It is recommended the prototype is tested on Linux environments.
 
-To compile and/or run the prototypes its needed,
+To compile and/or run the prototypes its needed:
 * C++11
 * GCC 7.3.0 - [Here](https://gcc.gnu.org/)
 * OpenSSH 7.6 - [Here](https://www.openssh.com/)
@@ -63,17 +63,17 @@ To compile and/or run the prototypes its needed,
 * spdlog a Fast C++ logging library - [Here](https://github.com/gabime/spdlog)
 * sTunnel configured with the configuration files from [here](https://github.com/AntonioRib/trustedCCEnvironment/tree/master/sTunnel)
 
-To compile and run the software compatible with [Intel SGX](https://01.org/intel-softwareguard-extensions) additionally you need,
+To compile and run the software compatible with [Intel SGX](https://01.org/intel-softwareguard-extensions) additionally you need:
 * Intel(R) SGX Driver for Linux and it's dependencies - [Here](https://github.com/intel/linux-sgx)
 * Intel(R) SGX Platform Software (PSW) for Linux and it's dependencies - [Here](https://github.com/intel/linux-sgx)
 
 ## Instructions
 
-The prototype's software can be found in the src folder.
+The prototype's software can be found in the ``` src ``` folder.
 
 ### Compiling the code
 
-After installing all the pre-requisites. All the software can be compiled at once through the use of ``` make ``` on the root folder. Each software can also be compiled separately on it's specific folder with the use of ``` make ```
+After installing all the pre-requisites, all the software can be compiled at once through the use of ``` make ``` on the root folder. Each software can also be compiled separately on it's specific folder with the use of ``` make ```
 
 To compile the prototype using Intel SGX in Simulation mode it's only needed to run 
 
@@ -87,7 +87,7 @@ After this, the enclave file should be signed with the enclave signer of Intel S
 
     make SGX_MODE=HW SGX_PRERELEASE=1
 
-This will automatically sign the enclaves with the certificates on this repository. __CAUTION:__ Even thought Pre-Release mode is the same as Releas Mode with regard to optimization and debug symbol support, the enclave will be launched in enclave-debug mode, which is suitable for performance testings but not for production builds or final product releases [[2](#references)]. 
+This will automatically sign the enclaves with the certificates on this repository. __CAUTION:__ Even thought Pre-Release mode is the same as Release Mode with regard to optimization and debug symbol support, the enclave will be launched in enclave-debug mode, which is suitable for performance testings but not for production builds or final product releases [[2](#references)]. 
 
 ### Running the software
 
@@ -141,7 +141,7 @@ The -k parameter with the key is deprecated and it's not used. The -u with the u
 
 The -k parameter with the key is deprecated and it's not used. The -u with the username parameter is used to execute the SSH commands (therefore needs a user with enough permissions). This software will start a proxy-SSH session on the specified Minion (with the flag ``` -h host ```), and to stop it the user needs to write ``` QUIT ```
 
-## Open Issues
+## Open Issues & Other Considerations
 
 * Some software parameters are left from previous implementations and are therefore useless.
 * Besides deploying the prototype the accesses and users of the OS where it runs needs to be correctly configured for the experience to be complete.
