@@ -54,7 +54,9 @@ It is recommended the prototype is tested on Linux environments.
 
 To compile and/or run the prototypes its needed,
 * C++11
-* OpenSSH - [Here](https://www.openssh.com/)
+* GCC 7.3.0 - [Here](https://gcc.gnu.org/)
+* OpenSSH 7.6 - [Here](https://www.openssh.com/)
+* Docker 18.06.1-ce - [Here](https://www.docker.com/)
 * TPM2 Software Stack (TSS2) and it's dependencies - [Here](https://github.com/tpm2-software/tpm2-tss)
 * TPM2 Access Broker & Resource Management Daemon and it's dependencies - [Here](https://github.com/tpm2-software/tpm2-abrmd)
 * _(If you dont have an Hardware with TPM2)_ TPM2 Simulator and it's dependencies - [Here](https://sourceforge.net/projects/ibmswtpm2/files/ibmtpm974.tar.gz/download?use_mirror=datapacket)
@@ -71,7 +73,7 @@ The prototype's software can be found in the src folder.
 
 ### Compiling the code
 
-All the software can be compiled at once through the use of ``` make ``` on the root folder. Each software can also be compiled separately on it's specific folder with the use of ``` make ```
+After installing all the pre-requisites. All the software can be compiled at once through the use of ``` make ``` on the root folder. Each software can also be compiled separately on it's specific folder with the use of ``` make ```
 
 To compile the prototype using Intel SGX in Simulation mode it's only needed to run 
 
@@ -115,16 +117,34 @@ This will start the Auditing Hub software. The -k parameter with the key is depr
 This will start the Minion software.
 
 #### Clients
-##### Auditor
-##### Auditor Interface
-##### AuditorMinion
+##### Auditor & AuditorMinion 
+
+These don't need any specific parameters.
+
+##### Auditor Interface 
+
+    Usage: AuditorInterface -m monitor -h hostName
+
+This will start the Auditor Interface software for the Auditing Hub where we are able to list, read and commit the logs of the administration sessions.
+
 ##### Developer
+
+    Usage to Deploy App: Developer -deploy -m monitorHost -u username -k key -a appDir -i #instances
+    Usage to Delete App: Developer -delete -m monitorHost -u username -k key -a appDir
+
+The -k parameter with the key is deprecated and it's not used. The -u with the username parameter is used to execute the SCP commands (therefore needs a user with enough permissions). The -a parameter should point to a Dockerfile, which is what will be uploaded to the servers.
+
 ##### SysAdmin
+
+    Usage for Normal Session: SysAdmin -a hub -h host -u username -k key
+    Usage for Urgent Session: SysAdmin -a hub -h host -u username -k key -force
+
+The -k parameter with the key is deprecated and it's not used. The -u with the username parameter is used to execute the SSH commands (therefore needs a user with enough permissions). This software will start a proxy-SSH session on the specified Minion (with the flag ``` -h host ```), and to stop it the user needs to write ``` QUIT ```
 
 ## Open Issues
 
 * Some software parameters are left from previous implementations and are therefore useless.
-* Besides deploying the prototype the accesses and users of the OS where it runs needs to be correctly configured for the experience to be full.
+* Besides deploying the prototype the accesses and users of the OS where it runs needs to be correctly configured for the experience to be complete.
 * For the prototype to be complete as on the source it needs sTunnel running with [Graphene-SGX](https://github.com/oscarlab/graphene/wiki/Introduction-to-Intel-SGX-Support)
 
 ## References
