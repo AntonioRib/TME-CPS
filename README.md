@@ -36,18 +36,101 @@ states of nodes, with procedures involved to assure the required liability and a
 guarantees. -->
 
 ## Architecture
+The following figure depicts the system architecture of our prototype:
+
+![System Architecture](https://github.com/AntonioRib/trustedCCEnvironment/blob/master/READMEFiles/SystemArchitecture.png)
+
+It is composed by three Clusters which all have different purposes on the infrastructure.
+* The Cluster of Nodes called Auditing & Logging Hub takes care of logging the actions of administrators on nodes on the Execution Cluster. This Cluster is the entrance of any System Administrator to work on the System. Also, all the other nodes in the other Clusters have mechanism to responsible for supporting the logging system. 
+* The System Management Cluster takes care of the management and orchestration of the Execution Cluster, meaning that it is where nodes for the Execution Cluster are initiated, removed or have their status changed. We refer to this nodes as Monitors
+* The Execution Cluster is divided onto two, part of it is dedicated for Cloud Services (such as Databases), and Cloud Applications which are the applications uploaded by Developers for the use of End-users. We refer to the nodes running the Developers applications (therefore the Nodes on the Execution Cluster) as Minions.
+
+In our prototype the software running on these nodes has both implementations with and without Intel SGX. (The Intel SGX implementations have the SGX sufix eg. MonitorSGX). Moreover, all the actors represented have their software which lets them make their actions.
+
 
 ## Pre-Requisites
 
+It is recommended the prototype is tested on Linux environments.
+
+To compile and/or run the prototypes its needed,
+* C++11
+* OpenSSH - [Here](https://www.openssh.com/)
+* TPM2 Software Stack (TSS2) and it's dependencies - [Here](https://github.com/tpm2-software/tpm2-tss)
+* TPM2 Access Broker & Resource Management Daemon and it's dependencies - [Here](https://github.com/tpm2-software/tpm2-abrmd)
+* _(If you dont have an Hardware with TPM2)_ TPM2 Simulator and it's dependencies - [Here](https://sourceforge.net/projects/ibmswtpm2/files/ibmtpm974.tar.gz/download?use_mirror=datapacket)
+* spdlog a Fast C++ logging library - [Here](https://github.com/gabime/spdlog)
+* sTunnel configured with the configuration files from [here](https://github.com/AntonioRib/trustedCCEnvironment/tree/master/sTunnel)
+
+To compile and run the software compatible with [Intel SGX](https://01.org/intel-softwareguard-extensions) additionally you need,
+* Intel(R) SGX Driver for Linux and it's dependencies - [Here](https://github.com/intel/linux-sgx)
+* Intel(R) SGX Platform Software (PSW) for Linux and it's dependencies - [Here](https://github.com/intel/linux-sgx)
+
 ## Instructions
+
+The prototype's software can be found in the src folder.
+
+### Compiling the code
+
+All the software can be compiled at once through the use of ``` make ``` on the root folder. Each software can also be compiled separately on it's specific folder with the use of ``` make ```
+
+To compile the prototype using Intel SGX in Simulation mode it's only needed to run 
+
+    make
+
+To compile the prototype using Intel SGX in Harware mode it's needed to be compiled with the flag
+
+    make SGX_MODE=HW
+
+After this, the enclave file should be signed with the enclave signer of Intel SGX SDK. In case you want to skip the signing you can compile the software with the flags
+
+    make SGX_MODE=HW SGX_PRERELEASE=1
+
+This will automatically sign the enclaves with the certificates on this repository. __CAUTION:__ Even thought Pre-Release mode is the same as Releas Mode with regard to optimization and debug symbol support, the enclave will be launched in enclave-debug mode, which is suitable for performance testings but not for production builds or final product releases [[2](#references)]. 
+
+### Running the software
+
+Before running the software, the file ``` createSystem.sh ``` should be run. This file will prepare the file system how the software expects it.
+
+After compiling the Client softwares will be built onto a the folder ``` \bin ```. The Servers softwares will be ready to use on each server folder ``` \src\Servers\<softwareFolder> ``` eg. ``` \src\Servers\Monitor ```.
+
+All the software has a help menu where they show the available commands. The next sections also show how to start each software with a bit more explanations.
+
+#### Servers
+##### Monitor
+
+    Usage: Monitor -u username -j sshKey -h host OR MonitorSGX -u username -j sshKey -h host
+
+This will start the Monitor software. The -j parameter with the sshKey is deprecated and it's not used.
+
+##### Auditing Hub
+
+    Usage: AudtingHub -u userName -k key -m monitor -h hostname OR AudtingHubSGX -u userName -k key -m monitor -h hostname
+
+This will start the Auditing Hub software. The -k parameter with the key is deprecated and it's not used. The -u with the username parameter is used to execute the SSH commands (therefore needs a user with enough permissions).
+
+##### Minion
+
+    Usage: Minion -m monitorHostName -h hostname -i ipAddress OR MinionSGX -m monitorHostName -h hostname -i ipAddress
+    
+This will start the Minion software.
+
+#### Clients
+##### Auditor
+##### Auditor Interface
+##### AuditorMinion
+##### Developer
+##### SysAdmin
 
 ## Open Issues
 
-## Source Code
+* Some software parameters are left from previous implementations and are therefore useless.
+* Besides deploying the prototype the accesses and users of the OS where it runs needs to be correctly configured for the experience to be full.
+* For the prototype to be complete as on the source it needs sTunnel running with [Graphene-SGX](https://github.com/oscarlab/graphene/wiki/Introduction-to-Intel-SGX-Support)
 
 ## References
 
 1. A. Ribeiro. Management of Trusted and Privacy Enhanced Cloud Computing Environments, MSc Thesis. Universidade Nova de Lisboa, 2019.
+2. Intel® SGX: Debug, Production, Pre-release --What's the Difference?: https://software.intel.com/en-us/blogs/2016/01/07/intel-sgx-debug-production-prelease-whats-the-difference
 
 
 ## Contact
