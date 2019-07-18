@@ -1,4 +1,4 @@
-# Trusted and Privacy Enhanced Cloud Computing Environments (trustedCCEnvironment)
+# TME/CPS - Trusted Management Environment for Cloud-Enabled PaaS Systems
 
 This repository includes all the code for the Trusted Cloud Computing Environment Prototype built for the MSc. Thesis Trusted and Privacy Enhanced Cloud Computing Environments [[1](#references)], whose purpose is to design and implement a system flexible enough to let all the needed management activities be done while at the same time protecting user data privacy conditions, and availability guarantees. 
 
