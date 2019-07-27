@@ -123,6 +123,29 @@ The -k parameter with the key is deprecated and it's not used. The -u with the u
 
 The -k parameter with the key is deprecated and it's not used. The -u with the username parameter is used to execute the SSH commands (therefore needs a user with enough permissions). This software will start a proxy-SSH session on the specified Minion (with the flag ``` -h host ```), and to stop it the user needs to write ``` QUIT ```
 
+### System Bootstrap 
+
+Before running the software, the file ``` createSystem.sh ``` should be run. This file will prepare the file system how the software expects it.
+
+After compiling the Client softwares will be built onto a the folder ``` \bin ```. The Servers softwares will be ready to use on each server folder ``` \src\Servers\<softwareFolder> ``` eg. ``` \src\Servers\Monitor ```.
+
+To start the System, first we need to start one Monitor node and an Auditing Hub node. For these to start, they need to be audited by the Auditor software. From the root directory, to start a Monitor Node (as an example, whenever there is an address to put we will use ``` 127.0.0.1 ```).
+
+    cd src/Servers/MonitorSGX
+    ./MonitorSGX -u root -j 0 -h 127.0.0.1 
+
+On a client instance, from the root directory
+    
+    ./bin/Auditor
+    attm 127.0.0.1
+
+If everything goes correct the Monitor node should have been audited and marked as trusted. The procedure is similar for an Auditing Hub node. After a Monitor node and an Auditing Hub are set up, we can set up Minion nodes. This is done, on another instance, from the root directory.
+
+    cd src/Servers/MinionSGX
+    ./MinionSGX -m 127.0.0.1 -h 127.0.0.1 -i 127.0.0.1 
+
+The Minion node should connect to the Monitor node and be verified. From here, we can start using our system normally from the Client softwares we have (AuditorMinion, AuditorInterface, Developer and System Administrator). 
+
 ## Open Issues & Other Considerations
 
 * Some software parameters are left from previous implementations and are therefore useless.
